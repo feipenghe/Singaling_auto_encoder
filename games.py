@@ -1,16 +1,16 @@
 import torch
 import numpy as np
 
-from game import Game, playing_game
+from game import Game, play_game
 from utils import get_loss_per_function, plot_losses, plot_messages_information
 
 
 def game1():
-    situation_size, message_size, prediction_size, func_size, hidden_size = 10, 1, 10, 4, 64
-    game = Game(situation_size, message_size, prediction_size, func_size, hidden_size)
+    situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 1, 10, (64, 64)
+    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
     print_first = True
     for lr in [.01, .001, .0001]:
-        playing_game(game, 1000, learning_rate=lr)
+        play_game(game, num_epochs=1000, learning_rate=lr)
         if print_first:
             print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
@@ -19,12 +19,13 @@ def game1():
 
 
 def game2():
-    situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 10, 4, 64
-    game = Game(situation_size, message_size, prediction_size, func_size, hidden_size)
+    # situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 10, 4, 64
+    situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 1, 10, (64, 64)
+    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
     print_first = True
 
     for lr in [.01, .001, .0001]:
-        playing_game(game, 1000, learning_rate=lr)
+        play_game(game, 1000, learning_rate=lr)
         if print_first:
             print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
@@ -38,7 +39,7 @@ def game3():
     game = Game(situation_size, message_size, prediction_size, func_size, hidden_size)
     print_first = True
     for lr in [.01, .001, .0001]:
-        playing_game(game, 1000, learning_rate=lr)
+        play_game(game, 1000, learning_rate=lr)
         if print_first:
             print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
@@ -51,7 +52,7 @@ def game3b():
     game = Game(situation_size, message_size, prediction_size, func_size, hidden_size)
     print_first = True
     for lr in [.01, .001, .0001]:
-        playing_game(game, 1000, learning_rate=lr)
+        play_game(game, 1000, learning_rate=lr)
         if print_first:
             print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
@@ -64,7 +65,7 @@ def game4():
     game = Game(situation_size, message_size, prediction_size, func_size, hidden_size, -1)
     print_first = True
     for lr in [.01, .001, .0001]:
-        playing_game(game, 1000, learning_rate=lr)
+        play_game(game, 1000, learning_rate=lr)
         if print_first:
             print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
@@ -77,7 +78,7 @@ def game5():
     game = Game(situation_size, message_size, prediction_size, func_size, hidden_size, 1.2)
     print_first = True
     for lr in [.01, .001, .0001]:
-        playing_game(game, 1000, learning_rate=lr)
+        play_game(game, 1000, learning_rate=lr)
         if print_first:
             print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
@@ -95,7 +96,7 @@ def game6():
         game = Game(situation_size, message_size, prediction_size, func_size, hidden_size, -1)
         print_first = True
         for lr in [.01, .001, .0001]:
-            playing_game(game, 1000, learning_rate=lr, func_out_training=[0, 1, 2, 3, 5, 7])
+            play_game(game, 1000, learning_rate=lr, func_out_training=[0, 1, 2, 3, 5, 7])
             if print_first:
                 print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
                 print_first = False
@@ -115,7 +116,7 @@ def game7():
     game = Game(situation_size, message_size, prediction_size, func_size, hidden_size)
     print_first = True
     for lr in [.01, .001, .0001]:
-        playing_game(game, 1000, learning_rate=lr)
+        play_game(game, 1000, learning_rate=lr)
         if print_first:
             print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False

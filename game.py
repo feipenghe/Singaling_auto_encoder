@@ -2,79 +2,118 @@ import torch
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
-import numpy as np
+
+
+class UpdateNetwork(nn.Module):
+    def __init__(self, situation_size, information_size, prediction_size, hidden_sizes=(64,), use_situation=True):
+        super().__init__()
+        self.hidden_sizes = hidden_sizes
+        self.use_situation = use_situation
+
+        if self.use_situation:
+            input_size = situation_size + information_size
+        else:
+            input_size = information_size
+        self.hidden_layers = nn.ModuleList([nn.Linear(input_size, self.hidden_sizes[0])])
+        for i, hidden_size in enumerate(self.hidden_sizes[1:]):
+            self.hidden_layers.append(nn.Linear(self.hidden_sizes[i], hidden_size))
+        self.hidden_layers.append(nn.Linear(self.hidden_sizes[-1], prediction_size))
+
+        print("Update layer:")
+        print(f"\tPrediction size: {prediction_size}")
+        print(f"\tHidden layers:\n{self.hidden_layers}")
+
+    def forward(self, situation, information):
+        if self.use_situation:
+            input = torch.cat((situation, information), dim=1)
+        else:
+            input = information
+
+        output = F.relu(self.hidden_layers[0](input))
+        for hidden_layer in self.hidden_layers[1:]:
+            output = F.relu(hidden_layer(output))
+        return output
 
 
 class Game(nn.Module):
-    def __init__(self, situation_size, message_size, prediction_size, func_size, hidden_size, transform=0):
+    def __init__(self, situation_size, information_size, message_size, prediction_size, hidden_sizes=(64, 64),
+                 update_network_hidden_sizes=(64,), use_situation=True, transform=0):
         super().__init__()
         self.situation_size = situation_size
+        self.information_size = information_size
         self.message_size = message_size
         self.prediction_size = prediction_size
-        self.func_size = func_size
+        self.hidden_sizes = hidden_sizes
+        self.update_network_hidden_sizes = update_network_hidden_sizes
+        self.use_situation = use_situation
         self.transform = transform
+
+        self.update_network = UpdateNetwork(situation_size, information_size, prediction_size, update_network_hidden_sizes, use_situation)
+
         self.criterion = nn.MSELoss()
         self.epoch = 0
         self.loss_list = []
 
-        self.linear1_1 = nn.Linear(situation_size + prediction_size, hidden_size)
-        self.linear1_2 = nn.Linear(hidden_size, hidden_size)
-        self.linear1_3 = nn.Linear(hidden_size, message_size)
-
-        self.linear2_1 = nn.Linear(situation_size + message_size, hidden_size)
-        self.linear2_2 = nn.Linear(hidden_size, hidden_size)
-        self.linear2_3 = nn.Linear(hidden_size, prediction_size)
-
-        # self.batchnorm = nn.BatchNorm1d(hidden_size)
-
-        self.functions = []
-        functions1 = [nn.Linear(situation_size, prediction_size) for _ in range(func_size)]
-        if transform:
-            functions2 = [nn.Linear(situation_size, prediction_size) for _ in range(func_size)]
-            for fc_i in range(func_size):
-                functions2[fc_i].weight.data = transform * functions1[fc_i].weight.data
-                functions2[fc_i].bias.data = transform * functions1[fc_i].bias.data
-                self.functions.append(functions1[fc_i])
-                self.functions.append(functions2[fc_i])
+        if self.use_situation:
+            encoder_input_size = self.situation_size + self.information_size
+            decoder_input_size = self.message_size + self.situation_size
         else:
-            self.functions = functions1
-        for func in self.functions:
-            for p in func.parameters():
-                p.detach()
-                p.requires_grad = False
-        self.func_size = len(self.functions)
+            encoder_input_size = self.information_size
+            decoder_input_size = self.message_size
 
-    def forward(self, situation, target):
-        sender_input = torch.cat((situation, target), dim=1)
-        message = F.relu(self.linear1_1(sender_input))
-        message = F.relu(self.linear1_2(message))
+        encoder_layer_dimensions = [(encoder_input_size, self.hidden_sizes[0])]
+        decoder_layer_dimensions = [(decoder_input_size, self.hidden_sizes[0])]
 
-        message = self.linear1_3(message)
+        for i, hidden_size in enumerate(self.hidden_sizes[1:]):
+            hidden_shape = (self.hidden_sizes[i], hidden_size)
+            encoder_layer_dimensions.append(hidden_shape)
+            decoder_layer_dimensions.append(hidden_shape)
+        encoder_layer_dimensions.append((self.hidden_sizes[-1], self.message_size))
+        decoder_layer_dimensions.append((self.hidden_sizes[-1], self.prediction_size))
 
-        receiver_input = torch.cat((situation, message), dim=1)
-        prediction = F.relu(self.linear2_1(receiver_input))
-        prediction = F.relu(self.linear2_2(prediction))
-        #        prediction = self.batchnorm(prediction)
-        #        See more carefully whether batchnorm, dropout, or L1/L2regularization can help
-        #        Especially with the later games, where the loss remains a bit high
-        prediction = self.linear2_3(prediction)
+        self.encoder_hidden_layers = nn.ModuleList([nn.Linear(*dimensions) for dimensions in encoder_layer_dimensions])
+        self.decoder_hidden_layers = nn.ModuleList([nn.Linear(*dimensions) for dimensions in decoder_layer_dimensions])
+
+        print("Game details:")
+        print(f"\tSituation size: {situation_size}\n\tInformation size: {information_size}\n\tMessage size: {message_size}\n\tPrediction size: {prediction_size}")
+        print(f"\tUse situation: {use_situation}")
+        print(f"Encoder layers:\n{self.encoder_hidden_layers}")
+        print(f"Decoder layers:\n{self.decoder_hidden_layers}")
+
+    def forward(self, situation, information):
+        if self.use_situation:
+            encoder_input = torch.cat((situation, information), dim=1)
+        else:
+            encoder_input = information
+
+        message = encoder_input
+        for hidden_layer in self.encoder_hidden_layers[:-1]:
+            message = F.relu(hidden_layer(message))
+        message = self.encoder_hidden_layers[-1](message)
+
+        if self.use_situation:
+            receiver_input = torch.cat((situation, message), dim=1)
+        else:
+            receiver_input = message
+
+        prediction = receiver_input
+        for hidden_layer in self.decoder_hidden_layers[:-1]:
+            prediction = F.relu(hidden_layer(prediction))
+        prediction = self.decoder_hidden_layers[-1](prediction)
         return prediction, message
 
-    def target(self, situation, switch):
-        A = torch.stack(tuple(func(situation) for func in self.functions), dim=1)
-        A = A[range(len(switch)), switch, :]
-        return A
-
-    def message(self, situation, switch):
+    def target(self, situation, information):
         with torch.no_grad():
-            target = self.target(situation, switch)
-            prediction, message = self.forward(situation, target)
-            return message, torch.round(100 * message.view(-1, self.func_size, self.message_size).transpose(0, 1))
+            return self.update_network.forward(situation, information)
 
-    def loss(self, situation, switch):
+    def message(self, situation, information):
         with torch.no_grad():
-            target = self.target(situation, switch)
-        prediction, message = self.forward(situation, target)
+            prediction, message = self.forward(situation, information)
+        return message
+
+    def loss(self, situation, information):
+        target = self.target(situation, information)
+        prediction, message = self.forward(situation, information)
         return self.criterion(prediction, target)
 
     def average_messages(self, n_examplars):
@@ -107,30 +146,37 @@ class Game(nn.Module):
         return prediction
 
 
-def playing_game(G: Game, epochs_n=1000, mini_batch_size=1000, learning_rate=0.001,
-                 loss_every=None, func_out_training=None):
-    OPTIM = optim.Adam(G.parameters(), lr=learning_rate)
+def generate_situations(batch_size, situation_size):
+    return torch.randn(batch_size, situation_size)
 
-    if func_out_training == None:
-        func_out_training = list(range(G.func_size))
-    else:
-        func_out_training = list(set(range(G.func_size)) - set(func_out_training))
 
-    for epoch in range(epochs_n):
-        OPTIM.zero_grad()
-        SITUATIONS = torch.randn(mini_batch_size, G.situation_size)
-        SWITCH = torch.tensor(np.random.choice(func_out_training, mini_batch_size))
-        #        torch.randint(high=G.func_size-func_left_out, size=(mini_batch_size,))
-        loss = G.loss(SITUATIONS, SWITCH)
+def generate_information(batch_size, information_size):
+    """Generate `batch_size` one-hot vectors of dimension `information_size`."""
+    information = torch.zeros((batch_size, information_size))
+    for i, one_hot_idx in enumerate(torch.randint(information_size, (batch_size,))):
+        information[i][one_hot_idx] = 1
+    return information
+
+
+def play_game(game: Game, num_epochs=1000, mini_batch_size=1000, learning_rate=0.001, loss_every=None):
+    optimizer = optim.Adam(game.parameters(), lr=learning_rate)
+
+    for epoch in range(num_epochs):
+        optimizer.zero_grad()
+        situations = generate_situations(mini_batch_size, game.situation_size)
+        information = generate_information(mini_batch_size, game.information_size)
+
+        loss = game.loss(situations, information)
         loss.backward()
-        OPTIM.step()
+        optimizer.step()
 
-        G.epoch += 1
+        game.epoch += 1
 
-        try:
-            if (epoch % loss_every == 0):
-                G.loss_list.append((G.epoch, loss.item()))
-        except:
+        if loss_every is not None:
+            if epoch % loss_every == 0:
+                game.loss_list.append((game.epoch, loss.item()))
+        else:
             if epoch == 0:
-                G.loss_list.append((G.epoch, loss.item()))
-    G.loss_list.append((G.epoch, loss.item()))
+                game.loss_list.append((game.epoch, loss.item()))
+
+    game.loss_list.append((game.epoch, loss.item()))
