@@ -1,56 +1,45 @@
+import logging
+import math
+from collections import defaultdict
+from typing import List, Text
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
-from game import Game, generate_information, generate_situations
+from game import Game, generate_situations
 
 
-def plot_rawPCA(game, components, exemplars_size):
-    if components.shape[1] > 1:
+def plot_raw_and_pca(data, masks: List[List[int]], labels: List[Text], title: Text):
+    if data.shape[1] > 1:
         fig, ax = plt.subplots(1, 2, figsize=(10, 4))
 
         pca_model = PCA(n_components=2, whiten=True)
-        components_pca = pca_model.fit_transform(components)
+        data_pca = pca_model.fit_transform(data)
 
-        # plot data
-        for fc in range(game.information_size):
-            MASK = [i * game.information_size + fc for i in range(exemplars_size)]
-
+        for mask, label in zip(masks, labels):
             # plot first two coordinates
-            ax[0].scatter(components[MASK, 0], components[MASK, 1], alpha=0.2, label=f"F{fc}")
+            ax[0].scatter(data[mask, 0], data[mask, 1], alpha=0.2, label=label)
             ax[0].axis('equal')
             ax[0].set(xlabel='Coordinate 1', ylabel='Coordinate 2', title='First coordinates')
 
             # plot principal components from PCA
-            ax[1].scatter(components_pca[MASK, 0], components_pca[MASK, 1], alpha=0.2, label=f"F{fc}")
+            ax[1].scatter(data_pca[mask, 0], data_pca[mask, 1], alpha=0.2, label=label)
             ax[1].axis('equal')
             ax[1].set(xlabel='Component 1', ylabel='Component 2', title='PCA')
 
     else:
         fig, ax = plt.subplots(1, 1, figsize=(5, 2))
-        # plot data
-        for fc in range(game.information_size):
-            MASK = [i * game.information_size + fc for i in range(exemplars_size)]
 
+        for mask, label in zip(masks, labels):
             # plot first (only) coordinate
-            ax.scatter(components[MASK, 0], [0] * len(MASK), alpha=0.2, label=f"F{fc}")
+            ax.scatter(data[mask, 0], [0] * len(mask), alpha=0.2, label=label)
             ax.axis('equal')
             ax.set(xlabel='Coordinate 1', ylabel='Dummy', title='First coordinate')
 
-    # if G.transform:
-    #     for fc in range(int(G.func_size / 2)):
-    #         MASK1 = [i * G.func_size + 2 * fc for i in range(exemplars_size)]
-    #         MASK2 = [i * G.func_size + 2 * fc - 1 for i in range(exemplars_size)]
-    #
-    #         X1, Y1 = np.mean(components[MASK1, 0]), np.mean(components[MASK1, 1])
-    #         X2, Y2 = np.mean(components[MASK2, 0]), np.mean(components[MASK2, 1])
-    #         ax[0].arrow(X1, Y1, X2 - X1, Y2 - Y1, head_width=.1)
-    #
-    #         X1_pca, Y1_pca = np.mean(components_pca[MASK1, 0]), np.mean(components_pca[MASK1, 1])
-    #         X2_pca, Y2_pca = np.mean(components_pca[MASK2, 0]), np.mean(components_pca[MASK2, 1])
-    #         ax[1].arrow(X1_pca, Y1_pca, X2_pca - X1_pca, Y2_pca - Y1_pca, head_width=.1)
-
+    fig.suptitle(title)
     leg = plt.legend(ncol=2, bbox_to_anchor=(1.1, .9))
 
     for lh in leg.legendHandles:
@@ -59,37 +48,144 @@ def plot_rawPCA(game, components, exemplars_size):
     plt.show()
 
 
-def plot_messages(G, exemplars_size=40):
-    situations = torch.randn(exemplars_size * G.func_size, G.situation_size)
-    func_switches = torch.cat([torch.arange(G.func_size) for _ in range(exemplars_size)])
-    messages = G.message(situations, func_switches)
-    messages = messages.numpy()
+def plot_clusters(data, labels):
+    labels_to_idx = defaultdict(list)
+    for i, label in enumerate(labels):
+        labels_to_idx[label].append(i)
 
-    plot_rawPCA(G, messages, exemplars_size)
+    labels, masks = zip(*labels_to_idx.items())
+    plot_raw_and_pca(data, masks, labels, "Clusters")
 
 
-def plot_information(G, exemplars_size = 40):
-    situations = torch.randn(exemplars_size*G.func_size, G.situation_size)
-    func_switches = torch.cat([torch.arange(G.func_size) for _ in range(exemplars_size)])
-    targets = G.target(situations, func_switches)
+def plot_information(game: Game, exemplars_size = 40):
+    situations = torch.randn(exemplars_size * game.func_size, game.situation_size)
+    func_switches = torch.cat([torch.arange(game.func_size) for _ in range(exemplars_size)])
+    targets = game.target(situations, func_switches)
     targets = targets.numpy()
 
-    plot_rawPCA(G, targets, exemplars_size)
+    masks = []
+    labels = []
+    for fc in range(game.information_size):
+        masks.append([i * game.information_size + fc for i in range(exemplars_size)])
+        labels.append(f"F{fc}")
+
+    plot_raw_and_pca(targets, masks, labels, "Targets")
+
+
+def _generate_information_situations_messages(game: Game, exemplars_size):
+    batch_size = exemplars_size * game.information_size
+    situations = generate_situations(batch_size, game.situation_size)
+
+    information = torch.zeros((batch_size, game.information_size))
+    for i in range(batch_size):
+        information[i, i % game.information_size] = 1.0
+
+    messages = game.message(situations, information)
+
+    return information, situations, messages
+
+
+def predict_information_from_messages(game: Game, exemplars_size=40) -> float:
+    information, situations, messages = _generate_information_situations_messages(game, exemplars_size)
+    batch_size = information.shape[0]
+
+    train_test_ratio = 0.7
+    num_train_samples = math.ceil(batch_size * train_test_ratio)
+
+    train_messages, test_messages = messages[:num_train_samples], messages[num_train_samples:]
+    train_information, test_information = information[:num_train_samples], information[num_train_samples:]
+
+    classifier_hidden_size = 32
+    model = torch.nn.Sequential(
+        torch.nn.Linear(game.message_size, classifier_hidden_size),
+        torch.nn.ReLU(),
+        torch.nn.Linear(classifier_hidden_size, game.information_size),
+        torch.nn.Softmax()
+    )
+    loss_func = torch.nn.MSELoss()
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    num_epochs = 1000
+    for epoch in range(num_epochs):
+        y_pred = model(train_messages)
+        loss = loss_func(y_pred, train_information)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        if epoch > 0 and epoch % 100 == 0:
+            logging.info(f"Epoch {epoch+1}:\t{loss.item():.2e}")
+
+    with torch.no_grad():
+        test_predicted = model(test_messages).numpy()
+
+    from sklearn.metrics import accuracy_score
+
+    accuracy = accuracy_score(np.argmax(test_information.numpy(), axis=1), np.argmax(test_predicted, axis=1))
+    logging.info(f"Information prediction accuracy: {accuracy}")
+    return accuracy
+
+
+def clusterize_messages(game: Game, exemplars_size=40):
+    num_clusters = game.information_size
+
+    information, situations, messages = _generate_information_situations_messages(game, exemplars_size)
+
+    k_means = KMeans(n_clusters=num_clusters)
+    labels = k_means.fit_predict(messages)
+
+    plot_clusters(messages, labels)
+
+    # Find cluster for each message.
+    message_distance_from_centers = k_means.transform(messages)
+    representative_message_idx_per_cluster = message_distance_from_centers.argmin(axis=0)
+    message_num_per_cluster = information[representative_message_idx_per_cluster,:].argmax(axis=1)
+    cluster_label_to_message_num = {cluster_num: message_num for cluster_num, message_num in enumerate(message_num_per_cluster)}
+
+    # Sample unseen messages from clusters.
+    _, test_situations, test_messages = _generate_information_situations_messages(game, exemplars_size)
+    cluster_label_per_test_message = k_means.predict(test_messages)
+
+    batch_size = test_messages.shape[0]
+    information_by_message_cluster = torch.zeros((batch_size, game.information_size))
+    for i, cluster_label in enumerate(cluster_label_per_test_message):
+        information_by_message_cluster[i, cluster_label_to_message_num[cluster_label]] = 1.0
+
+    plot_clusters(test_messages, cluster_label_per_test_message)
+
+    predictions_by_unseen_messages = game.predict_by_message(test_messages, test_situations)
+    with torch.no_grad():
+        predictions_by_inferred_information, _ = game.forward(test_situations, information_by_message_cluster)
+
+    loss_func = torch.nn.MSELoss()
+    loss = loss_func(predictions_by_unseen_messages, predictions_by_inferred_information).item()
+    logging.info(f"Loss for unseen message/information: {loss}")
+
+    return loss
 
 
 def plot_messages_information(game: Game, exemplars_size=40):
     with torch.no_grad():
-        batch_size = exemplars_size * game.information_size  # TODO: why?
+        batch_size = exemplars_size * game.information_size
         situations = generate_situations(batch_size, game.situation_size)
-        information = generate_information(batch_size, game.information_size)
+
+        information = torch.zeros((batch_size, game.information_size))
+        for i in range(batch_size):
+            information[i, i % game.information_size] = 1
 
         messages = game.message(situations, information)
         messages = messages.numpy()
-        plot_rawPCA(game, messages, exemplars_size)
+
+        message_masks = []
+        message_labels = []
+        for fc in range(game.information_size):
+            message_masks.append([i * game.information_size + fc for i in range(exemplars_size)])
+            message_labels.append(f"F{fc}")
+
+        plot_raw_and_pca(messages, message_masks, message_labels, "Messages")
 
         targets = game.target(situations, information)
-        # targets = targets.numpy()
-        # plot_rawPCA(game, targets, exemplars_size)
+        plot_raw_and_pca(targets.numpy(), message_masks, message_labels, "Targets")
 
 
 def plot_bar_list(L, L_labels=None, transform=True):

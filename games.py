@@ -1,8 +1,12 @@
-import torch
+import logging
+
 import numpy as np
+import torch
 
 from game import Game, play_game
-from utils import get_loss_per_function, plot_losses, plot_messages_information
+from utils import (clusterize_messages, get_loss_per_function, plot_losses,
+                   plot_messages_information,
+                   predict_information_from_messages)
 
 
 def game1():
@@ -12,38 +16,41 @@ def game1():
     for lr in [.01, .001, .0001]:
         play_game(game, num_epochs=1000, learning_rate=lr)
         if print_first:
-            print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
-        print(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
-    plot_messages_information(game, 40)
+        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+    plot_messages_information(game)
+    predict_information_from_messages(game)
+    clusterize_messages(game)
 
 
 def game2():
-    # situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 10, 4, 64
-    situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 1, 10, (64, 64)
+    situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 10, (64, 64)
     game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
     print_first = True
 
     for lr in [.01, .001, .0001]:
         play_game(game, 1000, learning_rate=lr)
         if print_first:
-            print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
-        print(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
 
     plot_messages_information(game, 40)
 
 
 def game3():
-    situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 2, 4, 64
-    game = Game(situation_size, message_size, prediction_size, func_size, hidden_size)
+    # situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 10, (64, 64)
+    # situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 2, 4, 64
+    situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 2, (64, 64)
+    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
     print_first = True
     for lr in [.01, .001, .0001]:
         play_game(game, 1000, learning_rate=lr)
         if print_first:
-            print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
-        print(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
     plot_messages_information(game, 40)
 
 
@@ -54,9 +61,9 @@ def game3b():
     for lr in [.01, .001, .0001]:
         play_game(game, 1000, learning_rate=lr)
         if print_first:
-            print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
-        print(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
     plot_messages_information(game, 40)
 
 
@@ -67,9 +74,9 @@ def game4():
     for lr in [.01, .001, .0001]:
         play_game(game, 1000, learning_rate=lr)
         if print_first:
-            print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
-        print(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
     plot_messages_information(game, 40)
 
 
@@ -80,9 +87,9 @@ def game5():
     for lr in [.01, .001, .0001]:
         play_game(game, 1000, learning_rate=lr)
         if print_first:
-            print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
-        print(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
     plot_messages_information(game, 40)
 
 
@@ -98,9 +105,9 @@ def game6():
         for lr in [.01, .001, .0001]:
             play_game(game, 1000, learning_rate=lr, func_out_training=[0, 1, 2, 3, 5, 7])
             if print_first:
-                print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+                logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
                 print_first = False
-            print(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+            logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
 
         all_losses.append(get_loss_per_function(game))
         # plot_messages_information(game, 40)
@@ -118,9 +125,9 @@ def game7():
     for lr in [.01, .001, .0001]:
         play_game(game, 1000, learning_rate=lr)
         if print_first:
-            print(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
-        print(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
     plot_messages_information(game, 40)
 
     # Compute the average messages
@@ -132,7 +139,7 @@ def game7():
     targets = game.target(situations, func_switches)
 
     LOSS = game.criterion(game.discrete_forward(situations, func_switches), targets).item()
-    print(f"Loss: {LOSS:.2e}")
+    logging.info(f"Loss: {LOSS:.2e}")
 
 
 if __name__ == "__main__":

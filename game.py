@@ -1,7 +1,9 @@
+import logging
+
 import torch
 import torch.nn as nn
-from torch import optim
 import torch.nn.functional as F
+from torch import optim
 
 
 class UpdateNetwork(nn.Module):
@@ -19,9 +21,9 @@ class UpdateNetwork(nn.Module):
             self.hidden_layers.append(nn.Linear(self.hidden_sizes[i], hidden_size))
         self.hidden_layers.append(nn.Linear(self.hidden_sizes[-1], prediction_size))
 
-        print("Update layer:")
-        print(f"\tPrediction size: {prediction_size}")
-        print(f"\tHidden layers:\n{self.hidden_layers}")
+        logging.info("Update network:")
+        logging.info(f"Prediction size: {prediction_size}")
+        logging.info(f"Hidden layers:\n{self.hidden_layers}")
 
     def forward(self, situation, information):
         if self.use_situation:
@@ -74,13 +76,13 @@ class Game(nn.Module):
         self.encoder_hidden_layers = nn.ModuleList([nn.Linear(*dimensions) for dimensions in encoder_layer_dimensions])
         self.decoder_hidden_layers = nn.ModuleList([nn.Linear(*dimensions) for dimensions in decoder_layer_dimensions])
 
-        print("Game details:")
-        print(f"\tSituation size: {situation_size}\n\tInformation size: {information_size}\n\tMessage size: {message_size}\n\tPrediction size: {prediction_size}")
-        print(f"\tUse situation: {use_situation}")
-        print(f"Encoder layers:\n{self.encoder_hidden_layers}")
-        print(f"Decoder layers:\n{self.decoder_hidden_layers}")
+        logging.info("Game details:")
+        logging.info(f"\nSituation size: {situation_size}\nInformation size: {information_size}\nMessage size: {message_size}\nPrediction size: {prediction_size}")
+        logging.info(f"Use situation: {use_situation}")
+        logging.info(f"Encoder layers:\n{self.encoder_hidden_layers}")
+        logging.info(f"Decoder layers:\n{self.decoder_hidden_layers}")
 
-    def forward(self, situation, information):
+    def _encoder_forward_pass(self, situation, information):
         if self.use_situation:
             encoder_input = torch.cat((situation, information), dim=1)
         else:
@@ -91,16 +93,29 @@ class Game(nn.Module):
             message = F.relu(hidden_layer(message))
         message = self.encoder_hidden_layers[-1](message)
 
-        if self.use_situation:
-            receiver_input = torch.cat((situation, message), dim=1)
-        else:
-            receiver_input = message
+        return message
 
-        prediction = receiver_input
+    def _decoder_forward_pass(self, message, situation):
+        if self.use_situation:
+            decoder_input = torch.cat((message, situation), dim=1)
+        else:
+            decoder_input = message
+
+        prediction = decoder_input
         for hidden_layer in self.decoder_hidden_layers[:-1]:
             prediction = F.relu(hidden_layer(prediction))
         prediction = self.decoder_hidden_layers[-1](prediction)
+
+        return prediction
+
+    def forward(self, situation, information):
+        message = self._encoder_forward_pass(situation, information)
+        prediction = self._decoder_forward_pass(message, situation)
         return prediction, message
+
+    def predict_by_message(self, message, situation):
+        with torch.no_grad():
+            return self._decoder_forward_pass(message, situation)
 
     def target(self, situation, information):
         with torch.no_grad():
@@ -108,8 +123,7 @@ class Game(nn.Module):
 
     def message(self, situation, information):
         with torch.no_grad():
-            prediction, message = self.forward(situation, information)
-        return message
+            return self._encoder_forward_pass(situation, information)
 
     def loss(self, situation, information):
         target = self.target(situation, information)
