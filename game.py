@@ -39,7 +39,7 @@ class UpdateNetwork(nn.Module):
 
 class Game(nn.Module):
     def __init__(self, situation_size, information_size, message_size, prediction_size, hidden_sizes=(64, 64),
-                 update_network_hidden_sizes=(64,), use_situation=True, transform=0):
+                 update_network_hidden_sizes=(64,), use_situation=True):
         super().__init__()
         self.situation_size = situation_size
         self.information_size = information_size
@@ -48,7 +48,6 @@ class Game(nn.Module):
         self.hidden_sizes = hidden_sizes
         self.update_network_hidden_sizes = update_network_hidden_sizes
         self.use_situation = use_situation
-        self.transform = transform
 
         self.update_network = UpdateNetwork(situation_size, information_size, prediction_size, update_network_hidden_sizes, use_situation)
 

@@ -1,5 +1,6 @@
 import logging
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -7,6 +8,47 @@ from game import Game, play_game
 from utils import (clusterize_messages, get_loss_per_function, plot_losses,
                    plot_messages_information,
                    predict_information_from_messages)
+
+
+def plot_loss_by_message_information_ratio():
+    start = 1
+    end = 10
+
+    situation_size = prediction_size = 10
+
+    ratios = []
+    loss_per_ratio = []
+
+    for message_size, information_size in zip(range(start, end + 1), range(end, start-1, -1)):
+        ratio = message_size/information_size
+        logging.info(f"Training information size: {information_size}, message size: {message_size}, ratio: {ratio} ")
+
+        game = Game(situation_size, information_size, message_size, prediction_size)
+
+        print_first = True
+        for lr in [.01, .001, .0001]:
+            play_game(game, num_epochs=1000, learning_rate=lr)
+            if print_first:
+                logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+                print_first = False
+            logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+
+        loss = clusterize_messages(game, exemplars_size=50)
+        logging.info(f"Loss: {loss}")
+
+        ratios.append(ratio)
+        loss_per_ratio.append(loss)
+
+        fig, ax = plt.subplots()
+        ax.plot(ratios, loss_per_ratio)
+
+        ax.set(xlabel='M/I ratio', ylabel='Prediction loss (MSE)',
+               title='Prediction loss (MSE) by M/I ratio')
+
+        ax.grid()
+        plt.show()
+
+
 
 
 def game1():
