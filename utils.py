@@ -48,13 +48,13 @@ def plot_raw_and_pca(data, masks: List[List[int]], labels: List[Text], title: Te
     plt.show()
 
 
-def plot_clusters(data, labels):
+def plot_clusters(data, labels, title="Clusters"):
     labels_to_idx = defaultdict(list)
     for i, label in enumerate(labels):
         labels_to_idx[label].append(i)
 
     labels, masks = zip(*labels_to_idx.items())
-    plot_raw_and_pca(data, masks, labels, "Clusters")
+    plot_raw_and_pca(data, masks, labels, title)
 
 
 def plot_information(game: Game, exemplars_size = 40):
@@ -134,7 +134,7 @@ def clusterize_messages(game: Game, exemplars_size=40):
     k_means = KMeans(n_clusters=num_clusters)
     labels = k_means.fit_predict(messages)
 
-    plot_clusters(messages, labels)
+    plot_clusters(messages, labels, "Training messages clusters")
 
     # Find cluster for each message.
     message_distance_from_centers = k_means.transform(messages)
@@ -151,7 +151,7 @@ def clusterize_messages(game: Game, exemplars_size=40):
     for i, cluster_label in enumerate(cluster_label_per_test_message):
         information_by_message_cluster[i, cluster_label_to_message_num[cluster_label]] = 1.0
 
-    plot_clusters(test_messages, cluster_label_per_test_message)
+    plot_clusters(test_messages, cluster_label_per_test_message, "Test message clusters")
 
     predictions_by_unseen_messages = game.predict_by_message(test_messages, test_situations)
     with torch.no_grad():

@@ -36,12 +36,12 @@ def game2():
             print_first = False
         logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
 
-    plot_messages_information(game, 40)
+    plot_messages_information(game)
+    predict_information_from_messages(game)
+    clusterize_messages(game)
 
 
 def game3():
-    # situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 10, (64, 64)
-    # situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 2, 4, 64
     situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 2, (64, 64)
     game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
     print_first = True
@@ -52,6 +52,8 @@ def game3():
             print_first = False
         logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
     plot_messages_information(game, 40)
+    predict_information_from_messages(game)
+    clusterize_messages(game)
 
 
 def game3b():
@@ -64,7 +66,9 @@ def game3b():
             logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
             print_first = False
         logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
-    plot_messages_information(game, 40)
+    plot_messages_information(game)
+    predict_information_from_messages(game)
+    clusterize_messages(game)
 
 
 def game4():
