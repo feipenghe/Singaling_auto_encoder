@@ -3,11 +3,87 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from sklearn.decomposition import PCA
 
 from game import Game, play_game
-from utils import (clusterize_messages, get_loss_per_function, plot_losses,
+from utils import (clusterize_messages,
+                   generate_information_situations_messages,
+                   get_loss_per_function, plot_losses,
                    plot_messages_information,
                    predict_information_from_messages)
+
+
+def _train_game(game: Game) -> Game:
+    print_first = True
+    for lr in [.01, .001, .0001]:
+        play_game(game, num_epochs=1000, learning_rate=lr)
+        if print_first:
+            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            print_first = False
+        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+
+    return game
+
+
+def _plot_pca_3d(x, data, xlabel, ylabel, zlabel, title):
+    pca = PCA(2)
+    predictions_pca = pca.fit_transform(data)
+
+    zs = predictions_pca[:, 0]
+    ys = predictions_pca[:, 1]
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.set(xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title)
+
+    ax.plot(x, ys, zs)
+    ax.legend()
+
+    plt.show()
+
+
+def plot_categorical_transition():
+    situation_size, information_size, message_size, prediction_size = 10, 4, 1, 10
+    game = Game(situation_size, information_size, message_size, prediction_size, use_situation=True)
+    game = _train_game(game)
+
+    _, situations, messages = generate_information_situations_messages(game, 1)
+    message_1 = messages[0]
+    situation_1 = situations[0]
+    message_2 = messages[1]
+    situation_2 = situations[1]
+
+    # Categorical transition as M changes
+
+    ts = []
+    predictions = []
+    for t in np.linspace(0, 1, 100_000):
+        message = (t * message_1) + ((1 - t) * message_2)
+        situation = (t * situation_1) + ((1 - t) * situation_2)
+
+        prediction = game.predict_by_message(torch.unsqueeze(message, dim=0), torch.unsqueeze(situation, dim=0))
+
+        ts.append(t)
+        predictions.append(prediction.view(-1).numpy())
+
+    predictions = np.array(predictions)
+    _plot_pca_3d(ts, predictions, xlabel="t", ylabel="Component 2", zlabel="Component 1", title="S+I PCA by M(t)")
+
+    # Linear transition as S+I changes
+
+    ts = []
+    predictions = []
+    prediction_1 = game.predict_by_message(torch.unsqueeze(message_1, dim=0), torch.unsqueeze(situation_1, dim=0))
+    prediction_2 = game.predict_by_message(torch.unsqueeze(message_2, dim=0), torch.unsqueeze(situation_2, dim=0))
+
+    for t in np.linspace(0, 1, 100_000):
+        prediction = (t * prediction_1) + ((1 - t) * prediction_2)
+        ts.append(t)
+        predictions.append(prediction.view(-1).numpy())
+
+    predictions = np.array(predictions)
+    _plot_pca_3d(ts, predictions, xlabel="t", ylabel="Component 2", zlabel="Component 1", title="S+I PCA by S+I(t)")
 
 
 def plot_loss_by_message_information_ratio():
@@ -24,14 +100,7 @@ def plot_loss_by_message_information_ratio():
         logging.info(f"Training information size: {information_size}, message size: {message_size}, ratio: {ratio} ")
 
         game = Game(situation_size, information_size, message_size, prediction_size)
-
-        print_first = True
-        for lr in [.01, .001, .0001]:
-            play_game(game, num_epochs=1000, learning_rate=lr)
-            if print_first:
-                logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
-                print_first = False
-            logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+        game = _train_game(game)
 
         loss = clusterize_messages(game, exemplars_size=50)
         logging.info(f"Loss: {loss}")
@@ -47,8 +116,6 @@ def plot_loss_by_message_information_ratio():
 
         ax.grid()
         plt.show()
-
-
 
 
 def game1():

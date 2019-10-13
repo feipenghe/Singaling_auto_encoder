@@ -72,7 +72,7 @@ def plot_information(game: Game, exemplars_size = 40):
     plot_raw_and_pca(targets, masks, labels, "Targets")
 
 
-def _generate_information_situations_messages(game: Game, exemplars_size):
+def generate_information_situations_messages(game: Game, exemplars_size):
     batch_size = exemplars_size * game.information_size
     situations = generate_situations(batch_size, game.situation_size)
 
@@ -86,7 +86,7 @@ def _generate_information_situations_messages(game: Game, exemplars_size):
 
 
 def predict_information_from_messages(game: Game, exemplars_size=40) -> float:
-    information, situations, messages = _generate_information_situations_messages(game, exemplars_size)
+    information, situations, messages = generate_information_situations_messages(game, exemplars_size)
     batch_size = information.shape[0]
 
     train_test_ratio = 0.7
@@ -129,7 +129,7 @@ def predict_information_from_messages(game: Game, exemplars_size=40) -> float:
 def clusterize_messages(game: Game, exemplars_size=40):
     num_clusters = game.information_size
 
-    information, situations, messages = _generate_information_situations_messages(game, exemplars_size)
+    information, situations, messages = generate_information_situations_messages(game, exemplars_size)
 
     k_means = KMeans(n_clusters=num_clusters)
     labels = k_means.fit_predict(messages)
@@ -143,7 +143,7 @@ def clusterize_messages(game: Game, exemplars_size=40):
     cluster_label_to_message_num = {cluster_num: message_num for cluster_num, message_num in enumerate(message_num_per_cluster)}
 
     # Sample unseen messages from clusters.
-    _, test_situations, test_messages = _generate_information_situations_messages(game, exemplars_size)
+    _, test_situations, test_messages = generate_information_situations_messages(game, exemplars_size)
     cluster_label_per_test_message = k_means.predict(test_messages)
 
     batch_size = test_messages.shape[0]
