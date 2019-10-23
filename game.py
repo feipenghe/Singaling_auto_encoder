@@ -56,7 +56,7 @@ class Game(nn.Module):
         self.hidden_sizes = (64, 64)  # TODO make configurable
         self.update_network_hidden_sizes = (64,)  # TODO make configurable
         self.use_situation = use_situation
-        self.use_different_contexts = use_different_contexts #TODO support
+        self.use_different_contexts = use_different_contexts  # TODO support
 
         if target_function is not None:
             self.target_function = target_function
