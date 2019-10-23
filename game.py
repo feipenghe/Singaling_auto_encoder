@@ -47,7 +47,7 @@ def make_update_network_function(situation_size, information_size, prediction_si
 
 
 class Game(nn.Module):
-    def __init__(self, situation_size, information_size, message_size, prediction_size, use_situation=True, use_different_contexts=False, target_function: Optional[Callable] = None):
+    def __init__(self, situation_size, information_size, message_size, prediction_size, use_situation=True, separate_situations=False, target_function: Optional[Callable] = None):
         super().__init__()
         self.situation_size = situation_size
         self.information_size = information_size
@@ -56,7 +56,7 @@ class Game(nn.Module):
         self.hidden_sizes = (64, 64)  # TODO make configurable
         self.update_network_hidden_sizes = (64,)  # TODO make configurable
         self.use_situation = use_situation
-        self.use_different_contexts = use_different_contexts  # TODO support
+        self.separate_situations = separate_situations  # TODO support
 
         if target_function is not None:
             self.target_function = target_function
@@ -100,9 +100,13 @@ class Game(nn.Module):
             for epoch in range(num_epochs):
                 optimizer.zero_grad()
                 situations = self.generate_situations(mini_batch_size)
+                if self.separate_situations:
+                    decoder_situations = self.generate_situations(mini_batch_size)
+                else:
+                    decoder_situations = None
                 information = self.generate_information(mini_batch_size)
 
-                loss = self.loss(situations, information)
+                loss = self.loss(situations, information, decoder_situations)
                 loss.backward()
                 optimizer.step()
 
@@ -145,9 +149,11 @@ class Game(nn.Module):
 
         return prediction
 
-    def forward(self, situation, information):
+    def forward(self, situation, information, decoder_situation=None):
         message = self._encoder_forward_pass(situation, information)
-        prediction = self._decoder_forward_pass(message, situation)
+        if decoder_situation is None:
+            decoder_situation = situation
+        prediction = self._decoder_forward_pass(message, decoder_situation)
         return prediction, message
 
     def predict_by_message(self, message, situation):
@@ -161,9 +167,9 @@ class Game(nn.Module):
         with torch.no_grad():
             return self._encoder_forward_pass(situation, information)
 
-    def loss(self, situation, information):
+    def loss(self, situation, information, decoder_situation = None):
         target = self.target(situation, information)
-        prediction, message = self.forward(situation, information)
+        prediction, message = self.forward(situation, information, decoder_situation)
         return self.criterion(prediction, target)
 
     def generate_situations(self, batch_size):
