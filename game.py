@@ -81,6 +81,32 @@ class Game(nn.Module):
         logging.info(f"Encoder layers:\n{self.encoder_hidden_layers}")
         logging.info(f"Decoder layers:\n{self.decoder_hidden_layers}")
 
+    def play(self, num_epochs=1000, mini_batch_size=1000, loss_every=None):
+        for learning_rate in [.01, .001, .0001]:
+            optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+
+            for epoch in range(num_epochs):
+                optimizer.zero_grad()
+                situations = self.generate_situations(mini_batch_size)
+                information = self.generate_information(mini_batch_size)
+
+                loss = self.loss(situations, information)
+                loss.backward()
+                optimizer.step()
+
+                self.epoch += 1
+
+                if loss_every is not None:
+                    if epoch % loss_every == 0:
+                        self.loss_list.append((self.epoch, loss.item()))
+                else:
+                    if epoch == 0:
+                        self.loss_list.append((self.epoch, loss.item()))
+
+            self.loss_list.append((self.epoch, loss.item()))
+
+            logging.info(f"Epoch {self.loss_list[-1][0]}:\t{self.loss_list[-1][1]:.2e}")
+
     def _encoder_forward_pass(self, situation, information):
         if self.use_situation:
             encoder_input = torch.cat((situation, information), dim=1)
@@ -129,67 +155,12 @@ class Game(nn.Module):
         prediction, message = self.forward(situation, information)
         return self.criterion(prediction, target)
 
-    def average_messages(self, n_examplars):
-        self.av_messages = []
-        with torch.no_grad():
-            situations = torch.randn(n_examplars, self.situation_size)
-            switch1 = torch.ones(n_examplars, dtype=torch.long)
-            # MAYBE MAKE THE FOLLOWING LOOP IN ONE GO:
-            # - repeat the situations
-            # - vary the switches accordingly
-            # - calculate the mean within groups
-            for fc in range(len(self.functions)):
-                switch = fc * switch1
-                targets = self.target(situations, switch)
-                p, messages = self.forward(situations, targets)
-                self.av_messages.append(messages.mean(dim=0).squeeze())
+    def generate_situations(self, batch_size):
+        return torch.randn(batch_size, self.situation_size)
 
-    def discrete_forward(self, situations, switches, n_examplars_av=100, av_mess=True):
-        if av_mess or not (self.av_messages):
-            self.average_messages(n_examplars_av)
-        messages = []  # self.av_messages
-        for s in switches:
-            messages.append(self.av_messages[s])
-        messages = torch.stack(messages, dim=0)  # DOUBLE CHECK THIS
-        targets = self.target(situations, switches)
-        receiver_input = torch.cat((situations, messages), dim=1)
-        prediction = F.relu(self.linear2_1(receiver_input))
-        prediction = F.relu(self.linear2_2(prediction))
-        prediction = self.linear2_3(prediction)
-        return prediction
-
-
-def generate_situations(batch_size, situation_size):
-    return torch.randn(batch_size, situation_size)
-
-
-def generate_information(batch_size, information_size):
-    """Generate `batch_size` one-hot vectors of dimension `information_size`."""
-    information = torch.zeros((batch_size, information_size))
-    for i, one_hot_idx in enumerate(torch.randint(information_size, (batch_size,))):
-        information[i][one_hot_idx] = 1
-    return information
-
-
-def play_game(game: Game, num_epochs=1000, mini_batch_size=1000, learning_rate=0.001, loss_every=None):
-    optimizer = optim.Adam(game.parameters(), lr=learning_rate)
-
-    for epoch in range(num_epochs):
-        optimizer.zero_grad()
-        situations = generate_situations(mini_batch_size, game.situation_size)
-        information = generate_information(mini_batch_size, game.information_size)
-
-        loss = game.loss(situations, information)
-        loss.backward()
-        optimizer.step()
-
-        game.epoch += 1
-
-        if loss_every is not None:
-            if epoch % loss_every == 0:
-                game.loss_list.append((game.epoch, loss.item()))
-        else:
-            if epoch == 0:
-                game.loss_list.append((game.epoch, loss.item()))
-
-    game.loss_list.append((game.epoch, loss.item()))
+    def generate_information(self, batch_size):
+        """Generate `batch_size` one-hot vectors of dimension `information_size`."""
+        information = torch.zeros((batch_size, self.information_size))
+        for i, one_hot_idx in enumerate(torch.randint(self.information_size, (batch_size,))):
+            information[i][one_hot_idx] = 1
+        return information

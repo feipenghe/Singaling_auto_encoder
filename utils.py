@@ -9,7 +9,7 @@ import torch
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
-from game import Game, generate_situations
+from game import Game
 
 
 def plot_raw_and_pca(data, masks: List[List[int]], labels: List[Text], title: Text):
@@ -74,7 +74,7 @@ def plot_information(game: Game, exemplars_size = 40):
 
 def generate_information_situations_messages(game: Game, exemplars_size):
     batch_size = exemplars_size * game.information_size
-    situations = generate_situations(batch_size, game.situation_size)
+    situations = game.generate_situations(batch_size)
 
     information = torch.zeros((batch_size, game.information_size))
     for i in range(batch_size):
@@ -167,7 +167,7 @@ def clusterize_messages(game: Game, exemplars_size=40):
 def plot_messages_information(game: Game, exemplars_size=40):
     with torch.no_grad():
         batch_size = exemplars_size * game.information_size
-        situations = generate_situations(batch_size, game.situation_size)
+        situations = game.generate_situations(batch_size)
 
         information = torch.zeros((batch_size, game.information_size))
         for i in range(batch_size):
@@ -206,18 +206,6 @@ def plot_bar_list(L, L_labels=None, transform=True):
     plt.show()
 
 
-def get_loss_per_function(G, exemplars_size=200):
-    with torch.no_grad():
-        situations = torch.randn(exemplars_size, G.situation_size)
-        func_switches = torch.cat([torch.arange(G.func_size) for _ in range(exemplars_size)])
-
-        loss_per_function = []
-        for ind in range(len(G.functions)):
-            loss_per_function.append(G.loss(situations, torch.ones(exemplars_size, dtype=torch.long) * ind))
-
-    return loss_per_function
-
-
 def plot_losses(G, losses=None, exemplars_size=200):
     if losses is None:
         with torch.no_grad():
@@ -231,3 +219,21 @@ def plot_losses(G, losses=None, exemplars_size=200):
 
     plot_bar_list(losses, transform=G.transform)
     return losses
+
+
+def plot_pca_3d(x, data, xlabel, ylabel, zlabel, title):
+    pca = PCA(2)
+    predictions_pca = pca.fit_transform(data)
+
+    zs = predictions_pca[:, 0]
+    ys = predictions_pca[:, 1]
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.set(xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title)
+
+    ax.plot(x, ys, zs)
+    ax.legend()
+
+    plt.show()

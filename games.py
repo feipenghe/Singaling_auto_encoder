@@ -3,50 +3,18 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from sklearn.decomposition import PCA
 
-from game import Game, play_game
+from game import Game
 from utils import (clusterize_messages,
-                   generate_information_situations_messages,
-                   get_loss_per_function, plot_losses,
-                   plot_messages_information,
+                   generate_information_situations_messages, plot_losses,
+                   plot_messages_information, plot_pca_3d,
                    predict_information_from_messages)
-
-
-def _train_game(game: Game) -> Game:
-    print_first = True
-    for lr in [.01, .001, .0001]:
-        play_game(game, num_epochs=1000, learning_rate=lr)
-        if print_first:
-            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
-            print_first = False
-        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
-
-    return game
-
-
-def _plot_pca_3d(x, data, xlabel, ylabel, zlabel, title):
-    pca = PCA(2)
-    predictions_pca = pca.fit_transform(data)
-
-    zs = predictions_pca[:, 0]
-    ys = predictions_pca[:, 1]
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-
-    ax.set(xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title)
-
-    ax.plot(x, ys, zs)
-    ax.legend()
-
-    plt.show()
 
 
 def plot_categorical_transition():
     situation_size, information_size, message_size, prediction_size = 10, 4, 1, 10
-    game = Game(situation_size, information_size, message_size, prediction_size, use_situation=True)
-    game = _train_game(game)
+    game: Game = Game(situation_size, information_size, message_size, prediction_size, use_situation=True)
+    game.play()
 
     _, situations, messages = generate_information_situations_messages(game, 1)
     message_1 = messages[0]
@@ -68,7 +36,7 @@ def plot_categorical_transition():
         predictions.append(prediction.view(-1).numpy())
 
     predictions = np.array(predictions)
-    _plot_pca_3d(ts, predictions, xlabel="t", ylabel="Component 2", zlabel="Component 1", title="S+I PCA by M(t)")
+    plot_pca_3d(ts, predictions, xlabel="t", ylabel="Component 2", zlabel="Component 1", title="S+I PCA by M(t)")
 
     # Linear transition as S+I changes
 
@@ -83,7 +51,7 @@ def plot_categorical_transition():
         predictions.append(prediction.view(-1).numpy())
 
     predictions = np.array(predictions)
-    _plot_pca_3d(ts, predictions, xlabel="t", ylabel="Component 2", zlabel="Component 1", title="S+I PCA by S+I(t)")
+    plot_pca_3d(ts, predictions, xlabel="t", ylabel="Component 2", zlabel="Component 1", title="S+I PCA by S+I(t)")
 
 
 def plot_loss_by_message_information_ratio():
@@ -99,8 +67,8 @@ def plot_loss_by_message_information_ratio():
         ratio = message_size/information_size
         logging.info(f"Training information size: {information_size}, message size: {message_size}, ratio: {ratio} ")
 
-        game = Game(situation_size, information_size, message_size, prediction_size)
-        game = _train_game(game)
+        game: Game = Game(situation_size, information_size, message_size, prediction_size)
+        game.play()
 
         loss = clusterize_messages(game, exemplars_size=50)
         logging.info(f"Loss: {loss}")
@@ -121,13 +89,7 @@ def plot_loss_by_message_information_ratio():
 def game1():
     situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 1, 10, (64, 64)
     game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
-    print_first = True
-    for lr in [.01, .001, .0001]:
-        play_game(game, num_epochs=1000, learning_rate=lr)
-        if print_first:
-            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
-            print_first = False
-        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+    game.play()
     plot_messages_information(game)
     predict_information_from_messages(game)
     clusterize_messages(game)
@@ -136,15 +98,7 @@ def game1():
 def game2():
     situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 10, (64, 64)
     game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
-    print_first = True
-
-    for lr in [.01, .001, .0001]:
-        play_game(game, 1000, learning_rate=lr)
-        if print_first:
-            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
-            print_first = False
-        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
-
+    game.play()
     plot_messages_information(game)
     predict_information_from_messages(game)
     clusterize_messages(game)
@@ -153,13 +107,7 @@ def game2():
 def game3():
     situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 2, (64, 64)
     game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
-    print_first = True
-    for lr in [.01, .001, .0001]:
-        play_game(game, 1000, learning_rate=lr)
-        if print_first:
-            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
-            print_first = False
-        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+    game.play()
     plot_messages_information(game, 40)
     predict_information_from_messages(game)
     clusterize_messages(game)
@@ -168,13 +116,7 @@ def game3():
 def game3b():
     situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 2, 4, 64
     game = Game(situation_size, message_size, prediction_size, func_size, hidden_size)
-    print_first = True
-    for lr in [.01, .001, .0001]:
-        play_game(game, 1000, learning_rate=lr)
-        if print_first:
-            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
-            print_first = False
-        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+    game.play()
     plot_messages_information(game)
     predict_information_from_messages(game)
     clusterize_messages(game)
@@ -183,26 +125,14 @@ def game3b():
 def game4():
     situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 10, 4, 64
     game = Game(situation_size, message_size, prediction_size, func_size, hidden_size, -1)
-    print_first = True
-    for lr in [.01, .001, .0001]:
-        play_game(game, 1000, learning_rate=lr)
-        if print_first:
-            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
-            print_first = False
-        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+    game.play()
     plot_messages_information(game, 40)
 
 
 def game5():
     situation_size, message_size, prediction_size, func_size, hidden_size = 10, 2, 10, 20, 64
     game = Game(situation_size, message_size, prediction_size, func_size, hidden_size, 1.2)
-    print_first = True
-    for lr in [.01, .001, .0001]:
-        play_game(game, 1000, learning_rate=lr)
-        if print_first:
-            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
-            print_first = False
-        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+    game.play()
     plot_messages_information(game, 40)
 
 
