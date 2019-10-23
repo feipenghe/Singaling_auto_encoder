@@ -1,5 +1,5 @@
 import logging
-
+from typing import Callable, Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,19 +37,31 @@ class UpdateNetwork(nn.Module):
         return output
 
 
+def make_update_network_function(situation_size, information_size, prediction_size, update_network_hidden_sizes, use_situation):
+    update_network = UpdateNetwork(situation_size, information_size, prediction_size, update_network_hidden_sizes, use_situation)
+
+    def func(situation, information):
+        with torch.no_grad():
+            return update_network.forward(situation, information)
+    return func
+
+
 class Game(nn.Module):
-    def __init__(self, situation_size, information_size, message_size, prediction_size, hidden_sizes=(64, 64),
-                 update_network_hidden_sizes=(64,), use_situation=True):
+    def __init__(self, situation_size, information_size, message_size, prediction_size, use_situation=True, use_different_contexts=False, target_function: Optional[Callable] = None):
         super().__init__()
         self.situation_size = situation_size
         self.information_size = information_size
         self.message_size = message_size
         self.prediction_size = prediction_size
-        self.hidden_sizes = hidden_sizes
-        self.update_network_hidden_sizes = update_network_hidden_sizes
+        self.hidden_sizes = (64, 64)  # TODO make configurable
+        self.update_network_hidden_sizes = (64,)  # TODO make configurable
         self.use_situation = use_situation
+        self.use_different_contexts = use_different_contexts #TODO support
 
-        self.update_network = UpdateNetwork(situation_size, information_size, prediction_size, update_network_hidden_sizes, use_situation)
+        if target_function is not None:
+            self.target_function = target_function
+        else:
+            self.target_function = make_update_network_function(self.situation_size, self.information_size, self.prediction_size, self.update_network_hidden_sizes, self.use_situation)
 
         self.criterion = nn.MSELoss()
         self.epoch = 0
@@ -143,8 +155,7 @@ class Game(nn.Module):
             return self._decoder_forward_pass(message, situation)
 
     def target(self, situation, information):
-        with torch.no_grad():
-            return self.update_network.forward(situation, information)
+        return self.target_function(situation, information)
 
     def message(self, situation, information):
         with torch.no_grad():
