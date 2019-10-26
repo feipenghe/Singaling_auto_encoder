@@ -9,8 +9,6 @@ import torch
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
-from game import Game
-
 
 def plot_raw_and_pca(data, masks: List[List[int]], labels: List[Text], title: Text):
     if data.shape[1] > 1:
@@ -57,35 +55,36 @@ def plot_clusters(data, labels, title="Clusters"):
     plot_raw_and_pca(data, masks, labels, title)
 
 
-def plot_information(game: Game, exemplars_size = 40):
-    situations = torch.randn(exemplars_size * game.func_size, game.situation_size)
-    func_switches = torch.cat([torch.arange(game.func_size) for _ in range(exemplars_size)])
-    targets = game.target(situations, func_switches)
-    targets = targets.numpy()
+# def plot_information(game: Game, exemplars_size = 40):
+#     situations = torch.randn(exemplars_size * game.func_size, game.context_size)
+#     func_switches = torch.cat([torch.arange(game.func_size) for _ in range(exemplars_size)])
+#     targets = game.target(situations, func_switches)
+#     targets = targets.numpy()
+#
+#     masks = []
+#     labels = []
+#     for fc in range(game.object_size):
+#         masks.append([i * game.object_size + fc for i in range(exemplars_size)])
+#         labels.append(f"F{fc}")
+#
+#     plot_raw_and_pca(targets, masks, labels, "Targets")
 
-    masks = []
-    labels = []
-    for fc in range(game.information_size):
-        masks.append([i * game.information_size + fc for i in range(exemplars_size)])
-        labels.append(f"F{fc}")
 
-    plot_raw_and_pca(targets, masks, labels, "Targets")
+def generate_information_situations_messages(game, exemplars_size):
+    #TODO delete.
+    batch_size = exemplars_size * game.object_size
+    situations = game.generate_contexts(batch_size)
 
-
-def generate_information_situations_messages(game: Game, exemplars_size):
-    batch_size = exemplars_size * game.information_size
-    situations = game.generate_situations(batch_size)
-
-    information = torch.zeros((batch_size, game.information_size))
+    information = torch.zeros((batch_size, game.object_size))
     for i in range(batch_size):
-        information[i, i % game.information_size] = 1.0
+        information[i, i % game.object_size] = 1.0
 
     messages = game.message(situations, information)
 
     return information, situations, messages
 
 
-def predict_information_from_messages(game: Game, exemplars_size=40) -> float:
+def predict_information_from_messages(game, exemplars_size=40) -> float:
     information, situations, messages = generate_information_situations_messages(game, exemplars_size)
     batch_size = information.shape[0]
 
@@ -99,7 +98,7 @@ def predict_information_from_messages(game: Game, exemplars_size=40) -> float:
     model = torch.nn.Sequential(
         torch.nn.Linear(game.message_size, classifier_hidden_size),
         torch.nn.ReLU(),
-        torch.nn.Linear(classifier_hidden_size, game.information_size),
+        torch.nn.Linear(classifier_hidden_size, game.object_size),
         torch.nn.Softmax()
     )
     loss_func = torch.nn.MSELoss()
@@ -126,8 +125,8 @@ def predict_information_from_messages(game: Game, exemplars_size=40) -> float:
     return accuracy
 
 
-def clusterize_messages(game: Game, exemplars_size=40):
-    num_clusters = game.information_size
+def clusterize_messages(game, exemplars_size=40):
+    num_clusters = game.object_size
 
     information, situations, messages = generate_information_situations_messages(game, exemplars_size)
 
@@ -147,7 +146,7 @@ def clusterize_messages(game: Game, exemplars_size=40):
     cluster_label_per_test_message = k_means.predict(test_messages)
 
     batch_size = test_messages.shape[0]
-    information_by_message_cluster = torch.zeros((batch_size, game.information_size))
+    information_by_message_cluster = torch.zeros((batch_size, game.object_size))
     for i, cluster_label in enumerate(cluster_label_per_test_message):
         information_by_message_cluster[i, cluster_label_to_message_num[cluster_label]] = 1.0
 
@@ -163,29 +162,6 @@ def clusterize_messages(game: Game, exemplars_size=40):
 
     return loss
 
-
-def plot_messages_information(game: Game, exemplars_size=40):
-    with torch.no_grad():
-        batch_size = exemplars_size * game.information_size
-        situations = game.generate_situations(batch_size)
-
-        information = torch.zeros((batch_size, game.information_size))
-        for i in range(batch_size):
-            information[i, i % game.information_size] = 1
-
-        messages = game.message(situations, information)
-        messages = messages.numpy()
-
-        message_masks = []
-        message_labels = []
-        for fc in range(game.information_size):
-            message_masks.append([i * game.information_size + fc for i in range(exemplars_size)])
-            message_labels.append(f"F{fc}")
-
-        plot_raw_and_pca(messages, message_masks, message_labels, "Messages")
-
-        targets = game.target(situations, information)
-        plot_raw_and_pca(targets.numpy(), message_masks, message_labels, "Targets")
 
 
 def plot_bar_list(L, L_labels=None, transform=True):
@@ -237,3 +213,10 @@ def plot_pca_3d(x, data, xlabel, ylabel, zlabel, title):
     ax.legend()
 
     plt.show()
+
+
+def setup_logging():
+    logging.basicConfig(
+        format='%(asctime)s.%(msecs)03d %(levelname)-4s [%(filename)s:%(lineno)d] %(message)s',
+        datefmt='%d-%m-%Y:%H:%M:%S',
+        level=logging.INFO)

@@ -13,7 +13,7 @@ from utils import (clusterize_messages,
 
 def plot_categorical_transition():
     situation_size, information_size, message_size, prediction_size = 10, 4, 1, 10
-    game: Game = Game(situation_size, information_size, message_size, prediction_size, use_situation=True)
+    game: Game = Game(situation_size, information_size, message_size, prediction_size, use_context=True)
     game.play()
 
     _, situations, messages = generate_information_situations_messages(game, 1)
@@ -88,7 +88,7 @@ def plot_loss_by_message_information_ratio():
 
 def game1():
     situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 1, 10, (64, 64)
-    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
+    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_context=True)
     game.play()
     plot_messages_information(game)
     predict_information_from_messages(game)
@@ -97,7 +97,7 @@ def game1():
 
 def game2():
     situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 10, (64, 64)
-    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
+    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_context=True)
     game.play()
     plot_messages_information(game)
     predict_information_from_messages(game)
@@ -106,7 +106,7 @@ def game2():
 
 def game3():
     situation_size, information_size, message_size, prediction_size, hidden_sizes = 10, 4, 2, 2, (64, 64)
-    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_situation=True)
+    game = Game(situation_size, information_size, message_size, prediction_size, hidden_sizes, use_context=True)
     game.play()
     plot_messages_information(game, 40)
     predict_information_from_messages(game)
