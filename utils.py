@@ -1,12 +1,12 @@
+import functools
 import logging
-import math
+import operator
 from collections import defaultdict
 from typing import List, Text
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
 
@@ -70,100 +70,6 @@ def plot_clusters(data, labels, title="Clusters"):
 #     plot_raw_and_pca(targets, masks, labels, "Targets")
 
 
-def generate_information_situations_messages(game, exemplars_size):
-    #TODO delete.
-    batch_size = exemplars_size * game.object_size
-    situations = game.generate_contexts(batch_size)
-
-    information = torch.zeros((batch_size, game.object_size))
-    for i in range(batch_size):
-        information[i, i % game.object_size] = 1.0
-
-    messages = game.message(situations, information)
-
-    return information, situations, messages
-
-
-def predict_information_from_messages(game, exemplars_size=40) -> float:
-    information, situations, messages = generate_information_situations_messages(game, exemplars_size)
-    batch_size = information.shape[0]
-
-    train_test_ratio = 0.7
-    num_train_samples = math.ceil(batch_size * train_test_ratio)
-
-    train_messages, test_messages = messages[:num_train_samples], messages[num_train_samples:]
-    train_information, test_information = information[:num_train_samples], information[num_train_samples:]
-
-    classifier_hidden_size = 32
-    model = torch.nn.Sequential(
-        torch.nn.Linear(game.message_size, classifier_hidden_size),
-        torch.nn.ReLU(),
-        torch.nn.Linear(classifier_hidden_size, game.object_size),
-        torch.nn.Softmax()
-    )
-    loss_func = torch.nn.MSELoss()
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    num_epochs = 1000
-    for epoch in range(num_epochs):
-        y_pred = model(train_messages)
-        loss = loss_func(y_pred, train_information)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        if epoch > 0 and epoch % 100 == 0:
-            logging.info(f"Epoch {epoch+1}:\t{loss.item():.2e}")
-
-    with torch.no_grad():
-        test_predicted = model(test_messages).numpy()
-
-    from sklearn.metrics import accuracy_score
-
-    accuracy = accuracy_score(np.argmax(test_information.numpy(), axis=1), np.argmax(test_predicted, axis=1))
-    logging.info(f"Information prediction accuracy: {accuracy}")
-    return accuracy
-
-
-def clusterize_messages(game, exemplars_size=40):
-    num_clusters = game.object_size
-
-    information, situations, messages = generate_information_situations_messages(game, exemplars_size)
-
-    k_means = KMeans(n_clusters=num_clusters)
-    labels = k_means.fit_predict(messages)
-
-    plot_clusters(messages, labels, "Training messages clusters")
-
-    # Find cluster for each message.
-    message_distance_from_centers = k_means.transform(messages)
-    representative_message_idx_per_cluster = message_distance_from_centers.argmin(axis=0)
-    message_num_per_cluster = information[representative_message_idx_per_cluster,:].argmax(axis=1)
-    cluster_label_to_message_num = {cluster_num: message_num for cluster_num, message_num in enumerate(message_num_per_cluster)}
-
-    # Sample unseen messages from clusters.
-    _, test_situations, test_messages = generate_information_situations_messages(game, exemplars_size)
-    cluster_label_per_test_message = k_means.predict(test_messages)
-
-    batch_size = test_messages.shape[0]
-    information_by_message_cluster = torch.zeros((batch_size, game.object_size))
-    for i, cluster_label in enumerate(cluster_label_per_test_message):
-        information_by_message_cluster[i, cluster_label_to_message_num[cluster_label]] = 1.0
-
-    plot_clusters(test_messages, cluster_label_per_test_message, "Test message clusters")
-
-    predictions_by_unseen_messages = game.predict_by_message(test_messages, test_situations)
-    with torch.no_grad():
-        predictions_by_inferred_information, _ = game.forward(test_situations, information_by_message_cluster)
-
-    loss_func = torch.nn.MSELoss()
-    loss = loss_func(predictions_by_unseen_messages, predictions_by_inferred_information).item()
-    logging.info(f"Loss for unseen message/information: {loss}")
-
-    return loss
-
-
-
 def plot_bar_list(L, L_labels=None, transform=True):
     if not (L_labels):
         L_labels = np.arange(len(L))
@@ -220,3 +126,11 @@ def setup_logging():
         format='%(asctime)s.%(msecs)03d %(levelname)-4s [%(filename)s:%(lineno)d] %(message)s',
         datefmt='%d-%m-%Y:%H:%M:%S',
         level=logging.INFO)
+
+
+def reduce_prod(vals):
+    return functools.reduce(operator.mul, vals)
+
+
+def batch_flatten(x):
+    return torch.reshape(x, [-1, reduce_prod(x.shape[1:])])

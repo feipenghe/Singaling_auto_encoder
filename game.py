@@ -55,7 +55,7 @@ def make_update_network_function(context_size, num_functions, update_network_hid
 
 
 class Game(nn.Module):
-    def __init__(self, context_size, object_size, message_size, num_functions, use_context=True, separate_contexts=False, target_functions: Optional[Tuple[Callable, ...]] = None, hidden_sizes = (64, 64), update_network_hidden_sizes = (64,)):
+    def __init__(self, context_size, object_size, message_size, num_functions, use_context=True, separate_contexts=False, target_function: Optional[Callable] = None, hidden_sizes = (64, 64), update_network_hidden_sizes = (64,)):
         super().__init__()
         self.context_size = context_size
         self.object_size = object_size
@@ -66,8 +66,8 @@ class Game(nn.Module):
         self.use_context = use_context
         self.separate_contexts = separate_contexts
 
-        if target_functions is not None:
-            self.target_function = target_functions
+        if target_function is not None:
+            self.target_function = target_function
         else:
             self.target_function = make_update_network_function(self.context_size, self.num_functions, self.update_network_hidden_sizes, self.use_context)
 
@@ -75,9 +75,16 @@ class Game(nn.Module):
         self.epoch = 0
         self.loss_list = []
 
+        if isinstance(self.context_size, tuple):
+            self.flat_context_size = utils.reduce_prod(self.context_size)
+        elif isinstance(self.context_size, int):
+            self.flat_context_size = self.context_size
+        else:
+            raise ValueError(f"context_size must be either a tuple or int")
+
         if self.use_context:
-            encoder_input_size = self.context_size + self.num_functions
-            decoder_input_size = self.message_size + self.context_size
+            encoder_input_size = self.flat_context_size + self.num_functions
+            decoder_input_size = self.message_size + self.flat_context_size
         else:
             encoder_input_size = self.num_functions
             decoder_input_size = self.message_size
@@ -129,7 +136,8 @@ class Game(nn.Module):
 
     def _encoder_forward_pass(self, context, function_selector):
         if self.use_context:
-            encoder_input = torch.cat((context, function_selector), dim=1)
+            context_flattened = utils.batch_flatten(context)
+            encoder_input = torch.cat((context_flattened, function_selector), dim=1)
         else:
             encoder_input = object
 
@@ -142,7 +150,8 @@ class Game(nn.Module):
 
     def _decoder_forward_pass(self, message, context):
         if self.use_context:
-            decoder_input = torch.cat((message, context), dim=1)
+            context_flattened = utils.batch_flatten(context)
+            decoder_input = torch.cat((message, context_flattened), dim=1)
         else:
             decoder_input = message
 
@@ -177,7 +186,7 @@ class Game(nn.Module):
         return self.criterion(prediction, target)
 
     def generate_contexts(self, batch_size):
-        return torch.randn(batch_size, self.context_size)
+        return torch.randn(batch_size, *self.context_size)
 
     def generate_function_selectors(self, batch_size):
         """Generate `batch_size` one-hot vectors of dimension `num_functions`."""
