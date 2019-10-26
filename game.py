@@ -1,8 +1,12 @@
 import logging
+import math
 from typing import Callable, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from sklearn import cluster, metrics
 from torch import optim
 
 import utils
@@ -182,6 +186,18 @@ class Game(nn.Module):
             function_selectors[i][one_hot_idx] = 1
         return function_selectors
 
+    def generate_func_selectors_contexts_messages(self, exemplars_size):
+        batch_size = exemplars_size * self.num_functions
+        contexts = self.generate_contexts(batch_size)
+
+        function_selectors = torch.zeros((batch_size, self.num_functions))
+        for i in range(batch_size):
+            function_selectors[i, i % self.num_functions] = 1.0
+
+        messages = self.message(contexts, function_selectors)
+
+        return function_selectors, contexts, messages
+
     def plot_messages_information(self, exemplars_size=40):
         with torch.no_grad():
             batch_size = exemplars_size * self.num_functions
@@ -205,3 +221,78 @@ class Game(nn.Module):
             targets = self.target(contexts, function_selectors)
             utils.plot_raw_and_pca(targets.numpy(), message_masks, message_labels, "Targets")
 
+    def predict_functions_from_messages(self, exemplars_size=40) -> float:
+        func_selectors, situations, messages = self.generate_func_selectors_contexts_messages(exemplars_size)
+        batch_size = func_selectors.shape[0]
+
+        train_test_ratio = 0.7
+        num_train_samples = math.ceil(batch_size * train_test_ratio)
+
+        train_messages, test_messages = messages[:num_train_samples], messages[num_train_samples:]
+        train_funcs, test_funcs = func_selectors[:num_train_samples], func_selectors[num_train_samples:]
+
+        classifier_hidden_size = 32
+        model = torch.nn.Sequential(
+            torch.nn.Linear(self.message_size, classifier_hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(classifier_hidden_size, self.num_functions),
+            torch.nn.Softmax()
+        )
+        loss_func = torch.nn.MSELoss()
+
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        num_epochs = 1000
+        for epoch in range(num_epochs):
+            y_pred = model(train_messages)
+            loss = loss_func(y_pred, train_funcs)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            if epoch > 0 and epoch % 100 == 0:
+                logging.info(f"Epoch {epoch + 1}:\t{loss.item():.2e}")
+
+        with torch.no_grad():
+            test_predicted = model(test_messages).numpy()
+
+        accuracy = metrics.accuracy_score(np.argmax(test_funcs.numpy(), axis=1), np.argmax(test_predicted, axis=1))
+        logging.info(f"Information prediction accuracy: {accuracy}")
+        return accuracy
+
+    def clusterize_messages(self, exemplars_size=40):
+        num_clusters = self.num_functions
+
+        func_selectors, contexts, messages = self.generate_func_selectors_contexts_messages(exemplars_size)
+
+        k_means = cluster.KMeans(n_clusters=num_clusters)
+        labels = k_means.fit_predict(messages)
+
+        utils.plot_clusters(messages, labels, "Training messages clusters")
+
+        # Find cluster for each message.
+        message_distance_from_centers = k_means.transform(messages)
+        representative_message_idx_per_cluster = message_distance_from_centers.argmin(axis=0)
+        message_num_per_cluster = func_selectors[representative_message_idx_per_cluster, :].argmax(axis=1)
+        cluster_label_to_message_num = {cluster_num: message_num for cluster_num, message_num in
+                                        enumerate(message_num_per_cluster)}
+
+        # Sample unseen messages from clusters.
+        _, test_contexts, test_messages = self.generate_func_selectors_contexts_messages(exemplars_size)
+        cluster_label_per_test_message = k_means.predict(test_messages)
+
+        batch_size = test_messages.shape[0]
+        func_by_message_cluster = torch.zeros((batch_size, self.num_functions))
+        for i, cluster_label in enumerate(cluster_label_per_test_message):
+            func_by_message_cluster[i, cluster_label_to_message_num[cluster_label]] = 1.0
+
+        utils.plot_clusters(test_messages, cluster_label_per_test_message, "Test message clusters")
+
+        predictions_by_unseen_messages = self.predict_by_message(test_messages, test_contexts)
+        with torch.no_grad():
+            predictions_by_inferred_func, _ = self.forward(test_contexts, func_by_message_cluster)
+
+        loss_func = torch.nn.MSELoss()
+        loss = loss_func(predictions_by_unseen_messages, predictions_by_inferred_func).item()
+        logging.info(f"Loss for unseen message/information: {loss}")
+
+        return loss

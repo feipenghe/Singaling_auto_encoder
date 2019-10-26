@@ -13,6 +13,7 @@ def belief_update_game():
     my_game: game.Game = game.Game(context_size, object_size, message_size, num_functions, use_context=True)
     my_game.play()
     my_game.plot_messages_information(exemplars_size=40)
+    my_game.predict_functions_from_messages(exemplars_size=40)
 
 
 def referential_game():
