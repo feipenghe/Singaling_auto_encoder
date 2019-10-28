@@ -55,7 +55,7 @@ def make_update_network_function(context_size, num_functions, update_network_hid
 
 
 class Game(nn.Module):
-    def __init__(self, context_size, object_size, message_size, num_functions, use_context=True, separate_contexts=False, target_function: Optional[Callable] = None, hidden_sizes = (64, 64), update_network_hidden_sizes = (64,)):
+    def __init__(self, context_size, object_size, message_size, num_functions, use_context=True, shared_context=True, target_function: Optional[Callable] = None, context_generator: Optional[Callable] = None, hidden_sizes=(64, 64), update_network_hidden_sizes=(64,)):
         super().__init__()
         self.context_size = context_size
         self.object_size = object_size
@@ -64,7 +64,8 @@ class Game(nn.Module):
         self.hidden_sizes = hidden_sizes
         self.update_network_hidden_sizes = update_network_hidden_sizes
         self.use_context = use_context
-        self.separate_contexts = separate_contexts
+        self.shared_context = shared_context
+        self.context_generator = context_generator
 
         if target_function is not None:
             self.target_function = target_function
@@ -115,10 +116,10 @@ class Game(nn.Module):
             for minibatch_epoch in range(num_epochs):
                 optimizer.zero_grad()
                 contexts = self.generate_contexts(mini_batch_size)
-                if self.separate_contexts:
-                    decoder_contexts = self.generate_contexts(mini_batch_size)
-                else:
+                if self.shared_context:
                     decoder_contexts = None
+                else:
+                    decoder_contexts = self.generate_contexts(mini_batch_size)
                 function_selectors = self.generate_function_selectors(mini_batch_size)
 
                 loss = self.loss(contexts, function_selectors, decoder_contexts)
@@ -186,7 +187,15 @@ class Game(nn.Module):
         return self.criterion(prediction, target)
 
     def generate_contexts(self, batch_size):
-        return torch.randn(batch_size, *self.context_size)
+        if isinstance(self.context_size, int):
+            context_shape = (self.context_size, )
+        else:
+            context_shape = self.context_size
+
+        if self.context_generator is None:
+            return torch.randn(batch_size, *context_shape)
+        else:
+            return self.context_generator(batch_size, context_shape)
 
     def generate_function_selectors(self, batch_size):
         """Generate `batch_size` one-hot vectors of dimension `num_functions`."""
@@ -268,7 +277,7 @@ class Game(nn.Module):
         logging.info(f"Information prediction accuracy: {accuracy}")
         return accuracy
 
-    def clusterize_messages(self, exemplars_size=40):
+    def clusterize_messages(self, exemplars_size=40, visualize=False):
         num_clusters = self.num_functions
 
         func_selectors, contexts, messages = self.generate_func_selectors_contexts_messages(exemplars_size)
@@ -276,7 +285,8 @@ class Game(nn.Module):
         k_means = cluster.KMeans(n_clusters=num_clusters)
         labels = k_means.fit_predict(messages)
 
-        utils.plot_clusters(messages, labels, "Training messages clusters")
+        if visualize:
+            utils.plot_clusters(messages, labels, "Training messages clusters")
 
         # Find cluster for each message.
         message_distance_from_centers = k_means.transform(messages)
@@ -294,7 +304,8 @@ class Game(nn.Module):
         for i, cluster_label in enumerate(cluster_label_per_test_message):
             func_by_message_cluster[i, cluster_label_to_message_num[cluster_label]] = 1.0
 
-        utils.plot_clusters(test_messages, cluster_label_per_test_message, "Test message clusters")
+        if visualize:
+            utils.plot_clusters(test_messages, cluster_label_per_test_message, "Test message clusters")
 
         predictions_by_unseen_messages = self.predict_by_message(test_messages, test_contexts)
         with torch.no_grad():
