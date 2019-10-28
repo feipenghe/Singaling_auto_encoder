@@ -169,8 +169,8 @@ def plot_simulation(simulation_name):
     plt.xlabel('Message dimensionality', fontsize=5)
     plt.ylabel('F prediction accuracy', fontsize=5)
     plt.title('F prediction accuracy')
-    plt.show()
     plt.savefig(f"./simulations/{simulation_name}_supervised_classification.png")
+    plt.show()
 
     plt.bar(x_ticks, loss_mean, yerr=loss_error, capsize=10)
     plt.xticks(x_ticks, x_labels, fontsize=5)
@@ -179,5 +179,5 @@ def plot_simulation(simulation_name):
     plt.xlabel('Message dimensionality', fontsize=5)
     plt.ylabel('Clustering loss', fontsize=5)
     plt.title('Clustering loss')
-    plt.show()
     plt.savefig(f"./simulations/{simulation_name}_unsupervised_clustering.png")
+    plt.show()
