@@ -33,19 +33,50 @@ belief_update_game = Simulation(name="belief_game",
                                 message_sizes=(1, 2, 4, 6, 8))
 
 
-def referential_game_target_function(context, function_selectors):
-    """Selects one row of context (i.e. an object).
-    Output shape: (batch_size, object_size)."""
-    return torch.matmul(function_selectors.unsqueeze(1), context).squeeze(dim=1)
+def make_referential_game_simulation(object_size, context_size, num_functions, message_sizes):
+    # TODO how to choose the number of functions?
+    functions = torch.randn(num_functions, context_size)
+
+    def referential_game_target_function(context, function_selectors):
+        selected_functions = torch.matmul(function_selectors.unsqueeze(1), functions)
+        objects = torch.matmul(selected_functions, context).squeeze(1)
+        return objects
+
+    return Simulation(name="referential_game",
+                      object_size=object_size,
+                      num_functions=num_functions,
+                      context_size=(context_size, object_size),
+                      message_sizes=message_sizes,
+                      num_trials=1,
+                      target_function=referential_game_target_function)
 
 
-referential_game = Simulation(name="referential_game",
-                              object_size=10,
-                              num_functions=6,
-                              context_size=(6, 10),
-                              message_sizes=range(1, 11),
-                              target_function=referential_game_target_function)
+referential_game_simulation = make_referential_game_simulation(object_size=2,
+                                                               context_size=10,
+                                                               num_functions=4,
+                                                               message_sizes=(1, 2, 4, 6, 10))
 
+
+def make_extremity_game_simulation(object_size, message_sizes):
+    context_size = 2 * object_size
+    num_functions = context_size
+
+    def extremity_game_target_function(context, function_selectors):
+        """Selects one row of context (i.e. an object).
+        Output shape: (batch_size, object_size)."""
+        # TODO
+        funcs = function_selectors.argmax(dim=1)
+        parity = funcs % 2
+        if parity == 0:
+            pass
+        else:
+            pass
+
+        return torch.matmul(function_selectors.unsqueeze(1), context).squeeze(dim=1)
+
+
+
+    pass
 
 def extremity_game_target_function(context, function_selectors: torch.Tensor):
     """Selects one row of context (i.e. an object).
@@ -129,6 +160,9 @@ def run_simulation(simulation: Simulation):
         pickle.dump(unsupervised_clustering_losses, f)
 
     with open(f"./simulations/{simulation.name}.pickle", "wb") as f:  # TODO use json
+        # Can't pickle nested functions
+        del simulation.target_function
+        del simulation.context_generator
         pickle.dump(simulation, f)
 
 
