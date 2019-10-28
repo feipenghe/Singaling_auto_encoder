@@ -13,7 +13,7 @@ import utils
 
 
 class UpdateNetwork(nn.Module):
-    def __init__(self, context_size, num_functions, hidden_sizes=(64,), use_context=True):
+    def __init__(self, context_size, object_size, num_functions, hidden_sizes=(64,), use_context=True):
         super().__init__()
         self.hidden_sizes = hidden_sizes
         self.use_context = use_context
@@ -45,8 +45,8 @@ class UpdateNetwork(nn.Module):
         return output
 
 
-def make_update_network_function(context_size, num_functions, update_network_hidden_sizes, use_context):
-    update_network = UpdateNetwork(context_size, num_functions, update_network_hidden_sizes, use_context)
+def make_update_network_function(context_size, object_size, num_functions, update_network_hidden_sizes, use_context):
+    update_network = UpdateNetwork(context_size, object_size, num_functions, update_network_hidden_sizes, use_context)
 
     def func(contexts, function_selectors):
         with torch.no_grad():
@@ -70,7 +70,7 @@ class Game(nn.Module):
         if target_function is not None:
             self.target_function = target_function
         else:
-            self.target_function = make_update_network_function(self.context_size, self.num_functions, self.update_network_hidden_sizes, self.use_context)
+            self.target_function = make_update_network_function(self.context_size, self.object_size, self.num_functions, self.update_network_hidden_sizes, self.use_context)
 
         self.criterion = nn.MSELoss()
         self.epoch = 0

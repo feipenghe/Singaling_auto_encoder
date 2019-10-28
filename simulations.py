@@ -26,7 +26,11 @@ class Simulation:
     num_trials: int = 3
 
 
-belief_update_game = Simulation(name="belief_game", context_size=10, object_size=10, num_functions=4, message_sizes=(2, 10, 12))
+belief_update_game = Simulation(name="belief_game",
+                                context_size=2,
+                                object_size=2,
+                                num_functions=2,
+                                message_sizes=(1, 2, 4, 6, 8))
 
 
 def referential_game_target_function(context, function_selectors):
@@ -35,7 +39,12 @@ def referential_game_target_function(context, function_selectors):
     return torch.matmul(function_selectors.unsqueeze(1), context).squeeze(dim=1)
 
 
-referential_game = Simulation(name="referential_game", object_size=10, num_functions=6, context_size=(6, 10), message_sizes=range(1, 11), target_function=referential_game_target_function)
+referential_game = Simulation(name="referential_game",
+                              object_size=10,
+                              num_functions=6,
+                              context_size=(6, 10),
+                              message_sizes=range(1, 11),
+                              target_function=referential_game_target_function)
 
 
 def extremity_game_target_function(context, function_selectors: torch.Tensor):
@@ -70,13 +79,17 @@ def extremity_game_context_generator(batch_size, context_shape):
 
             # context[obj_idx, ???]
 
-
             where_min = torch.argmin(context[:,obj_idx])
             context[obj_idx, where_min]
             where_max = torch.argmax(context[:,obj_idx+1])
 
 
-extremity_game = Simulation(name="extremity_game", object_size=3, num_functions=6, context_size=(6, 3), message_sizes=range(1, 11), target_function=extremity_game_target_function)
+extremity_game = Simulation(name="extremity_game",
+                            object_size=3,
+                            num_functions=6,
+                            context_size=(6, 3),
+                            message_sizes=range(1, 11),
+                            target_function=extremity_game_target_function)
 
 
 def visualize_game(game_: game.Game):
@@ -109,24 +122,24 @@ def run_simulation(simulation: Simulation):
         supervised_clustering_accuracies.append(supervised_accuracies)
         unsupervised_clustering_losses.append(unsupervised_losses)
 
-    with open(f"{simulation.name}_supervised_clustering_accuracies.pickle", "wb") as f:
+    with open(f"./simulations/{simulation.name}_supervised_clustering_accuracies.pickle", "wb") as f:
         pickle.dump(supervised_clustering_accuracies, f)
 
-    with open(f"{simulation.name}_unsupervised_clustering_loss.pickle", "wb") as f:
+    with open(f"./simulations/{simulation.name}_unsupervised_clustering_loss.pickle", "wb") as f:
         pickle.dump(unsupervised_clustering_losses, f)
 
-    with open(f"{simulation.name}.pickle", "wb") as f:  # TODO use json
+    with open(f"./simulations/{simulation.name}.pickle", "wb") as f:  # TODO use json
         pickle.dump(simulation, f)
 
 
 def plot_simulation(simulation_name):
-    with open(f"{simulation_name}_supervised_clustering_accuracies.pickle", "rb") as f:
+    with open(f"./simulations/{simulation_name}_supervised_clustering_accuracies.pickle", "rb") as f:
         supervised_clustering_accuracies = pickle.load(f)
 
-    with open(f"{simulation_name}_unsupervised_clustering_loss.pickle", "rb") as f:
+    with open(f"./simulations/{simulation_name}_unsupervised_clustering_loss.pickle", "rb") as f:
         unsupervised_clustering_losses = pickle.load(f)
 
-    with open(f"{simulation_name}.pickle", "rb") as f:  # TODO use json
+    with open(f"./simulations/{simulation_name}.pickle", "rb") as f:  # TODO use json
         simulation: Simulation = pickle.load(f)
 
     accuracy_mean = [np.mean(vals) for vals in supervised_clustering_accuracies]
@@ -148,23 +161,23 @@ def plot_simulation(simulation_name):
             label += "\nObject size"
         x_labels.append(label)
 
-    plt.bar(simulation.message_sizes, accuracy_mean, yerr=accuracy_error, capsize=10)
-    plt.xticks(simulation.message_sizes, x_labels, fontsize=5)
-    plt.axvline(x=context_size, linestyle="--", color="gray")
-    plt.axvline(x=simulation.object_size, linestyle="--", color="gray")
+    x_ticks = range(len(simulation.message_sizes))
+    plt.bar(x_ticks, accuracy_mean, yerr=accuracy_error, capsize=10)
+    plt.xticks(x_ticks, x_labels, fontsize=5)
+    plt.axvline(x=simulation.message_sizes.index(context_size), linestyle="--", color="gray")
+    plt.axvline(x=simulation.message_sizes.index(simulation.object_size), linestyle="--", color="gray")
     plt.xlabel('Message dimensionality', fontsize=5)
     plt.ylabel('F prediction accuracy', fontsize=5)
     plt.title('F prediction accuracy')
     plt.show()
-    plt.savefig(f"{simulation_name}_supervised_classification.png")
+    plt.savefig(f"./simulations/{simulation_name}_supervised_classification.png")
 
-
-    plt.bar(simulation.message_sizes, loss_mean, yerr=loss_error, capsize=10)
-    plt.xticks(simulation.message_sizes, x_labels, fontsize=5)
-    plt.axvline(x=context_size, linestyle="--", color="gray")
-    plt.axvline(x=simulation.object_size, linestyle="--", color="gray")
+    plt.bar(x_ticks, loss_mean, yerr=loss_error, capsize=10)
+    plt.xticks(x_ticks, x_labels, fontsize=5)
+    plt.axvline(x=simulation.message_sizes.index(context_size), linestyle="--", color="gray")
+    plt.axvline(x=simulation.message_sizes.index(simulation.object_size), linestyle="--", color="gray")
     plt.xlabel('Message dimensionality', fontsize=5)
     plt.ylabel('Clustering loss', fontsize=5)
     plt.title('Clustering loss')
     plt.show()
-    plt.savefig(f"{simulation_name}_unsupervised_clustering.png")
+    plt.savefig(f"./simulations/{simulation_name}_unsupervised_clustering.png")
