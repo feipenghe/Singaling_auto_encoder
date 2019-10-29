@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from sklearn import cluster, metrics
 from torch import optim
 
@@ -70,7 +71,8 @@ class Game(nn.Module):
         if target_function is not None:
             self.target_function = target_function
         else:
-            self.target_function = make_update_network_function(self.context_size, self.object_size, self.num_functions, self.update_network_hidden_sizes, self.use_context)
+            self.target_function = make_update_network_function(self.context_size, self.object_size, self.num_functions,
+                                                                self.update_network_hidden_sizes, self.use_context)
 
         self.criterion = nn.MSELoss()
         self.epoch = 0
@@ -120,7 +122,7 @@ class Game(nn.Module):
                     decoder_contexts = None
                 else:
                     decoder_contexts = self.generate_contexts(mini_batch_size)
-                function_selectors = self.generate_function_selectors(mini_batch_size)
+                function_selectors = self.generate_function_selectors(mini_batch_size, random=True)
 
                 loss = self.loss(contexts, function_selectors, decoder_contexts)
                 loss.backward()
@@ -197,20 +199,18 @@ class Game(nn.Module):
         else:
             return self.context_generator(batch_size, context_shape)
 
-    def generate_function_selectors(self, batch_size):
+    def generate_function_selectors(self, batch_size, random=False):
         """Generate `batch_size` one-hot vectors of dimension `num_functions`."""
-        function_selectors = torch.zeros((batch_size, self.num_functions))
-        for i, one_hot_idx in enumerate(torch.randint(self.num_functions, (batch_size,))):
-            function_selectors[i][one_hot_idx] = 1
-        return function_selectors
+        if random:
+            function_idxs = torch.randint(self.num_functions, size=(batch_size,))
+        else:
+            function_idxs = torch.arange(batch_size) % self.num_functions
+        return torch.nn.functional.one_hot(function_idxs, num_classes=self.num_functions).float()
 
     def generate_func_selectors_contexts_messages(self, exemplars_size):
         batch_size = exemplars_size * self.num_functions
         contexts = self.generate_contexts(batch_size)
-
-        function_selectors = torch.zeros((batch_size, self.num_functions))
-        for i in range(batch_size):
-            function_selectors[i, i % self.num_functions] = 1.0
+        function_selectors = self.generate_function_selectors(batch_size, random=False)
 
         messages = self.message(contexts, function_selectors)
 
@@ -220,10 +220,7 @@ class Game(nn.Module):
         with torch.no_grad():
             batch_size = exemplars_size * self.num_functions
             contexts = self.generate_contexts(batch_size)
-
-            function_selectors = torch.zeros((batch_size, self.num_functions))
-            for i in range(batch_size):
-                function_selectors[i, i % self.num_functions] = 1
+            function_selectors = self.generate_function_selectors(batch_size, random=False)
 
             messages = self.message(contexts, function_selectors)
             messages = messages.numpy()
