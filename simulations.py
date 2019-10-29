@@ -47,7 +47,7 @@ def make_referential_game_simulation(object_size, context_size, num_functions, m
                       num_functions=num_functions,
                       context_size=(context_size, object_size),
                       message_sizes=message_sizes,
-                      num_trials=1,
+                      num_trials=3,
                       target_function=referential_game_target_function)
 
 
@@ -58,69 +58,61 @@ referential_game_simulation = make_referential_game_simulation(object_size=2,
 
 
 def make_extremity_game_simulation(object_size, message_sizes):
-    context_size = 2 * object_size
-    num_functions = context_size
+    num_objects = 2 * object_size
+    num_functions = num_objects
+    context_size = (num_objects, object_size)
+
+    def extremity_game_context_generator(batch_size, context_shape: Tuple[int, ...]):
+        contexts = []
+        for _ in range(batch_size):
+            context = torch.randn(*context_shape)
+
+            argmins = context.argmin(dim=0)
+            argmaxs = context.argmax(dim=0)
+
+            for p, argmin, argmax in zip(range(object_size), argmins, argmaxs):
+                temp = context[p * 2, p]  # min
+                context[p * 2, p] = context[argmin, p]
+                context[argmin, p] = temp
+
+                temp = context[p * 2 + 1, p]  # max
+                context[p * 2 + 1, p] = context[argmax, p]
+                context[argmax, p] = temp
+
+            context = context[torch.randperm(context.shape[0])]  # Shuffle rows
+            contexts.append(context)
+
+        return torch.stack(contexts)
 
     def extremity_game_target_function(context, function_selectors):
-        """Selects one row of context (i.e. an object).
-        Output shape: (batch_size, object_size)."""
-        # TODO
-        funcs = function_selectors.argmax(dim=1)
-        parity = funcs % 2
-        if parity == 0:
-            pass
-        else:
-            pass
+        # TODO Make more efficient+readable.
 
-        return torch.matmul(function_selectors.unsqueeze(1), context).squeeze(dim=1)
+        func_idxs = function_selectors.argmax(dim=1)
+        func_min_or_max = func_idxs % 2
+        param_idxs = func_idxs // context.shape[2]  # Number of params.
 
+        min_per_param = context.argmin(dim=1)
+        max_per_param = context.argmax(dim=1)
 
+        targets = []
+        for batch in range(context.shape[0]):
+            if func_min_or_max[batch] == 0:
+                targets.append(context[batch][min_per_param[batch][param_idxs[batch]]])
+            else:
+                targets.append(context[batch][max_per_param[batch][param_idxs[batch]]])
+        return torch.stack(targets)
 
-    pass
-
-def extremity_game_target_function(context, function_selectors: torch.Tensor):
-    """Selects one row of context (i.e. an object).
-    Output shape: (batch_size, object_size)."""
-    # TODO
-    funcs = function_selectors.argmax(dim=1)
-    parity = funcs % 2
-    if parity == 0:
-        pass
-    else:
-        pass
-
-    return torch.matmul(function_selectors.unsqueeze(1), context).squeeze(dim=1)
+    return Simulation(name="extremity_game",
+                      object_size=object_size,
+                      num_functions=num_functions,
+                      context_size=context_size,
+                      message_sizes=message_sizes,
+                      num_trials=1,
+                      context_generator=extremity_game_context_generator,
+                      target_function=extremity_game_target_function)
 
 
-def extremity_game_context_generator(batch_size, context_shape):
-    # TODO
-    num_objects = context_shape[0]
-    num_properties = context_shape[1]
-
-    assert num_objects <= 2 * num_properties
-
-    contexts = torch.randn(batch_size, *context_shape)
-
-    for i in range(batch_size):
-        context = contexts[i]
-        for obj_idx in range(0, num_objects, 2):
-            prop_vals = context[:, obj_idx]
-            where_min = torch.argmin(prop_vals)
-            where_max = torch.argmax(prop_vals)
-
-            # context[obj_idx, ???]
-
-            where_min = torch.argmin(context[:,obj_idx])
-            context[obj_idx, where_min]
-            where_max = torch.argmax(context[:,obj_idx+1])
-
-
-extremity_game = Simulation(name="extremity_game",
-                            object_size=3,
-                            num_functions=6,
-                            context_size=(6, 3),
-                            message_sizes=range(1, 11),
-                            target_function=extremity_game_target_function)
+extremity_game_simulation = make_extremity_game_simulation(object_size=2, message_sizes=(1, 2, 3, 4, 5, 6))
 
 
 def visualize_game(game_: game.Game):
