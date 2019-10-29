@@ -23,14 +23,23 @@ class Simulation:
     context_generator: Optional[Callable] = None
     use_context: bool = True
     shared_context: bool = True
+
     num_trials: int = 3
+    mini_batch_size: int = 1000
+    num_epochs: int = 1000
 
 
-belief_update_game = Simulation(name="belief_game",
-                                context_size=2,
-                                object_size=2,
-                                num_functions=2,
-                                message_sizes=(1, 2, 4, 6, 8))
+def make_belief_update_simulation(context_size, num_functions, message_sizes):
+    return Simulation(name="belief_update_game",
+                      context_size=context_size,
+                      object_size=context_size,
+                      num_functions=num_functions,
+                      message_sizes=message_sizes)
+
+
+belief_update_simulation = make_belief_update_simulation(context_size=10,
+                                                         num_functions=4,
+                                                         message_sizes=(1, 2, 4, 6, 8, 10))
 
 
 def make_referential_game_simulation(object_size, context_size, num_functions, message_sizes):
@@ -63,6 +72,7 @@ def make_extremity_game_simulation(object_size, message_sizes):
     context_size = (num_objects, object_size)
 
     def extremity_game_context_generator(batch_size, context_shape: Tuple[int, ...]):
+        # TODO Check correctness.
         contexts = []
         for _ in range(batch_size):
             context = torch.randn(*context_shape)
@@ -107,22 +117,21 @@ def make_extremity_game_simulation(object_size, message_sizes):
                       num_functions=num_functions,
                       context_size=context_size,
                       message_sizes=message_sizes,
-                      num_trials=1,
+                      num_trials=3,
                       context_generator=extremity_game_context_generator,
                       target_function=extremity_game_target_function)
 
 
-extremity_game_simulation = make_extremity_game_simulation(object_size=2, message_sizes=(1, 2, 3, 4, 5, 6))
+extremity_game_simulation = make_extremity_game_simulation(object_size=3, message_sizes=(1, 3, 4, 5, 6, 8))
 
 
 def visualize_game(game_: game.Game):
-    game_.play()
     game_.plot_messages_information()
     game_.predict_functions_from_messages()
     game_.clusterize_messages(visualize=True)
 
 
-def run_simulation(simulation: Simulation):
+def run_simulation(simulation: Simulation, visualize: bool = False):
     supervised_clustering_accuracies: List[List[float]] = []
     unsupervised_clustering_losses: List[List[float]] = []
     for message_size in simulation.message_sizes:
@@ -138,9 +147,12 @@ def run_simulation(simulation: Simulation):
                                                 shared_context=simulation.shared_context,
                                                 target_function=simulation.target_function,
                                                 context_generator=simulation.context_generator)
-            current_game.play()
+            current_game.play(mini_batch_size=simulation.mini_batch_size,
+                              num_epochs=simulation.mini_batch_size)
+            if visualize:
+                visualize_game(current_game)
             supervised_accuracies.append(current_game.predict_functions_from_messages())
-            unsupervised_losses.append(current_game.clusterize_messages())
+            unsupervised_losses.append(current_game.clusterize_messages(visualize=visualize))
 
         supervised_clustering_accuracies.append(supervised_accuracies)
         unsupervised_clustering_losses.append(unsupervised_losses)
