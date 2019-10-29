@@ -137,7 +137,7 @@ class Game(nn.Module):
 
         logging.info(f"Epoch {self.loss_list[-1][0]}:\t{self.loss_list[-1][1]:.2e}")
 
-    def _encoder_forward_pass(self, context, function_selector):
+    def encoder_forward_pass(self, context, function_selector):
         if self.use_context:
             context_flattened = utils.batch_flatten(context)
             encoder_input = torch.cat((context_flattened, function_selector), dim=1)
@@ -151,7 +151,7 @@ class Game(nn.Module):
 
         return message
 
-    def _decoder_forward_pass(self, message, context):
+    def decoder_forward_pass(self, message, context):
         if self.use_context:
             context_flattened = utils.batch_flatten(context)
             decoder_input = torch.cat((message, context_flattened), dim=1)
@@ -166,22 +166,22 @@ class Game(nn.Module):
         return prediction
 
     def forward(self, context, function_selector, decoder_context=None):
-        message = self._encoder_forward_pass(context, function_selector)
+        message = self.encoder_forward_pass(context, function_selector)
         if decoder_context is None:
             decoder_context = context
-        prediction = self._decoder_forward_pass(message, decoder_context)
+        prediction = self.decoder_forward_pass(message, decoder_context)
         return prediction, message  # TODO do we still need to return the message?
 
     def predict_by_message(self, message, context):
         with torch.no_grad():
-            return self._decoder_forward_pass(message, context)
+            return self.decoder_forward_pass(message, context)
 
     def target(self, context, function_selector):
         return self.target_function(context, function_selector)
 
     def message(self, context, function_selector):
         with torch.no_grad():
-            return self._encoder_forward_pass(context, function_selector)
+            return self.encoder_forward_pass(context, function_selector)
 
     def loss(self, context, function_selectors, decoder_context=None):
         target = self.target(context, function_selectors)
