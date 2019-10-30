@@ -47,6 +47,7 @@ def make_referential_game_simulation(object_size, context_size, num_functions, m
     functions = torch.randn(num_functions, context_size)
 
     def referential_game_target_function(context, function_selectors):
+        # TODO Check correctness.
         selected_functions = torch.matmul(function_selectors.unsqueeze(1), functions)
         objects = torch.matmul(selected_functions, context).squeeze(1)
         return objects
