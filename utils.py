@@ -2,7 +2,7 @@ import functools
 import logging
 import operator
 from collections import defaultdict
-from typing import List, Text
+from typing import Iterable, List, Text
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -134,3 +134,7 @@ def reduce_prod(vals):
 
 def batch_flatten(x):
     return torch.reshape(x, [-1, reduce_prod(x.shape[1:])])
+
+
+def join_ints(ints: Iterable[int], s=',') -> Text:
+    return s.join(f"{x}" for x in ints)

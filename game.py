@@ -26,7 +26,7 @@ class UpdateNetwork(nn.Module):
         self.hidden_layers = nn.ModuleList([nn.Linear(input_size, self.hidden_sizes[0])])
         for i, hidden_size in enumerate(self.hidden_sizes[1:]):
             self.hidden_layers.append(nn.Linear(self.hidden_sizes[i], hidden_size))
-        self.hidden_layers.append(nn.Linear(self.hidden_sizes[-1], context_size))
+        self.hidden_layers.append(nn.Linear(self.hidden_sizes[-1], object_size))
 
         logging.info("Update network:")
         logging.info(f"Context size: {context_size}")

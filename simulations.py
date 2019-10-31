@@ -1,4 +1,6 @@
 import dataclasses
+import itertools
+import pathlib
 import pickle
 from typing import Callable, Iterable, List, Optional, Text, Tuple, Union
 
@@ -24,22 +26,88 @@ class Simulation:
     use_context: bool = True
     shared_context: bool = True
 
-    num_trials: int = 3
+    num_trials: int = 1
     mini_batch_size: int = 1000
     num_epochs: int = 1000
 
 
-def make_belief_update_simulation(context_size, num_functions, message_sizes):
-    return Simulation(name="belief_update_game",
+def make_belief_update_simulation(context_size, object_size, num_functions, message_sizes):
+    return Simulation(name=f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_ints(message_sizes)}",
                       context_size=context_size,
-                      object_size=context_size,
+                      object_size=object_size,
                       num_functions=num_functions,
                       message_sizes=message_sizes)
 
 
+def run_belief_update_simulation_set(context_sizes, object_sizes, num_functions, message_sizes):
+    simulations_grid = list(itertools.product(context_sizes, object_sizes, num_functions))
+    print(f"Running {len(simulations_grid)} total simulations")
+
+    simulation_name = f"belief_game_simulations_c{utils.join_ints(context_sizes)}_o{utils.join_ints(object_sizes)}_c{utils.join_ints(num_functions)}_m{utils.join_ints(message_sizes)}"
+
+    simulations = []
+    for context_size, object_size, num_functions_ in simulations_grid:
+        simulation = make_belief_update_simulation(context_size, object_size, num_functions_, message_sizes)
+        run_simulation(simulation)
+        simulations.append(simulation)
+
+        with pathlib.Path(f"./simulations/{simulation_name}.pickle").open("wb") as f:
+            pickle.dump(simulations, f)
+
+
+def plot_simulation_set(simulation_name, context_sizes, object_sizes, num_functions, message_sizes):
+    with pathlib.Path(f"./simulations/{simulation_name}.pickle").open("rb") as f:
+        simulations = pickle.load(f)
+
+    fig, ax = plt.subplots(len(num_functions), len(context_sizes), figsize=(15, 4))
+
+    for simulation in simulations:
+        simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
+
+        with simulation_path.joinpath("supervised_clustering_accuracies.pickle").open("rb") as f:
+            supervised_clustering_accuracies = pickle.load(f)
+        with simulation_path.joinpath("unsupervised_clustering_loss.pickle").open("rb") as f:
+            unsupervised_clustering_losses = pickle.load(f)
+        accuracy_mean = [np.mean(vals) for vals in supervised_clustering_accuracies]
+        accuracy_error = [np.std(vals) for vals in supervised_clustering_accuracies]
+
+        curr_ax = ax[num_functions.index(simulation.num_functions), context_sizes.index(simulation.context_size)]
+
+        x_ticks = np.arange(len(simulation.message_sizes))
+        x_labels = []
+        for message_size in simulation.message_sizes:
+            label = str(message_size)
+            # if message_size == simulation.context_size:
+            #     label += "\nContext size"
+            # if message_size == simulation.object_size:
+            #     label += "\nObject size"
+            x_labels.append(label)
+
+        bar_width = 0.2
+
+        curr_ax.set(xlabel=f"M", ylabel='F prediction accuracy', title=f"F={simulation.num_functions}, C={simulation.context_size}")
+        curr_ax.bar(x_ticks + (bar_width * object_sizes.index(simulation.object_size)), accuracy_mean, width=bar_width, yerr=accuracy_error, capsize=10, label=f"O={simulation.object_size}", color=f"C{object_sizes.index(simulation.object_size)}")
+        curr_ax.set_xticks(x_ticks)
+        curr_ax.set_xticklabels(x_labels)
+        #
+        # try:
+        #     curr_ax.axvline(x=simulation.message_sizes.index(simulation.context_size), linestyle="--", color="gray")
+        # except ValueError:
+        #     pass
+        # try:
+        #     curr_ax.axvline(x=simulation.message_sizes.index(simulation.object_size), linestyle="--", color="gray")
+        # except ValueError:
+        #     pass
+
+    ax[0,1].legend(ncol=1, loc="lower right", bbox_to_anchor=(1,1))
+    plt.show()
+
+
 belief_update_simulation = make_belief_update_simulation(context_size=10,
+                                                         object_size=10,
                                                          num_functions=4,
                                                          message_sizes=(1, 2, 4, 6, 8, 10))
+
 
 
 def make_referential_game_simulation(object_size, context_size, num_functions, message_sizes):
@@ -158,13 +226,16 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
         supervised_clustering_accuracies.append(supervised_accuracies)
         unsupervised_clustering_losses.append(unsupervised_losses)
 
-    with open(f"./simulations/{simulation.name}_supervised_clustering_accuracies.pickle", "wb") as f:
+    simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
+    simulation_path.mkdir(parents=True, exist_ok=True)
+
+    with simulation_path.joinpath("supervised_clustering_accuracies.pickle").open("wb") as f:
         pickle.dump(supervised_clustering_accuracies, f)
 
-    with open(f"./simulations/{simulation.name}_unsupervised_clustering_loss.pickle", "wb") as f:
+    with simulation_path.joinpath("unsupervised_clustering_loss.pickle").open("wb") as f:
         pickle.dump(unsupervised_clustering_losses, f)
 
-    with open(f"./simulations/{simulation.name}.pickle", "wb") as f:  # TODO use json
+    with simulation_path.joinpath(f"{simulation.name}.pickle").open("wb") as f:  # TODO use json
         # Can't pickle nested functions
         del simulation.target_function
         del simulation.context_generator
@@ -172,13 +243,14 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
 
 
 def plot_simulation(simulation_name):
-    with open(f"./simulations/{simulation_name}_supervised_clustering_accuracies.pickle", "rb") as f:
+    simulation_path = pathlib.Path("./simulations/{simulation.name}/")
+    with simulation_path.joinpath("supervised_clustering_accuracies.pickle").open("rb") as f:
         supervised_clustering_accuracies = pickle.load(f)
 
-    with open(f"./simulations/{simulation_name}_unsupervised_clustering_loss.pickle", "rb") as f:
+    with simulation_path.joinpath("unsupervised_clustering_loss.pickle").open("rb") as f:
         unsupervised_clustering_losses = pickle.load(f)
 
-    with open(f"./simulations/{simulation_name}.pickle", "rb") as f:  # TODO use json
+    with simulation_path.joinpath(f"{simulation_name}.pickle").open("rb") as f:  # TODO use json
         simulation: Simulation = pickle.load(f)
 
     accuracy_mean = [np.mean(vals) for vals in supervised_clustering_accuracies]
