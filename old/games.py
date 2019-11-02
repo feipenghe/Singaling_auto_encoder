@@ -30,7 +30,7 @@ def plot_categorical_transition():
         message = (t * message_1) + ((1 - t) * message_2)
         situation = (t * situation_1) + ((1 - t) * situation_2)
 
-        prediction = game.predict_by_message(torch.unsqueeze(message, dim=0), torch.unsqueeze(situation, dim=0))
+        prediction = game.output_by_message(torch.unsqueeze(message, dim=0), torch.unsqueeze(situation, dim=0))
 
         ts.append(t)
         predictions.append(prediction.view(-1).numpy())
@@ -42,8 +42,8 @@ def plot_categorical_transition():
 
     ts = []
     predictions = []
-    prediction_1 = game.predict_by_message(torch.unsqueeze(message_1, dim=0), torch.unsqueeze(situation_1, dim=0))
-    prediction_2 = game.predict_by_message(torch.unsqueeze(message_2, dim=0), torch.unsqueeze(situation_2, dim=0))
+    prediction_1 = game.output_by_message(torch.unsqueeze(message_1, dim=0), torch.unsqueeze(situation_1, dim=0))
+    prediction_2 = game.output_by_message(torch.unsqueeze(message_2, dim=0), torch.unsqueeze(situation_2, dim=0))
 
     for t in np.linspace(0, 1, 100_000):
         prediction = (t * prediction_1) + ((1 - t) * prediction_2)

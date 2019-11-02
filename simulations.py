@@ -2,7 +2,7 @@ import dataclasses
 import itertools
 import pathlib
 import pickle
-from typing import Callable, Iterable, List, Optional, Text, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Text, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,83 +31,20 @@ class Simulation:
     num_epochs: int = 1000
 
 
-def make_belief_update_simulation(context_size, object_size, num_functions, message_sizes):
-    return Simulation(name=f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_ints(message_sizes)}",
+def make_belief_update_simulation(context_size, object_size, num_functions, message_sizes, shared_context):
+    return Simulation(name=f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_ints(message_sizes)}_sharedcontext{int(shared_context)}",
                       context_size=context_size,
                       object_size=object_size,
                       num_functions=num_functions,
+                      shared_context=shared_context,
                       message_sizes=message_sizes)
-
-
-def run_belief_update_simulation_set(context_sizes, object_sizes, num_functions, message_sizes):
-    simulations_grid = list(itertools.product(context_sizes, object_sizes, num_functions))
-    print(f"Running {len(simulations_grid)} total simulations")
-
-    simulation_name = f"belief_game_simulations_c{utils.join_ints(context_sizes)}_o{utils.join_ints(object_sizes)}_c{utils.join_ints(num_functions)}_m{utils.join_ints(message_sizes)}"
-
-    simulations = []
-    for context_size, object_size, num_functions_ in simulations_grid:
-        simulation = make_belief_update_simulation(context_size, object_size, num_functions_, message_sizes)
-        run_simulation(simulation)
-        simulations.append(simulation)
-
-        with pathlib.Path(f"./simulations/{simulation_name}.pickle").open("wb") as f:
-            pickle.dump(simulations, f)
-
-
-def plot_simulation_set(simulation_name, context_sizes, object_sizes, num_functions, message_sizes):
-    with pathlib.Path(f"./simulations/{simulation_name}.pickle").open("rb") as f:
-        simulations = pickle.load(f)
-
-    fig, ax = plt.subplots(len(num_functions), len(context_sizes), figsize=(15, 4))
-
-    for simulation in simulations:
-        simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
-
-        with simulation_path.joinpath("supervised_clustering_accuracies.pickle").open("rb") as f:
-            supervised_clustering_accuracies = pickle.load(f)
-        with simulation_path.joinpath("unsupervised_clustering_loss.pickle").open("rb") as f:
-            unsupervised_clustering_losses = pickle.load(f)
-        accuracy_mean = [np.mean(vals) for vals in supervised_clustering_accuracies]
-        accuracy_error = [np.std(vals) for vals in supervised_clustering_accuracies]
-
-        curr_ax = ax[num_functions.index(simulation.num_functions), context_sizes.index(simulation.context_size)]
-
-        x_ticks = np.arange(len(simulation.message_sizes))
-        x_labels = []
-        for message_size in simulation.message_sizes:
-            label = str(message_size)
-            # if message_size == simulation.context_size:
-            #     label += "\nContext size"
-            # if message_size == simulation.object_size:
-            #     label += "\nObject size"
-            x_labels.append(label)
-
-        bar_width = 0.2
-
-        curr_ax.set(xlabel=f"M", ylabel='F prediction accuracy', title=f"F={simulation.num_functions}, C={simulation.context_size}")
-        curr_ax.bar(x_ticks + (bar_width * object_sizes.index(simulation.object_size)), accuracy_mean, width=bar_width, yerr=accuracy_error, capsize=10, label=f"O={simulation.object_size}", color=f"C{object_sizes.index(simulation.object_size)}")
-        curr_ax.set_xticks(x_ticks)
-        curr_ax.set_xticklabels(x_labels)
-        #
-        # try:
-        #     curr_ax.axvline(x=simulation.message_sizes.index(simulation.context_size), linestyle="--", color="gray")
-        # except ValueError:
-        #     pass
-        # try:
-        #     curr_ax.axvline(x=simulation.message_sizes.index(simulation.object_size), linestyle="--", color="gray")
-        # except ValueError:
-        #     pass
-
-    ax[0,1].legend(ncol=1, loc="lower right", bbox_to_anchor=(1,1))
-    plt.show()
 
 
 belief_update_simulation = make_belief_update_simulation(context_size=10,
                                                          object_size=10,
                                                          num_functions=4,
-                                                         message_sizes=(1, 2, 4, 6, 8, 10))
-
+                                                         message_sizes=(1, 2, 4, 6, 8, 10),
+                                                         shared_context=True)
 
 
 def make_referential_game_simulation(object_size, context_size, num_functions, message_sizes):
@@ -196,16 +133,18 @@ extremity_game_simulation = make_extremity_game_simulation(object_size=3, messag
 
 def visualize_game(game_: game.Game):
     game_.plot_messages_information()
-    game_.predict_functions_from_messages()
     game_.clusterize_messages(visualize=True)
 
 
 def run_simulation(simulation: Simulation, visualize: bool = False):
-    supervised_clustering_accuracies: List[List[float]] = []
+    network_losses: List[List[float]] = []
+    prediction_by_messages_losses: List[List[Dict[Text, float]]] = []
     unsupervised_clustering_losses: List[List[float]] = []
+
     for message_size in simulation.message_sizes:
-        supervised_accuracies = []
-        unsupervised_losses = []
+        network_losses_per_trial = []
+        prediction_losses_per_trial = []
+        unsupervised_losses_per_trial = []
 
         for _ in range(simulation.num_trials):
             current_game: game.Game = game.Game(context_size=simulation.context_size,
@@ -220,17 +159,25 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
                               num_epochs=simulation.mini_batch_size)
             if visualize:
                 visualize_game(current_game)
-            supervised_accuracies.append(current_game.predict_functions_from_messages())
-            unsupervised_losses.append(current_game.clusterize_messages(visualize=visualize))
 
-        supervised_clustering_accuracies.append(supervised_accuracies)
-        unsupervised_clustering_losses.append(unsupervised_losses)
+            element_losses = {element: current_game.predict_element_by_messages(element)
+                              for element in ("functions", "object_by_context", "object_by_decoder_context", "context", "decoder_context")}
+            prediction_losses_per_trial.append(element_losses)
+            unsupervised_losses_per_trial.append(current_game.clusterize_messages(visualize=visualize))
+            network_losses_per_trial.append(current_game.loss_list[-1][1])
+
+        network_losses.append(network_losses_per_trial)
+        prediction_by_messages_losses.append(prediction_losses_per_trial)
+        unsupervised_clustering_losses.append(unsupervised_losses_per_trial)
 
     simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
     simulation_path.mkdir(parents=True, exist_ok=True)
 
-    with simulation_path.joinpath("supervised_clustering_accuracies.pickle").open("wb") as f:
-        pickle.dump(supervised_clustering_accuracies, f)
+    with simulation_path.joinpath("network_losses.pickle").open("wb") as f:
+        pickle.dump(network_losses, f)
+
+    with simulation_path.joinpath("prediction_by_messages_losses.pickle").open("wb") as f:
+        pickle.dump(prediction_by_messages_losses, f)
 
     with simulation_path.joinpath("unsupervised_clustering_loss.pickle").open("wb") as f:
         pickle.dump(unsupervised_clustering_losses, f)
@@ -240,6 +187,26 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
         del simulation.target_function
         del simulation.context_generator
         pickle.dump(simulation, f)
+
+
+def run_belief_update_simulation_set(context_sizes, object_sizes, num_functions, message_sizes, shared_context):
+    simulations_grid = list(itertools.product(context_sizes, object_sizes, num_functions))
+    print(f"Running {len(simulations_grid)} total simulations")
+
+    simulation_set_name = f"belief_game_simulations_c{utils.join_ints(context_sizes)}" \
+        f"_o{utils.join_ints(object_sizes)}" \
+        f"_c{utils.join_ints(num_functions)}" \
+        f"_m{utils.join_ints(message_sizes)}" \
+        f"_sharedcontext{int(shared_context)}"
+
+    simulations = []
+    for context_size, object_size, num_functions_ in simulations_grid:
+        simulation = make_belief_update_simulation(context_size, object_size, num_functions_, message_sizes, shared_context)
+        run_simulation(simulation)
+        simulations.append(simulation)
+
+        with pathlib.Path(f"./simulations/{simulation_set_name}.pickle").open("wb") as f:
+            pickle.dump(simulations, f)
 
 
 def plot_simulation(simulation_name):
@@ -292,3 +259,56 @@ def plot_simulation(simulation_name):
     plt.title('Clustering loss')
     plt.savefig(f"./simulations/{simulation_name}_unsupervised_clustering.png")
     plt.show()
+
+
+def plot_simulation_set(simulation_set_name, element_to_plot, context_sizes, object_sizes, num_functions, message_sizes):
+    with pathlib.Path(f"./simulations/{simulation_set_name}.pickle").open("rb") as f:
+        simulations = pickle.load(f)
+
+    titles = {"functions": "F", "object_by_context": "f(c)", "object_by_decoder_context": "f(c')", "context": "C", "decoder_context": "C'"}
+
+    fig, ax = plt.subplots(len(num_functions), len(context_sizes), figsize=(18, 12), squeeze=False)
+    fig.suptitle(f"M -> {titles[element_to_plot]} loss")
+    fig.suptitle(f"Network output loss")
+
+    for simulation in simulations:
+        simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
+
+        with simulation_path.joinpath("network_losses.pickle").open("rb") as f:
+            network_losses = pickle.load(f)
+        with simulation_path.joinpath("prediction_by_messages_losses.pickle").open("rb") as f:
+            prediction_by_messages_losses = pickle.load(f)
+        with simulation_path.joinpath("unsupervised_clustering_loss.pickle").open("rb") as f:
+            unsupervised_clustering_losses = pickle.load(f)
+
+        element_losses = [[x[element_to_plot] for x in trials] for trials in prediction_by_messages_losses]
+
+        losses_mean = np.array([np.mean(vals) for vals in element_losses])
+        losses_err = [np.std(vals) for vals in element_losses]
+
+        curr_ax = ax[num_functions.index(simulation.num_functions), context_sizes.index(simulation.context_size)]
+
+        x_ticks = np.arange(len(simulation.message_sizes))
+        x_labels = []
+        for message_size in simulation.message_sizes:
+            label = str(message_size)
+            if message_size == simulation.context_size:
+                label += "\nC"
+            x_labels.append(label)
+
+        bar_width = 0.3
+        x = x_ticks + (bar_width * object_sizes.index(simulation.object_size))
+        curr_ax.set(xlabel=f"M", ylabel='loss', title=f"F={simulation.num_functions}, C={simulation.context_size}")
+        curr_ax.bar(x, losses_mean, width=bar_width, label=f"O={simulation.object_size}", yerr=losses_err, capsize=4, color=f"C{object_sizes.index(simulation.object_size)}")
+        curr_ax.set_xticks(x_ticks)
+        curr_ax.set_xticklabels(x_labels)
+        curr_ax.set_yticks(np.arange(0.0, 0.01, 0.001))
+
+        try:
+            curr_ax.axvline(x=simulation.message_sizes.index(simulation.context_size), linestyle="--", color="gray")
+        except ValueError:
+            pass
+
+    ax[0, -1].legend(ncol=1, loc="lower right", bbox_to_anchor=(1, 1))
+    plt.show()
+

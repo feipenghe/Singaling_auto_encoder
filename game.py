@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Text
 
 import numpy as np
 import torch
@@ -172,7 +172,7 @@ class Game(nn.Module):
         prediction = self.decoder_forward_pass(message, decoder_context)
         return prediction, message  # TODO do we still need to return the message?
 
-    def predict_by_message(self, message, context):
+    def output_by_message(self, message, context):
         with torch.no_grad():
             return self.decoder_forward_pass(message, context)
 
@@ -211,9 +211,7 @@ class Game(nn.Module):
         batch_size = exemplars_size * self.num_functions
         contexts = self.generate_contexts(batch_size)
         function_selectors = self.generate_function_selectors(batch_size, random=False)
-
         messages = self.message(contexts, function_selectors)
-
         return function_selectors, contexts, messages
 
     def plot_messages_information(self, exemplars_size=40):
@@ -236,30 +234,55 @@ class Game(nn.Module):
             targets = self.target(contexts, function_selectors)
             utils.plot_raw_and_pca(targets.numpy(), message_masks, message_labels, "Targets")
 
-    def predict_functions_from_messages(self, exemplars_size=40) -> float:
-        func_selectors, situations, messages = self.generate_func_selectors_contexts_messages(exemplars_size)
+    def predict_element_by_messages(self, element_to_predict: Text, exemplars_size=40) -> float:
+        logging.info(f"Predicting {element_to_predict} from messages.")
+
+        func_selectors, contexts, messages = self.generate_func_selectors_contexts_messages(exemplars_size)
         batch_size = func_selectors.shape[0]
 
         train_test_ratio = 0.7
         num_train_samples = math.ceil(batch_size * train_test_ratio)
 
+        loss_func = torch.nn.MSELoss()
+
+        if element_to_predict == "functions":
+            elements = func_selectors
+            # loss_func = torch.nn.CrossEntropyLoss()
+            # elements = elements.argmax(dim=1)
+        elif element_to_predict == "object_by_context":
+            elements = self.target_function(contexts, func_selectors)
+        elif element_to_predict == "object_by_decoder_context":
+            if self.shared_context:
+                logging.info("No decoder context, context is shared.")
+                return 0.0
+            decoder_contexts = self.generate_contexts(batch_size)
+            elements = self.target_function(decoder_contexts, func_selectors)
+        elif element_to_predict == "context":
+            elements = contexts
+        elif element_to_predict == "decoder_context":
+            if self.shared_context:
+                logging.info("No decoder context, context is shared.")
+                return 0.0
+            elements = self.generate_contexts(batch_size)
+        else:
+            raise ValueError("Invalid element to predict")
+
+        train_target, test_target = elements[:num_train_samples], elements[num_train_samples:]
         train_messages, test_messages = messages[:num_train_samples], messages[num_train_samples:]
-        train_funcs, test_funcs = func_selectors[:num_train_samples], func_selectors[num_train_samples:]
 
         classifier_hidden_size = 32
         model = torch.nn.Sequential(
             torch.nn.Linear(self.message_size, classifier_hidden_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(classifier_hidden_size, self.num_functions),
+            torch.nn.Linear(classifier_hidden_size, test_target.shape[-1]),
             torch.nn.Softmax()
         )
-        loss_func = torch.nn.MSELoss()
 
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         num_epochs = 1000
         for epoch in range(num_epochs):
             y_pred = model(train_messages)
-            loss = loss_func(y_pred, train_funcs)
+            loss = loss_func(y_pred, train_target)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -268,11 +291,12 @@ class Game(nn.Module):
                 logging.info(f"Epoch {epoch + 1}:\t{loss.item():.2e}")
 
         with torch.no_grad():
-            test_predicted = model(test_messages).numpy()
+            test_predicted = model(test_messages)
 
-        accuracy = metrics.accuracy_score(np.argmax(test_funcs.numpy(), axis=1), np.argmax(test_predicted, axis=1))
-        logging.info(f"Information prediction accuracy: {accuracy}")
-        return accuracy
+        return loss_func(test_predicted, test_target).item()
+        # accuracy = metrics.accuracy_score(np.argmax(test_set.numpy(), axis=1), np.argmax(test_predicted, axis=1))
+        # logging.info(f"{element_to_predict} prediction accuracy: {accuracy}")
+        # return accuracy
 
     def clusterize_messages(self, exemplars_size=40, visualize=False):
         num_clusters = self.num_functions
@@ -304,7 +328,7 @@ class Game(nn.Module):
         if visualize:
             utils.plot_clusters(test_messages, cluster_label_per_test_message, "Test message clusters")
 
-        predictions_by_unseen_messages = self.predict_by_message(test_messages, test_contexts)
+        predictions_by_unseen_messages = self.output_by_message(test_messages, test_contexts)
         with torch.no_grad():
             predictions_by_inferred_func, _ = self.forward(test_contexts, func_by_message_cluster)
 
