@@ -249,8 +249,7 @@ class Game(nn.Module):
 
         if element_to_predict == "functions":
             elements = func_selectors
-            # loss_func = torch.nn.CrossEntropyLoss()
-            # elements = elements.argmax(dim=1)
+            loss_func = torch.nn.NLLLoss()  # See https://pytorch.org/docs/stable/nn.html#crossentropyloss
         elif element_to_predict == "object_by_context":
             elements = self.target_function(contexts, func_selectors)
         elif element_to_predict == "object_by_decoder_context":
@@ -273,18 +272,27 @@ class Game(nn.Module):
         train_messages, test_messages = messages[:num_train_samples], messages[num_train_samples:]
 
         classifier_hidden_size = 32
-        model = torch.nn.Sequential(
+        layers = [
             torch.nn.Linear(self.message_size, classifier_hidden_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(classifier_hidden_size, test_target.shape[-1]),
-            torch.nn.Softmax()
-        )
+            torch.nn.Linear(classifier_hidden_size, test_target.shape[-1])
+        ]
+
+        if element_to_predict == "functions":
+            layers.append(torch.nn.LogSoftmax(dim=1))
+
+        model = torch.nn.Sequential(*layers)
+        logging.info(f"Prediction network layers:\n{layers}")
 
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         num_epochs = 1000
         for epoch in range(num_epochs):
             y_pred = model(train_messages)
-            loss = loss_func(y_pred, train_target)
+            if element_to_predict == "functions":
+                current_train_target = train_target.argmax(dim=1)
+            else:
+                current_train_target = train_target
+            loss = loss_func(y_pred, current_train_target)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -295,10 +303,13 @@ class Game(nn.Module):
         with torch.no_grad():
             test_predicted = model(test_messages)
 
-        return loss_func(test_predicted, test_target).item()
-        # accuracy = metrics.accuracy_score(np.argmax(test_set.numpy(), axis=1), np.argmax(test_predicted, axis=1))
-        # logging.info(f"{element_to_predict} prediction accuracy: {accuracy}")
-        # return accuracy
+        if element_to_predict == "functions":
+            accuracy = metrics.accuracy_score(test_target.argmax(dim=1).numpy(), test_predicted.argmax(dim=1).numpy())
+            result = accuracy
+        else:
+            result = loss_func(test_predicted, test_target).item()
+        logging.info(f"Prediction network result: {result}")
+        return result
 
     def clusterize_messages(self, exemplars_size=40, visualize=False):
         num_clusters = self.num_functions
