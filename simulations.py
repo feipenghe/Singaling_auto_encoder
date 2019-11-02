@@ -267,9 +267,16 @@ def plot_simulation_set(simulation_set_name, element_to_plot, context_sizes, obj
 
     titles = {"functions": "F", "object_by_context": "f(c)", "object_by_decoder_context": "f(c')", "context": "C", "decoder_context": "C'"}
 
+    if element_to_plot == "functions":
+        metric = "accuracy"
+    else:
+        metric = "loss"
+
     fig, ax = plt.subplots(len(num_functions), len(context_sizes), figsize=(18, 12), squeeze=False)
-    fig.suptitle(f"M -> {titles[element_to_plot]} loss")
-    fig.suptitle(f"Network output loss")
+    fig.suptitle(f"M -> {titles[element_to_plot]} {metric}")
+    # fig.suptitle(f"Network output loss")
+
+    global_loss_max = 0.0
 
     for simulation in simulations:
         simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
@@ -298,16 +305,20 @@ def plot_simulation_set(simulation_set_name, element_to_plot, context_sizes, obj
 
         bar_width = 0.3
         x = x_ticks + (bar_width * object_sizes.index(simulation.object_size))
-        curr_ax.set(xlabel=f"M", ylabel='loss', title=f"F={simulation.num_functions}, C={simulation.context_size}")
+        curr_ax.set(xlabel=f"M", ylabel=metric, title=f"F={simulation.num_functions}, C={simulation.context_size}")
         curr_ax.bar(x, losses_mean, width=bar_width, label=f"O={simulation.object_size}", yerr=losses_err, capsize=4, color=f"C{object_sizes.index(simulation.object_size)}")
         curr_ax.set_xticks(x_ticks)
         curr_ax.set_xticklabels(x_labels)
-        curr_ax.set_yticks(np.arange(0.0, 0.01, 0.001))
 
+        global_loss_max = max(global_loss_max, losses_mean.max())
         try:
             curr_ax.axvline(x=simulation.message_sizes.index(simulation.context_size), linestyle="--", color="gray")
         except ValueError:
             pass
+
+    y_interval = round(global_loss_max / 10, int(np.abs(np.floor(np.log10(global_loss_max / 10)))))
+    for _, curr_ax in np.ndenumerate(ax):
+        curr_ax.set_yticks(np.arange(0.0, global_loss_max + y_interval, y_interval))
 
     ax[0, -1].legend(ncol=1, loc="lower right", bbox_to_anchor=(1, 1))
     plt.show()
