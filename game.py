@@ -56,7 +56,9 @@ def make_update_network_function(context_size, object_size, num_functions, updat
 
 
 class Game(nn.Module):
-    def __init__(self, context_size, object_size, message_size, num_functions, use_context=True, shared_context=True, target_function: Optional[Callable] = None, context_generator: Optional[Callable] = None, hidden_sizes=(64, 64), update_network_hidden_sizes=(64,)):
+    def __init__(self, context_size, object_size, message_size, num_functions, use_context=True, shared_context=True,
+                 target_function: Optional[Callable] = None, context_generator: Optional[Callable] = None,
+                 hidden_sizes=(64, 64), update_network_hidden_sizes=(64,)):
         super().__init__()
         self.context_size = context_size
         self.object_size = object_size
