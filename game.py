@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from sklearn import cluster, metrics
 from torch import optim
 
@@ -14,7 +13,14 @@ import utils
 
 
 class UpdateNetwork(nn.Module):
-    def __init__(self, context_size, object_size, num_functions, hidden_sizes=(64,), use_context=True):
+    def __init__(
+        self,
+        context_size,
+        object_size,
+        num_functions,
+        hidden_sizes=(64,),
+        use_context=True,
+    ):
         super().__init__()
         self.hidden_sizes = hidden_sizes
         self.use_context = use_context
@@ -23,7 +29,9 @@ class UpdateNetwork(nn.Module):
             input_size = context_size + num_functions
         else:
             input_size = num_functions
-        self.hidden_layers = nn.ModuleList([nn.Linear(input_size, self.hidden_sizes[0])])
+        self.hidden_layers = nn.ModuleList(
+            [nn.Linear(input_size, self.hidden_sizes[0])]
+        )
         for i, hidden_size in enumerate(self.hidden_sizes[1:]):
             self.hidden_layers.append(nn.Linear(self.hidden_sizes[i], hidden_size))
         self.hidden_layers.append(nn.Linear(self.hidden_sizes[-1], object_size))
@@ -46,19 +54,38 @@ class UpdateNetwork(nn.Module):
         return output
 
 
-def make_update_network_function(context_size, object_size, num_functions, update_network_hidden_sizes, use_context):
-    update_network = UpdateNetwork(context_size, object_size, num_functions, update_network_hidden_sizes, use_context)
+def make_update_network_function(
+    context_size, object_size, num_functions, update_network_hidden_sizes, use_context
+):
+    update_network = UpdateNetwork(
+        context_size,
+        object_size,
+        num_functions,
+        update_network_hidden_sizes,
+        use_context,
+    )
 
     def func(contexts, function_selectors):
         with torch.no_grad():
             return update_network.forward(contexts, function_selectors)
+
     return func
 
 
 class Game(nn.Module):
-    def __init__(self, context_size, object_size, message_size, num_functions, use_context=True, shared_context=True,
-                 target_function: Optional[Callable] = None, context_generator: Optional[Callable] = None,
-                 hidden_sizes=(64, 64), update_network_hidden_sizes=(64,)):
+    def __init__(
+        self,
+        context_size,
+        object_size,
+        message_size,
+        num_functions,
+        use_context=True,
+        shared_context=True,
+        target_function: Optional[Callable] = None,
+        context_generator: Optional[Callable] = None,
+        hidden_sizes=(64, 64),
+        update_network_hidden_sizes=(64,),
+    ):
         super().__init__()
         self.context_size = context_size
         self.object_size = object_size
@@ -73,8 +100,13 @@ class Game(nn.Module):
         if target_function is not None:
             self.target_function = target_function
         else:
-            self.target_function = make_update_network_function(self.context_size, self.object_size, self.num_functions,
-                                                                self.update_network_hidden_sizes, self.use_context)
+            self.target_function = make_update_network_function(
+                self.context_size,
+                self.object_size,
+                self.num_functions,
+                self.update_network_hidden_sizes,
+                self.use_context,
+            )
 
         self.criterion = nn.MSELoss()
         self.epoch = 0
@@ -104,17 +136,23 @@ class Game(nn.Module):
         encoder_layer_dimensions.append((self.hidden_sizes[-1], self.message_size))
         decoder_layer_dimensions.append((self.hidden_sizes[-1], self.object_size))
 
-        self.encoder_hidden_layers = nn.ModuleList([nn.Linear(*dimensions) for dimensions in encoder_layer_dimensions])
-        self.decoder_hidden_layers = nn.ModuleList([nn.Linear(*dimensions) for dimensions in decoder_layer_dimensions])
+        self.encoder_hidden_layers = nn.ModuleList(
+            [nn.Linear(*dimensions) for dimensions in encoder_layer_dimensions]
+        )
+        self.decoder_hidden_layers = nn.ModuleList(
+            [nn.Linear(*dimensions) for dimensions in decoder_layer_dimensions]
+        )
 
         logging.info("Game details:")
-        logging.info(f"\nContext size: {context_size}\nObject size: {object_size}\nMessage size: {message_size}\nNumber of functions: {num_functions}")
+        logging.info(
+            f"\nContext size: {context_size}\nObject size: {object_size}\nMessage size: {message_size}\nNumber of functions: {num_functions}"
+        )
         logging.info(f"Use context: {use_context}")
         logging.info(f"Encoder layers:\n{self.encoder_hidden_layers}")
         logging.info(f"Decoder layers:\n{self.decoder_hidden_layers}")
 
     def play(self, num_epochs=1000, mini_batch_size=1000):
-        for learning_rate in [.01, .001, .0001]:
+        for learning_rate in [0.01, 0.001, 0.0001]:
             optimizer = optim.Adam(self.parameters(), lr=learning_rate)
 
             for minibatch_epoch in range(num_epochs):
@@ -124,7 +162,9 @@ class Game(nn.Module):
                     decoder_contexts = None
                 else:
                     decoder_contexts = self.generate_contexts(mini_batch_size)
-                function_selectors = self.generate_function_selectors(mini_batch_size, random=True)
+                function_selectors = self.generate_function_selectors(
+                    mini_batch_size, random=True
+                )
 
                 loss = self.loss(contexts, function_selectors, decoder_contexts)
                 loss.backward()
@@ -132,7 +172,9 @@ class Game(nn.Module):
 
                 if minibatch_epoch == 0:
                     self.loss_list.append((self.epoch, loss.item()))
-                    logging.info(f"Epoch {self.loss_list[-1][0]}:\t{self.loss_list[-1][1]:.2e}")
+                    logging.info(
+                        f"Epoch {self.loss_list[-1][0]}:\t{self.loss_list[-1][1]:.2e}"
+                    )
                 self.epoch += 1
 
             self.loss_list.append((self.epoch, loss.item()))
@@ -192,7 +234,7 @@ class Game(nn.Module):
 
     def generate_contexts(self, batch_size):
         if isinstance(self.context_size, int):
-            context_shape = (self.context_size, )
+            context_shape = (self.context_size,)
         else:
             context_shape = self.context_size
 
@@ -207,7 +249,9 @@ class Game(nn.Module):
             function_idxs = torch.randint(self.num_functions, size=(batch_size,))
         else:
             function_idxs = torch.arange(batch_size) % self.num_functions
-        return torch.nn.functional.one_hot(function_idxs, num_classes=self.num_functions).float()
+        return torch.nn.functional.one_hot(
+            function_idxs, num_classes=self.num_functions
+        ).float()
 
     def generate_func_selectors_contexts_messages(self, exemplars_size):
         batch_size = exemplars_size * self.num_functions
@@ -220,7 +264,9 @@ class Game(nn.Module):
         with torch.no_grad():
             batch_size = exemplars_size * self.num_functions
             contexts = self.generate_contexts(batch_size)
-            function_selectors = self.generate_function_selectors(batch_size, random=False)
+            function_selectors = self.generate_function_selectors(
+                batch_size, random=False
+            )
 
             messages = self.message(contexts, function_selectors)
             messages = messages.numpy()
@@ -228,18 +274,28 @@ class Game(nn.Module):
             message_masks = []
             message_labels = []
             for func_idx in range(self.num_functions):
-                message_masks.append([i * self.num_functions + func_idx for i in range(exemplars_size)])
+                message_masks.append(
+                    [i * self.num_functions + func_idx for i in range(exemplars_size)]
+                )
                 message_labels.append(f"F{func_idx}")
 
             utils.plot_raw_and_pca(messages, message_masks, message_labels, "Messages")
 
             targets = self.target(contexts, function_selectors)
-            utils.plot_raw_and_pca(targets.numpy(), message_masks, message_labels, "Targets")
+            utils.plot_raw_and_pca(
+                targets.numpy(), message_masks, message_labels, "Targets"
+            )
 
-    def predict_element_by_messages(self, element_to_predict: Text, exemplars_size=40) -> float:
+    def predict_element_by_messages(
+        self, element_to_predict: Text, exemplars_size=40
+    ) -> float:
         logging.info(f"Predicting {element_to_predict} from messages.")
 
-        func_selectors, contexts, messages = self.generate_func_selectors_contexts_messages(exemplars_size)
+        (
+            func_selectors,
+            contexts,
+            messages,
+        ) = self.generate_func_selectors_contexts_messages(exemplars_size)
         batch_size = func_selectors.shape[0]
 
         train_test_ratio = 0.7
@@ -249,7 +305,9 @@ class Game(nn.Module):
 
         if element_to_predict == "functions":
             elements = func_selectors
-            loss_func = torch.nn.NLLLoss()  # See https://pytorch.org/docs/stable/nn.html#crossentropyloss
+            loss_func = (
+                torch.nn.NLLLoss()
+            )  # See https://pytorch.org/docs/stable/nn.html#crossentropyloss
         elif element_to_predict == "object_by_context":
             elements = self.target_function(contexts, func_selectors)
         elif element_to_predict == "object_by_decoder_context":
@@ -259,23 +317,29 @@ class Game(nn.Module):
             decoder_contexts = self.generate_contexts(batch_size)
             elements = self.target_function(decoder_contexts, func_selectors)
         elif element_to_predict == "context":
-            elements = contexts
+            elements = utils.batch_flatten(contexts)
         elif element_to_predict == "decoder_context":
             if self.shared_context:
                 logging.info("No decoder context, context is shared.")
                 return 0.0
-            elements = self.generate_contexts(batch_size)
+            elements = utils.batch_flatten(self.generate_contexts(batch_size))
         else:
             raise ValueError("Invalid element to predict")
 
-        train_target, test_target = elements[:num_train_samples], elements[num_train_samples:]
-        train_messages, test_messages = messages[:num_train_samples], messages[num_train_samples:]
+        train_target, test_target = (
+            elements[:num_train_samples],
+            elements[num_train_samples:],
+        )
+        train_messages, test_messages = (
+            messages[:num_train_samples],
+            messages[num_train_samples:],
+        )
 
         classifier_hidden_size = 32
         layers = [
             torch.nn.Linear(self.message_size, classifier_hidden_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(classifier_hidden_size, test_target.shape[-1])
+            torch.nn.Linear(classifier_hidden_size, test_target.shape[-1]),
         ]
 
         if element_to_predict == "functions":
@@ -304,7 +368,9 @@ class Game(nn.Module):
             test_predicted = model(test_messages)
 
         if element_to_predict == "functions":
-            accuracy = metrics.accuracy_score(test_target.argmax(dim=1).numpy(), test_predicted.argmax(dim=1).numpy())
+            accuracy = metrics.accuracy_score(
+                test_target.argmax(dim=1).numpy(), test_predicted.argmax(dim=1).numpy()
+            )
             result = accuracy
         else:
             result = loss_func(test_predicted, test_target).item()
@@ -314,7 +380,11 @@ class Game(nn.Module):
     def clusterize_messages(self, exemplars_size=40, visualize=False):
         num_clusters = self.num_functions
 
-        func_selectors, contexts, messages = self.generate_func_selectors_contexts_messages(exemplars_size)
+        (
+            func_selectors,
+            contexts,
+            messages,
+        ) = self.generate_func_selectors_contexts_messages(exemplars_size)
 
         k_means = cluster.KMeans(n_clusters=num_clusters)
         labels = k_means.fit_predict(messages)
@@ -324,29 +394,49 @@ class Game(nn.Module):
 
         # Find cluster for each message.
         message_distance_from_centers = k_means.transform(messages)
-        representative_message_idx_per_cluster = message_distance_from_centers.argmin(axis=0)
-        message_num_per_cluster = func_selectors[representative_message_idx_per_cluster, :].argmax(axis=1)
-        cluster_label_to_message_num = {cluster_num: message_num for cluster_num, message_num in
-                                        enumerate(message_num_per_cluster)}
+        representative_message_idx_per_cluster = message_distance_from_centers.argmin(
+            axis=0
+        )
+        message_num_per_cluster = func_selectors[
+            representative_message_idx_per_cluster, :
+        ].argmax(axis=1)
+        cluster_label_to_message_num = {
+            cluster_num: message_num
+            for cluster_num, message_num in enumerate(message_num_per_cluster)
+        }
 
         # Sample unseen messages from clusters.
-        _, test_contexts, test_messages = self.generate_func_selectors_contexts_messages(exemplars_size)
+        (
+            _,
+            test_contexts,
+            test_messages,
+        ) = self.generate_func_selectors_contexts_messages(exemplars_size)
         cluster_label_per_test_message = k_means.predict(test_messages)
 
         batch_size = test_messages.shape[0]
         func_by_message_cluster = torch.zeros((batch_size, self.num_functions))
         for i, cluster_label in enumerate(cluster_label_per_test_message):
-            func_by_message_cluster[i, cluster_label_to_message_num[cluster_label]] = 1.0
+            func_by_message_cluster[
+                i, cluster_label_to_message_num[cluster_label]
+            ] = 1.0
 
         if visualize:
-            utils.plot_clusters(test_messages, cluster_label_per_test_message, "Test message clusters")
+            utils.plot_clusters(
+                test_messages, cluster_label_per_test_message, "Test message clusters"
+            )
 
-        predictions_by_unseen_messages = self.output_by_message(test_messages, test_contexts)
+        predictions_by_unseen_messages = self.output_by_message(
+            test_messages, test_contexts
+        )
         with torch.no_grad():
-            predictions_by_inferred_func, _ = self.forward(test_contexts, func_by_message_cluster)
+            predictions_by_inferred_func, _ = self.forward(
+                test_contexts, func_by_message_cluster
+            )
 
         loss_func = torch.nn.MSELoss()
-        loss = loss_func(predictions_by_unseen_messages, predictions_by_inferred_func).item()
+        loss = loss_func(
+            predictions_by_unseen_messages, predictions_by_inferred_func
+        ).item()
         logging.info(f"Loss for unseen message/information: {loss}")
 
         return loss
