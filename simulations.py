@@ -13,11 +13,13 @@ import utils
 
 utils.setup_logging()
 
+ContextSizeType = Union[Tuple[int, int], int]
+
 
 @dataclasses.dataclass()
 class Simulation:
     name: Text
-    context_size: Union[Tuple, int]
+    context_size: ContextSizeType
     object_size: int
     num_functions: int
     message_sizes: Iterable[int]
@@ -26,9 +28,9 @@ class Simulation:
     use_context: bool = True
     shared_context: bool = True
 
-    num_trials: int = 1
-    mini_batch_size: int = 1000
-    num_epochs: int = 1000
+    num_trials: int = 3
+    mini_batch_size: int = 64
+    num_batches: int = 1000
 
 
 def make_belief_update_simulation(
@@ -81,7 +83,9 @@ referential_game_simulation = make_referential_game_simulation(
 )
 
 
-def make_extremity_game_simulation(object_size, message_sizes, **kwargs):
+def make_extremity_game_simulation(
+    object_size, message_sizes, shared_context, **kwargs
+):
     num_objects = 2 * object_size
     num_functions = num_objects
     context_size = (num_objects, object_size)
@@ -89,6 +93,7 @@ def make_extremity_game_simulation(object_size, message_sizes, **kwargs):
     def extremity_game_context_generator(batch_size, context_shape: Tuple[int, ...]):
         # TODO Check correctness.
         contexts = []
+
         for _ in range(batch_size):
             context = torch.randn(*context_shape)
 
@@ -104,10 +109,12 @@ def make_extremity_game_simulation(object_size, message_sizes, **kwargs):
                 context[p * 2 + 1, p] = context[argmax, p]
                 context[argmax, p] = temp
 
-            context = context[torch.randperm(context.shape[0])]  # Shuffle rows
             contexts.append(context)
 
-        return torch.stack(contexts)
+        batch = torch.stack(contexts)
+        # Shuffle context objects.
+        batch = batch[:, torch.randperm(batch.shape[1]), :]
+        return batch
 
     def extremity_game_target_function(context, function_selectors):
         # TODO Make more efficient+readable.
@@ -128,19 +135,22 @@ def make_extremity_game_simulation(object_size, message_sizes, **kwargs):
         return torch.stack(targets)
 
     return Simulation(
-        name="extremity_game",
+        name=f"extremity_game_o{object_size}_m{utils.join_ints(message_sizes)}_sharedcontext{int(shared_context)}",
         object_size=object_size,
         num_functions=num_functions,
         context_size=context_size,
+        shared_context=shared_context,
         message_sizes=message_sizes,
         num_trials=1,
         context_generator=extremity_game_context_generator,
         target_function=extremity_game_target_function,
+        num_batches=10_000,
+        mini_batch_size=64,
     )
 
 
 extremity_game_simulation = make_extremity_game_simulation(
-    object_size=3, message_sizes=(1, 3, 4, 5, 6, 8)
+    object_size=3, message_sizes=(1, 3, 4, 5, 6, 8), shared_context=True
 )
 
 
@@ -171,8 +181,8 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
                 context_generator=simulation.context_generator,
             )
             current_game.play(
+                num_batches=simulation.num_batches,
                 mini_batch_size=simulation.mini_batch_size,
-                num_epochs=simulation.num_epochs,
             )
             if visualize:
                 visualize_game(current_game)
@@ -223,37 +233,26 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
 
 
 def run_simulation_set(
-    simulation_name,
-    simulation_factory,
-    context_sizes,
-    object_sizes,
-    num_functions,
-    message_sizes,
-    shared_context,
+    simulation_name: Text,
+    simulation_factory: Callable,
+    message_sizes: Tuple[int, ...],
+    **kwargs,
 ):
-    simulations_grid = list(
-        itertools.product(context_sizes, object_sizes, num_functions)
-    )
+    keys, values = zip(*kwargs.items())
+
+    simulations_grid = list(itertools.product(*values))
 
     print(f"Running {len(simulations_grid)} total simulations")
 
-    simulation_set_name = (
-        f"{simulation_name}_simulations_c{utils.join_ints(context_sizes)}"
-        f"_o{utils.join_ints(object_sizes)}"
-        f"_c{utils.join_ints(num_functions)}"
-        f"_m{utils.join_ints(message_sizes)}"
-        f"_sharedcontext{int(shared_context)}"
+    simulation_set_name = f"{simulation_name}_simulations__" + "__".join(
+        f"{key}_{utils.str_val(val)}" for key, val in kwargs.items()
     )
 
     simulations = []
-    for context_size, object_size, num_functions_ in simulations_grid:
-        simulation = simulation_factory(
-            context_size=context_size,
-            object_size=object_size,
-            num_functions=num_functions_,
-            message_sizes=message_sizes,
-            shared_context=shared_context,
-        )
+    for grid_values in simulations_grid:
+        kw = {k: v for k, v in zip(keys, grid_values)}
+
+        simulation = simulation_factory(message_sizes=message_sizes, **kw)
         run_simulation(simulation)
         simulations.append(simulation)
 

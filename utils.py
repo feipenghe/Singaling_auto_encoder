@@ -147,3 +147,13 @@ def batch_flatten(x):
 
 def join_ints(ints: Iterable[int], s=",") -> Text:
     return s.join(f"{x}" for x in ints)
+
+
+def str_val(val) -> Text:
+    if isinstance(val, int):
+        return str(val)
+    elif isinstance(val, tuple) or isinstance(val, list):
+        return join_ints(val)
+    elif isinstance(val, bool):
+        return "1" if val else "0"
+    return str(val)
