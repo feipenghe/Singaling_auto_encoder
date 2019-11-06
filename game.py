@@ -2,7 +2,6 @@ import logging
 import math
 from typing import Callable, Optional, Text
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -109,7 +108,6 @@ class Game(nn.Module):
             )
 
         self.criterion = nn.MSELoss()
-        self.epoch = 0
         self.loss_list = []
 
         if isinstance(self.context_size, tuple):
@@ -151,35 +149,30 @@ class Game(nn.Module):
         logging.info(f"Encoder layers:\n{self.encoder_hidden_layers}")
         logging.info(f"Decoder layers:\n{self.decoder_hidden_layers}")
 
-    def play(self, num_epochs=1000, mini_batch_size=1000):
-        for learning_rate in [0.01, 0.001, 0.0001]:
-            optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+    def play(self, num_batches, mini_batch_size, loss_every=100):
+        optimizer = optim.Adam(self.parameters(), lr=0.001)
 
-            for minibatch_epoch in range(num_epochs):
-                optimizer.zero_grad()
-                contexts = self.generate_contexts(mini_batch_size)
-                if self.shared_context:
-                    decoder_contexts = None
-                else:
-                    decoder_contexts = self.generate_contexts(mini_batch_size)
-                function_selectors = self.generate_function_selectors(
-                    mini_batch_size, random=True
+        for batch_num in range(num_batches):
+            function_selectors = self.generate_function_selectors(
+                mini_batch_size, random=True
+            )
+            contexts = self.generate_contexts(mini_batch_size)
+            if self.shared_context:
+                decoder_contexts = None
+            else:
+                decoder_contexts = self.generate_contexts(mini_batch_size)
+
+            optimizer.zero_grad()
+            loss = self.loss(contexts, function_selectors, decoder_contexts)
+            loss.backward()
+            optimizer.step()
+
+            self.loss_list.append((batch_num, loss.item()))
+            if batch_num % loss_every == 0:
+                self.loss_list.append((batch_num, loss.item()))
+                logging.info(
+                    f"Batch {batch_num + (1 if batch_num == 0 else 0)} loss:\t{self.loss_list[-1][1]:.2e}"
                 )
-
-                loss = self.loss(contexts, function_selectors, decoder_contexts)
-                loss.backward()
-                optimizer.step()
-
-                if minibatch_epoch == 0:
-                    self.loss_list.append((self.epoch, loss.item()))
-                    logging.info(
-                        f"Epoch {self.loss_list[-1][0]}:\t{self.loss_list[-1][1]:.2e}"
-                    )
-                self.epoch += 1
-
-            self.loss_list.append((self.epoch, loss.item()))
-
-        logging.info(f"Epoch {self.loss_list[-1][0]}:\t{self.loss_list[-1][1]:.2e}")
 
     def encoder_forward_pass(self, context, function_selector):
         if self.use_context:
@@ -362,7 +355,9 @@ class Game(nn.Module):
             optimizer.step()
 
             if epoch > 0 and epoch % 100 == 0:
-                logging.info(f"Epoch {epoch + 1}:\t{loss.item():.2e}")
+                logging.info(
+                    f"Epoch {epoch + (1 if epoch == 0 else 0)}:\t{loss.item():.2e}"
+                )
 
         with torch.no_grad():
             test_predicted = model(test_messages)
