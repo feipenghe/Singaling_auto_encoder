@@ -172,7 +172,7 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
             )
             current_game.play(
                 mini_batch_size=simulation.mini_batch_size,
-                num_epochs=simulation.mini_batch_size,
+                num_epochs=simulation.num_epochs,
             )
             if visualize:
                 visualize_game(current_game)
