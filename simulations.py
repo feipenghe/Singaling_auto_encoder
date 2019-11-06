@@ -332,16 +332,13 @@ def plot_simulation(simulation_name):
     plt.show()
 
 
-def plot_simulation_set(
-    simulation_set_name,
-    element_to_plot,
-    context_sizes,
-    object_sizes,
-    num_functions,
-    message_sizes,
-):
+def plot_simulation_set(simulation_set_name, element_to_plot):
     with pathlib.Path(f"./simulations/{simulation_set_name}.pickle").open("rb") as f:
-        simulations = pickle.load(f)
+        simulations: List[Simulation] = pickle.load(f)
+
+    num_functions = list(sorted(x.num_functions for x in simulations))
+    context_sizes = list(sorted(x.context_size for x in simulations))
+    object_sizes = list(sorted(x.object_size for x in simulations))
 
     titles = {
         "functions": "F",
