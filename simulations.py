@@ -1,5 +1,6 @@
 import dataclasses
 import itertools
+import logging
 import pathlib
 import pickle
 from typing import Callable, Dict, Iterable, List, Optional, Text, Tuple, Union
@@ -117,21 +118,23 @@ def make_extremity_game_simulation(
         return batch
 
     def extremity_game_target_function(context, function_selectors):
-        # TODO Make more efficient+readable.
-
         func_idxs = function_selectors.argmax(dim=1)
         func_min_or_max = func_idxs % 2
         param_idxs = func_idxs // context.shape[2]  # Number of params.
 
-        min_per_param = context.argmin(dim=1)
-        max_per_param = context.argmax(dim=1)
+        min_obj_per_param = context.argmin(dim=1)
+        max_obj_per_param = context.argmax(dim=1)
 
         targets = []
         for batch in range(context.shape[0]):
             if func_min_or_max[batch] == 0:
-                targets.append(context[batch][min_per_param[batch][param_idxs[batch]]])
+                targets.append(
+                    context[batch, min_obj_per_param[batch][param_idxs[batch]]]
+                )
             else:
-                targets.append(context[batch][max_per_param[batch][param_idxs[batch]]])
+                targets.append(
+                    context[batch, max_obj_per_param[batch][param_idxs[batch]]]
+                )
         return torch.stack(targets)
 
     return Simulation(
@@ -145,7 +148,7 @@ def make_extremity_game_simulation(
         context_generator=extremity_game_context_generator,
         target_function=extremity_game_target_function,
         num_batches=10_000,
-        mini_batch_size=64,
+        mini_batch_size=32,
     )
 
 
@@ -160,6 +163,7 @@ def visualize_game(game_: game.Game):
 
 
 def run_simulation(simulation: Simulation, visualize: bool = False):
+    logging.info(f"Running simulation: {simulation}")
     network_losses: List[List[float]] = []
     prediction_by_messages_losses: List[List[Dict[Text, float]]] = []
     unsupervised_clustering_losses: List[List[float]] = []
