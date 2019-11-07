@@ -28,7 +28,7 @@ class Simulation:
     context_generator: Optional[Callable] = None
     use_context: bool = True
     shared_context: bool = True
-    decoder_shuffle_context: bool = False
+    shuffle_decoder_context: bool = False
 
     num_trials: int = 3
     mini_batch_size: int = 64
@@ -109,7 +109,7 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
                 num_functions=simulation.num_functions,
                 use_context=simulation.use_context,
                 shared_context=simulation.shared_context,
-                decoder_shuffle_context=simulation.decoder_shuffle_context,
+                shuffle_decoder_context=simulation.shuffle_decoder_context,
                 target_function=simulation.target_function,
                 context_generator=simulation.context_generator,
             )

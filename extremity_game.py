@@ -4,8 +4,8 @@ import simulations
 import utils
 
 
-def strict_context_generator(batch_size, object_size):
-    context_shape = (2 * object_size, object_size)
+def strict_context_generator(batch_size, context_shape):
+    object_size = context_shape[1]
 
     contexts = []
     for _ in range(batch_size):
@@ -61,7 +61,7 @@ def make_extremity_game_simulation(
         num_functions=num_functions,
         context_size=context_size,
         shared_context=shared_context,
-        decoder_shuffle_context=True,
+        shuffle_decoder_context=True,
         message_sizes=message_sizes,
         num_trials=1,
         context_generator=strict_context_generator if strict_context else None,
@@ -73,6 +73,6 @@ def make_extremity_game_simulation(
 
 if __name__ == "__main__":
     extremity_sim = make_extremity_game_simulation(
-        3, (6,), strict_context=False, shared_context=True
+        3, (6,), strict_context=True, shared_context=True
     )
     simulations.run_simulation(extremity_sim, visualize=True)

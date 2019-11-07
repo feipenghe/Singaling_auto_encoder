@@ -80,7 +80,7 @@ class Game(nn.Module):
         num_functions,
         use_context=True,
         shared_context=True,
-        decoder_shuffle_context=False,
+        shuffle_decoder_context=False,
         target_function: Optional[Callable] = None,
         context_generator: Optional[Callable] = None,
         hidden_sizes=(64, 64),
@@ -95,7 +95,7 @@ class Game(nn.Module):
         self.update_network_hidden_sizes = update_network_hidden_sizes
         self.use_context = use_context
         self.shared_context = shared_context
-        self.decoder_shuffle_context = decoder_shuffle_context
+        self.shuffle_decoder_context = shuffle_decoder_context
         self.context_generator = context_generator
 
         if target_function is not None:
@@ -157,7 +157,7 @@ class Game(nn.Module):
         else:
             decoder_context = self.generate_contexts(batch_size)
 
-        if self.decoder_shuffle_context:
+        if self.shuffle_decoder_context:
             decoder_context = decoder_context[
                 :, torch.randperm(decoder_context.shape[1]), :
             ]
