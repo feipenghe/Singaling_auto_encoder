@@ -28,6 +28,7 @@ class Simulation:
     context_generator: Optional[Callable] = None
     use_context: bool = True
     shared_context: bool = True
+    decoder_shuffle_context: bool = False
 
     num_trials: int = 3
     mini_batch_size: int = 64
@@ -84,79 +85,6 @@ referential_game_simulation = make_referential_game_simulation(
 )
 
 
-def make_extremity_game_simulation(
-    object_size, message_sizes, shared_context, **kwargs
-):
-    num_objects = 2 * object_size
-    num_functions = num_objects
-    context_size = (num_objects, object_size)
-
-    def extremity_game_context_generator(batch_size, context_shape: Tuple[int, ...]):
-        # TODO Check correctness.
-        contexts = []
-
-        for _ in range(batch_size):
-            context = torch.randn(*context_shape)
-
-            argmins = context.argmin(dim=0)
-            argmaxs = context.argmax(dim=0)
-
-            for p, argmin, argmax in zip(range(object_size), argmins, argmaxs):
-                temp = context[p * 2, p]  # min
-                context[p * 2, p] = context[argmin, p]
-                context[argmin, p] = temp
-
-                temp = context[p * 2 + 1, p]  # max
-                context[p * 2 + 1, p] = context[argmax, p]
-                context[argmax, p] = temp
-
-            contexts.append(context)
-
-        batch = torch.stack(contexts)
-        # Shuffle context objects.
-        batch = batch[:, torch.randperm(batch.shape[1]), :]
-        return batch
-
-    def extremity_game_target_function(context, function_selectors):
-        func_idxs = function_selectors.argmax(dim=1)
-        func_min_or_max = func_idxs % 2
-        param_idxs = func_idxs // context.shape[2]  # Number of params.
-
-        min_obj_per_param = context.argmin(dim=1)
-        max_obj_per_param = context.argmax(dim=1)
-
-        targets = []
-        for batch in range(context.shape[0]):
-            if func_min_or_max[batch] == 0:
-                targets.append(
-                    context[batch, min_obj_per_param[batch][param_idxs[batch]]]
-                )
-            else:
-                targets.append(
-                    context[batch, max_obj_per_param[batch][param_idxs[batch]]]
-                )
-        return torch.stack(targets)
-
-    return Simulation(
-        name=f"extremity_game_o{object_size}_m{utils.join_ints(message_sizes)}_sharedcontext{int(shared_context)}",
-        object_size=object_size,
-        num_functions=num_functions,
-        context_size=context_size,
-        shared_context=shared_context,
-        message_sizes=message_sizes,
-        num_trials=1,
-        context_generator=extremity_game_context_generator,
-        target_function=extremity_game_target_function,
-        num_batches=10_000,
-        mini_batch_size=32,
-    )
-
-
-extremity_game_simulation = make_extremity_game_simulation(
-    object_size=3, message_sizes=(1, 3, 4, 5, 6, 8), shared_context=True
-)
-
-
 def visualize_game(game_: game.Game):
     game_.plot_messages_information()
     game_.clusterize_messages(visualize=True)
@@ -181,6 +109,7 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
                 num_functions=simulation.num_functions,
                 use_context=simulation.use_context,
                 shared_context=simulation.shared_context,
+                decoder_shuffle_context=simulation.decoder_shuffle_context,
                 target_function=simulation.target_function,
                 context_generator=simulation.context_generator,
             )

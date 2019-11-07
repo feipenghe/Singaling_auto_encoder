@@ -80,6 +80,7 @@ class Game(nn.Module):
         num_functions,
         use_context=True,
         shared_context=True,
+        decoder_shuffle_context=False,
         target_function: Optional[Callable] = None,
         context_generator: Optional[Callable] = None,
         hidden_sizes=(64, 64),
@@ -94,6 +95,7 @@ class Game(nn.Module):
         self.update_network_hidden_sizes = update_network_hidden_sizes
         self.use_context = use_context
         self.shared_context = shared_context
+        self.decoder_shuffle_context = decoder_shuffle_context
         self.context_generator = context_generator
 
         if target_function is not None:
@@ -149,6 +151,18 @@ class Game(nn.Module):
         logging.info(f"Encoder layers:\n{self.encoder_hidden_layers}")
         logging.info(f"Decoder layers:\n{self.decoder_hidden_layers}")
 
+    def get_decoder_context(self, batch_size, encoder_context):
+        if self.shared_context:
+            decoder_context = encoder_context
+        else:
+            decoder_context = self.generate_contexts(batch_size)
+
+        if self.decoder_shuffle_context:
+            decoder_context = decoder_context[
+                :, torch.randperm(decoder_context.shape[1]), :
+            ]
+        return decoder_context
+
     def play(self, num_batches, mini_batch_size, loss_every=100):
         optimizer = optim.Adam(self.parameters(), lr=0.001)
 
@@ -157,10 +171,7 @@ class Game(nn.Module):
                 mini_batch_size, random=True
             )
             contexts = self.generate_contexts(mini_batch_size)
-            if self.shared_context:
-                decoder_contexts = None
-            else:
-                decoder_contexts = self.generate_contexts(mini_batch_size)
+            decoder_contexts = self.get_decoder_context(mini_batch_size, contexts)
 
             optimizer.zero_grad()
             loss = self.loss(contexts, function_selectors, decoder_contexts)
@@ -202,10 +213,8 @@ class Game(nn.Module):
 
         return prediction
 
-    def forward(self, context, function_selector, decoder_context=None):
+    def forward(self, context, function_selector, decoder_context):
         message = self.encoder_forward_pass(context, function_selector)
-        if decoder_context is None:
-            decoder_context = context
         prediction = self.decoder_forward_pass(message, decoder_context)
         return prediction, message  # TODO do we still need to return the message?
 
@@ -220,7 +229,7 @@ class Game(nn.Module):
         with torch.no_grad():
             return self.encoder_forward_pass(context, function_selector)
 
-    def loss(self, context, function_selectors, decoder_context=None):
+    def loss(self, context, function_selectors, decoder_context):
         target = self.target(context, function_selectors)
         prediction, message = self.forward(context, function_selectors, decoder_context)
         return self.criterion(prediction, target)
@@ -423,9 +432,11 @@ class Game(nn.Module):
         predictions_by_unseen_messages = self.output_by_message(
             test_messages, test_contexts
         )
+
+        decoder_contexts = self.get_decoder_context(batch_size, test_contexts)
         with torch.no_grad():
             predictions_by_inferred_func, _ = self.forward(
-                test_contexts, func_by_message_cluster
+                test_contexts, func_by_message_cluster, decoder_contexts
             )
 
         loss_func = torch.nn.MSELoss()
