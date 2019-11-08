@@ -151,18 +151,6 @@ class Game(nn.Module):
         logging.info(f"Encoder layers:\n{self.encoder_hidden_layers}")
         logging.info(f"Decoder layers:\n{self.decoder_hidden_layers}")
 
-    def get_decoder_context(self, batch_size, encoder_context):
-        if self.shared_context:
-            decoder_context = encoder_context
-        else:
-            decoder_context = self.generate_contexts(batch_size)
-
-        if self.shuffle_decoder_context:
-            decoder_context = decoder_context[
-                :, torch.randperm(decoder_context.shape[1]), :
-            ]
-        return decoder_context
-
     def play(self, num_batches, mini_batch_size, loss_every=100):
         optimizer = optim.Adam(self.parameters(), lr=0.001)
 
@@ -245,6 +233,18 @@ class Game(nn.Module):
         else:
             return self.context_generator(batch_size, context_shape)
 
+    def get_decoder_context(self, batch_size, encoder_context):
+        if self.shared_context:
+            decoder_context = encoder_context
+        else:
+            decoder_context = self.generate_contexts(batch_size)
+
+        if self.shuffle_decoder_context:
+            decoder_context = decoder_context[
+                :, torch.randperm(decoder_context.shape[1]), :
+            ]
+        return decoder_context
+
     def generate_function_selectors(self, batch_size, random=False):
         """Generate `batch_size` one-hot vectors of dimension `num_functions`."""
         if random:
@@ -262,6 +262,10 @@ class Game(nn.Module):
         messages = self.message(contexts, function_selectors)
         return function_selectors, contexts, messages
 
+    def visualize(self):
+        self.plot_messages_information()
+        self.clusterize_messages(visualize=True)
+
     def plot_messages_information(self, exemplars_size=40):
         with torch.no_grad():
             batch_size = exemplars_size * self.num_functions
@@ -270,8 +274,7 @@ class Game(nn.Module):
                 batch_size, random=False
             )
 
-            messages = self.message(contexts, function_selectors)
-            messages = messages.numpy()
+            messages = self.message(contexts, function_selectors).numpy()
 
             message_masks = []
             message_labels = []
@@ -281,11 +284,21 @@ class Game(nn.Module):
                 )
                 message_labels.append(f"F{func_idx}")
 
-            utils.plot_raw_and_pca(messages, message_masks, message_labels, "Messages")
+            title_information_row = f"M={self.message_size}, O={self.object_size}, C={self.context_size}, F={self.num_functions}"
+
+            utils.plot_raw_and_pca(
+                messages,
+                message_masks,
+                message_labels,
+                f"Messages\n{title_information_row}",
+            )
 
             targets = self.target(contexts, function_selectors)
             utils.plot_raw_and_pca(
-                targets.numpy(), message_masks, message_labels, "Targets"
+                targets.numpy(),
+                message_masks,
+                message_labels,
+                f"Targets\n{title_information_row}",
             )
 
     def predict_element_by_messages(

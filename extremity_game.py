@@ -49,11 +49,18 @@ def extremity_game_target_function(context, function_selectors):
 
 
 def make_extremity_game_simulation(
-    object_size, message_sizes, shared_context, strict_context=True, **kwargs
+    object_size,
+    message_sizes,
+    shared_context,
+    strict_context=True,
+    num_objects=None,
+    **kwargs,
 ):
-    num_objects = 2 * object_size
-    num_functions = num_objects
+    if strict_context:
+        num_objects = 2 * object_size
+
     context_size = (num_objects, object_size)
+    num_functions = 2 * object_size
 
     return simulations.Simulation(
         name=f"extremity_game__o_{object_size}__m_{utils.join_ints(message_sizes)}__sharedcontext_{int(shared_context)}__strict_context_{int(strict_context)}",
@@ -73,6 +80,15 @@ def make_extremity_game_simulation(
 
 if __name__ == "__main__":
     extremity_sim = make_extremity_game_simulation(
-        3, (6,), strict_context=True, shared_context=True
+        object_size=3, message_sizes=(6,), strict_context=True, shared_context=True,
     )
     simulations.run_simulation(extremity_sim, visualize=True)
+
+    # simulations.run_simulation_set(
+    #     "extremity_game",
+    #     make_extremity_game_simulation,
+    #     message_sizes=(1, 2, 4, 6, 8, 12),
+    #     object_size=(2, 3, 4,),
+    #     strict_context=(True,),
+    #     shared_context=(True,),
+    # )
