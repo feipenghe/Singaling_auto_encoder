@@ -35,28 +35,6 @@ class Simulation:
     num_batches: int = 1000
 
 
-def make_belief_update_simulation(
-    context_size, object_size, num_functions, message_sizes, shared_context
-):
-    return Simulation(
-        name=f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_ints(message_sizes)}_sharedcontext{int(shared_context)}",
-        context_size=context_size,
-        object_size=object_size,
-        num_functions=num_functions,
-        shared_context=shared_context,
-        message_sizes=message_sizes,
-    )
-
-
-belief_update_simulation = make_belief_update_simulation(
-    context_size=10,
-    object_size=10,
-    num_functions=4,
-    message_sizes=(1, 2, 4, 6, 8, 10),
-    shared_context=True,
-)
-
-
 def make_referential_game_simulation(
     object_size, context_size, num_functions, message_sizes
 ):
@@ -83,11 +61,6 @@ def make_referential_game_simulation(
 referential_game_simulation = make_referential_game_simulation(
     object_size=2, context_size=10, num_functions=4, message_sizes=(1, 2, 4, 6, 10)
 )
-
-
-def visualize_game(game_: game.Game):
-    game_.plot_messages_information()
-    game_.clusterize_messages(visualize=True)
 
 
 def run_simulation(simulation: Simulation, visualize: bool = False):
@@ -118,7 +91,7 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
                 mini_batch_size=simulation.mini_batch_size,
             )
             if visualize:
-                visualize_game(current_game)
+                current_game.visualize()
 
             element_losses = {
                 element: current_game.predict_element_by_messages(element)
@@ -175,7 +148,7 @@ def run_simulation_set(
 
     simulations_grid = list(itertools.product(*values))
 
-    print(f"Running {len(simulations_grid)} total simulations")
+    print(f"Running {len(simulations_grid) * len(message_sizes)} total games")
 
     simulation_set_name = f"{simulation_name}_simulations__" + "__".join(
         f"{key}_{utils.str_val(val)}" for key, val in kwargs.items()
