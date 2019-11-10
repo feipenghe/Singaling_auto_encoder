@@ -87,6 +87,7 @@ if __name__ == "__main__":
     simulations.run_simulation_set(
         "extremity_game",
         make_extremity_game_simulation,
+        num_processes=4,
         message_sizes=(1, 2, 4, 6, 8, 10),
         object_size=(2, 3, 4,),
         strict_context=(True,),

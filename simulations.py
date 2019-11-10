@@ -1,6 +1,7 @@
 import dataclasses
 import itertools
 import logging
+import multiprocessing
 import pathlib
 import pickle
 from typing import Callable, Dict, Iterable, List, Optional, Text, Tuple, Union
@@ -142,6 +143,7 @@ def run_simulation_set(
     simulation_name: Text,
     simulation_factory: Callable,
     message_sizes: Tuple[int, ...],
+    num_processes: Optional[int] = None,
     **kwargs,
 ):
     keys, values = zip(*kwargs.items())
@@ -159,8 +161,14 @@ def run_simulation_set(
         kw = {k: v for k, v in zip(keys, grid_values)}
 
         simulation = simulation_factory(message_sizes=message_sizes, **kw)
-        run_simulation(simulation)
         simulations.append(simulation)
+
+    if num_processes is not None:
+        pool = multiprocessing.Pool(processes=num_processes)
+        pool.map(run_simulation, simulations)
+    else:
+        for simulation in simulations:
+            run_simulation(simulation)
 
         with pathlib.Path(f"./simulations/{simulation_set_name}.pickle").open(
             "wb"
