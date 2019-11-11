@@ -63,7 +63,7 @@ def make_extremity_game_simulation(
     num_functions = 2 * object_size
 
     return simulations.Simulation(
-        name=f"extremity_game__o_{object_size}__c_{context_size}__m_{utils.join_ints(message_sizes)}__sharedcontext_{int(shared_context)}__strict_context_{int(strict_context)}",
+        name=f"extremity_game__o_{object_size}__c_{context_size}__m_{utils.join_vals(message_sizes)}__sharedcontext_{int(shared_context)}__strict_context_{int(strict_context)}",
         object_size=object_size,
         num_functions=num_functions,
         context_size=context_size,

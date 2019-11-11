@@ -145,8 +145,8 @@ def batch_flatten(x):
     return torch.reshape(x, [-1, reduce_prod(x.shape[1:])])
 
 
-def join_ints(ints: Iterable[int], s=",") -> Text:
-    return s.join(f"{x}" for x in ints)
+def join_vals(ints: Iterable[int], s=",") -> Text:
+    return s.join(f"{str_val(x)}" for x in ints)
 
 
 def str_val(val) -> Text:
@@ -155,5 +155,5 @@ def str_val(val) -> Text:
     elif isinstance(val, int):
         return str(val)
     elif isinstance(val, tuple) or isinstance(val, list):
-        return join_ints(val)
+        return join_vals(val)
     return str(val)
