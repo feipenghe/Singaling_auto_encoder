@@ -316,13 +316,32 @@ class Game(nn.Module):
         train_test_ratio = 0.7
         num_train_samples = math.ceil(batch_size * train_test_ratio)
 
-        loss_func = torch.nn.MSELoss()
+        ACCURACY_PREDICTIONS = ("functions", "min_max", "dimension")
+
+        if element_to_predict in ACCURACY_PREDICTIONS:
+            # See https://pytorch.org/docs/stable/nn.html#crossentropyloss
+            loss_func = torch.nn.NLLLoss()
+        else:
+            loss_func = torch.nn.MSELoss()
 
         if element_to_predict == "functions":
             elements = func_selectors
-            loss_func = (
-                torch.nn.NLLLoss()
-            )  # See https://pytorch.org/docs/stable/nn.html#crossentropyloss
+        elif element_to_predict == "min_max":
+            if len(contexts.shape) != 3:
+                # Requires extremity game context.
+                return 0.0
+            elements = torch.nn.functional.one_hot(
+                func_selectors.argmax(dim=1) % 2, num_classes=2
+            )
+        elif element_to_predict == "dimension":
+            if len(contexts.shape) != 3:
+                # Requires extremity game context.
+                return 0.0
+            num_dimensions = contexts.shape[2]
+            elements = torch.nn.functional.one_hot(
+                func_selectors.argmax(dim=1) // num_dimensions,
+                num_classes=num_dimensions,
+            )
         elif element_to_predict == "object_by_context":
             elements = self.target_function(contexts, func_selectors)
         elif element_to_predict == "object_by_decoder_context":
@@ -357,7 +376,7 @@ class Game(nn.Module):
             torch.nn.Linear(classifier_hidden_size, test_target.shape[-1]),
         ]
 
-        if element_to_predict == "functions":
+        if element_to_predict in ACCURACY_PREDICTIONS:
             layers.append(torch.nn.LogSoftmax(dim=1))
 
         model = torch.nn.Sequential(*layers)
@@ -367,7 +386,7 @@ class Game(nn.Module):
         num_epochs = 1000
         for epoch in range(num_epochs):
             y_pred = model(train_messages)
-            if element_to_predict == "functions":
+            if element_to_predict in ACCURACY_PREDICTIONS:
                 current_train_target = train_target.argmax(dim=1)
             else:
                 current_train_target = train_target
@@ -384,7 +403,7 @@ class Game(nn.Module):
         with torch.no_grad():
             test_predicted = model(test_messages)
 
-        if element_to_predict == "functions":
+        if element_to_predict in ACCURACY_PREDICTIONS:
             accuracy = metrics.accuracy_score(
                 test_target.argmax(dim=1).numpy(), test_predicted.argmax(dim=1).numpy()
             )
@@ -396,7 +415,6 @@ class Game(nn.Module):
 
     def clusterize_messages(self, exemplars_size=40, visualize=False):
         num_clusters = self.num_functions
-
         (
             func_selectors,
             contexts,
