@@ -21,7 +21,7 @@ ContextSizeType = Union[Tuple[int, int], int]
 
 
 @dataclasses_json.dataclass_json
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class Simulation:
     name: Text
     context_size: ContextSizeType
@@ -120,6 +120,7 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
     simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
     simulation_path.mkdir(parents=True, exist_ok=True)
 
+    # TODO Save jsons.
     with simulation_path.joinpath("network_losses.pickle").open("wb") as f:
         pickle.dump(network_losses, f)
 
@@ -136,10 +137,12 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
     with simulation_path.joinpath(f"{simulation.name}.pickle").open(
         "wb"
     ) as f:  # TODO use json
-        # Can't pickle nested functions
-        del simulation.target_function
-        del simulation.context_generator
-        pickle.dump(simulation, f)
+        pickle.dump(
+            dataclasses.replace(
+                simulation, target_function=None, context_generator=None
+            ),
+            f,
+        )
 
 
 def run_simulation_set(
