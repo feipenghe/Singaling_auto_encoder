@@ -1,5 +1,6 @@
 import dataclasses
 import itertools
+import json
 import logging
 import multiprocessing
 import pathlib
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
+import dataclasses_json
 import game
 import utils
 
@@ -18,7 +20,8 @@ utils.setup_logging()
 ContextSizeType = Union[Tuple[int, int], int]
 
 
-@dataclasses.dataclass()
+@dataclasses_json.dataclass_json
+@dataclasses.dataclass(frozen=True)
 class Simulation:
     name: Text
     context_size: ContextSizeType
@@ -150,11 +153,7 @@ def run_simulation_set(
 
     simulations_grid = list(itertools.product(*values))
 
-    print(f"Running {len(simulations_grid) * len(message_sizes)} total games")
-
-    simulation_set_name = f"{simulation_name}_simulations__" + "__".join(
-        f"{key}_{utils.str_val(val)}" for key, val in kwargs.items()
-    )
+    logging.info(f"Running {len(simulations_grid) * len(message_sizes)} total games")
 
     simulations = []
     for grid_values in simulations_grid:
@@ -163,8 +162,21 @@ def run_simulation_set(
         simulation = simulation_factory(message_sizes=message_sizes, **kw)
         simulations.append(simulation)
 
-    with pathlib.Path(f"./simulations/{simulation_set_name}.pickle").open("wb") as f:
-        pickle.dump(simulations, f)
+    simulation_set_name = f"{simulation_name}_simulations__" + "__".join(
+        f"{key}_{utils.str_val(val)}" for key, val in kwargs.items()
+    )
+
+    with pathlib.Path(f"./simulations/{simulation_set_name}.json").open("w") as f:
+        json.dump(
+            [
+                dataclasses.replace(
+                    x, target_function=None, context_generator=None
+                ).to_dict()
+                for x in simulations
+            ],
+            f,
+            indent=2,
+        )
 
     if num_processes is not None:
         pool = multiprocessing.Pool(processes=num_processes)
@@ -245,8 +257,8 @@ def plot_simulation(simulation_name):
 
 
 def plot_simulation_set(simulation_set_name, element_to_plot):
-    with pathlib.Path(f"./simulations/{simulation_set_name}.pickle").open("rb") as f:
-        simulations: List[Simulation] = pickle.load(f)
+    with pathlib.Path(f"./simulations/{simulation_set_name}.json").open("r") as f:
+        simulations: List[Simulation] = [Simulation.from_dict(x for x in json.load(f))]
 
     num_functions = list(sorted(x.num_functions for x in simulations))
     context_sizes = list(sorted(x.context_size for x in simulations))
