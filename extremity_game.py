@@ -58,6 +58,8 @@ def make_extremity_game_simulation(
 ):
     if strict_context:
         num_objects = 2 * object_size
+    else:
+        assert num_objects is not None, "Must set num_objects if context is not strict."
 
     context_size = (num_objects, object_size)
     num_functions = 2 * object_size

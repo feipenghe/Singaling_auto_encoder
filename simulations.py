@@ -258,7 +258,7 @@ def plot_simulation(simulation_name):
 
 def plot_simulation_set(simulation_set_name, element_to_plot):
     with pathlib.Path(f"./simulations/{simulation_set_name}.json").open("r") as f:
-        simulations: List[Simulation] = [Simulation.from_dict(x for x in json.load(f))]
+        simulations = [Simulation.from_dict(x) for x in json.load(f)]
 
     num_functions = list(sorted(x.num_functions for x in simulations))
     context_sizes = list(sorted(x.context_size for x in simulations))
