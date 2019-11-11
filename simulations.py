@@ -163,17 +163,15 @@ def run_simulation_set(
         simulation = simulation_factory(message_sizes=message_sizes, **kw)
         simulations.append(simulation)
 
+    with pathlib.Path(f"./simulations/{simulation_set_name}.pickle").open("wb") as f:
+        pickle.dump(simulations, f)
+
     if num_processes is not None:
         pool = multiprocessing.Pool(processes=num_processes)
         pool.map(run_simulation, simulations)
     else:
         for simulation in simulations:
             run_simulation(simulation)
-
-        with pathlib.Path(f"./simulations/{simulation_set_name}.pickle").open(
-            "wb"
-        ) as f:
-            pickle.dump(simulations, f)
 
 
 def plot_simulation(simulation_name):
