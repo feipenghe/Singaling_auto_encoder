@@ -34,7 +34,7 @@ def strict_context_generator(batch_size, context_shape):
 def extremity_game_target_function(context, function_selectors):
     func_idxs = function_selectors.argmax(dim=1)
     func_min_or_max = func_idxs % 2
-    param_idxs = func_idxs // context.shape[2]  # Number of params.
+    param_idxs = func_idxs // 2
 
     min_obj_per_param = context.argmin(dim=1)
     max_obj_per_param = context.argmax(dim=1)

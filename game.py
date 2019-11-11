@@ -339,8 +339,7 @@ class Game(nn.Module):
                 return 0.0
             num_dimensions = contexts.shape[2]
             elements = torch.nn.functional.one_hot(
-                func_selectors.argmax(dim=1) // num_dimensions,
-                num_classes=num_dimensions,
+                func_selectors.argmax(dim=1) // 2, num_classes=num_dimensions,
             )
         elif element_to_predict == "sanity":
             # Test prediction accuracy of random data. Should be at chance level.
