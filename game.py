@@ -178,7 +178,7 @@ class Game(nn.Module):
             context_flattened = utils.batch_flatten(context)
             encoder_input = torch.cat((context_flattened, function_selector), dim=1)
         else:
-            encoder_input = object
+            encoder_input = function_selector
 
         message = encoder_input
         for hidden_layer in self.encoder_hidden_layers[:-1]:
