@@ -101,6 +101,9 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
                 element: current_game.predict_element_by_messages(element)
                 for element in (
                     "functions",
+                    "min_max",
+                    "dimension",
+                    "sanity",
                     "object_by_context",
                     "object_by_decoder_context",
                     "context",

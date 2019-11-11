@@ -316,7 +316,7 @@ class Game(nn.Module):
         train_test_ratio = 0.7
         num_train_samples = math.ceil(batch_size * train_test_ratio)
 
-        ACCURACY_PREDICTIONS = ("functions", "min_max", "dimension")
+        ACCURACY_PREDICTIONS = ("functions", "min_max", "dimension", "sanity")
 
         if element_to_predict in ACCURACY_PREDICTIONS:
             # See https://pytorch.org/docs/stable/nn.html#crossentropyloss
@@ -341,6 +341,11 @@ class Game(nn.Module):
             elements = torch.nn.functional.one_hot(
                 func_selectors.argmax(dim=1) // num_dimensions,
                 num_classes=num_dimensions,
+            )
+        elif element_to_predict == "sanity":
+            # Test prediction accuracy of random data. Should be at chance level.
+            elements = torch.nn.functional.one_hot(
+                torch.randint(0, 2, (batch_size,)), num_classes=2,
             )
         elif element_to_predict == "object_by_context":
             elements = self.target_function(contexts, func_selectors)
@@ -369,9 +374,11 @@ class Game(nn.Module):
             messages[num_train_samples:],
         )
 
-        classifier_hidden_size = 32
+        classifier_hidden_size = 64
         layers = [
             torch.nn.Linear(self.message_size, classifier_hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(classifier_hidden_size, classifier_hidden_size),
             torch.nn.ReLU(),
             torch.nn.Linear(classifier_hidden_size, test_target.shape[-1]),
         ]
@@ -410,7 +417,7 @@ class Game(nn.Module):
             result = accuracy
         else:
             result = loss_func(test_predicted, test_target).item()
-        logging.info(f"Prediction network result: {result}")
+        logging.info(f"Prediction result for {element_to_predict}: {result}")
         return result
 
     def clusterize_messages(self, exemplars_size=40, visualize=False):
