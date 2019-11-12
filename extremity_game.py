@@ -1,3 +1,5 @@
+from typing import Optional, Tuple
+
 import torch
 
 import simulations
@@ -49,11 +51,11 @@ def extremity_game_target_function(context, function_selectors):
 
 
 def make_extremity_game_simulation(
-    object_size,
-    message_sizes,
-    shared_context,
-    strict_context=True,
-    num_objects=None,
+    object_size: int,
+    message_sizes: Tuple[int, ...],
+    shared_context: bool,
+    strict_context: bool = True,
+    num_objects: Optional[int] = None,
     **kwargs,
 ):
     if strict_context:
