@@ -2,31 +2,52 @@ import functools
 import logging
 import operator
 from collections import defaultdict
-from typing import Iterable, List, Text
+from typing import Iterable, List, Text, Optional
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from sklearn.decomposition import PCA
 
 
-def plot_raw_and_pca(data, masks: List[List[int]], labels: List[Text], title: Text):
+def plot_raw_and_pca(
+    data,
+    masks: List[List[int]],
+    labels: List[Text],
+    title: Text,
+    colors: Optional[torch.Tensor] = None,
+    custom_labels: List[Text] = [],
+):
     if data.shape[1] > 1:
         fig, ax = plt.subplots(1, 2, figsize=(10, 4))
 
         pca_model = PCA(n_components=2, whiten=True)
         data_pca = pca_model.fit_transform(data)
 
-        for mask, label in zip(masks, labels):
+        for i, (mask, label) in enumerate(zip(masks, labels)):
             # plot first two coordinates
-            ax[0].scatter(data[mask, 0], data[mask, 1], alpha=0.2, label=label)
+            if colors is not None:
+                color = f"C{colors[i]}"
+            else:
+                color = f"C{i}"
+
+            ax[0].scatter(
+                data[mask, 0], data[mask, 1], alpha=0.2, label=label, color=color
+            )
             ax[0].axis("equal")
             ax[0].set(
                 xlabel="Coordinate 1", ylabel="Coordinate 2", title="First coordinates"
             )
 
             # plot principal components from PCA
-            ax[1].scatter(data_pca[mask, 0], data_pca[mask, 1], alpha=0.2, label=label)
+            ax[1].scatter(
+                data_pca[mask, 0],
+                data_pca[mask, 1],
+                alpha=0.2,
+                label=label,
+                color=color,
+            )
             ax[1].axis("equal")
             ax[1].set(xlabel="Component 1", ylabel="Component 2", title="PCA")
 
@@ -40,9 +61,18 @@ def plot_raw_and_pca(data, masks: List[List[int]], labels: List[Text], title: Te
             ax.set(xlabel="Coordinate 1", ylabel="Dummy", title="First coordinate")
 
     fig.suptitle(title)
-    leg = plt.legend(ncol=2, bbox_to_anchor=(1.1, 0.9))
 
-    for lh in leg.legendHandles:
+    if custom_labels:
+        information_legend = plt.legend(
+            handles=[mpatches.Patch(color="gray", label=x) for x in custom_labels],
+            loc="lower left",
+            bbox_to_anchor=(-1.1, 1),
+        )
+
+        plt.gca().add_artist(information_legend)
+
+    functions_legend = plt.legend(ncol=2, loc="lower right", bbox_to_anchor=(1, 1))
+    for lh in functions_legend.legendHandles:
         lh.set_alpha(1)
 
     plt.show()
