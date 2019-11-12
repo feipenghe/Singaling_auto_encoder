@@ -11,80 +11,19 @@ from torch import optim
 import utils
 
 
-class UpdateNetwork(nn.Module):
-    def __init__(
-        self,
-        context_size,
-        object_size,
-        num_functions,
-        hidden_sizes=(64,),
-        use_context=True,
-    ):
-        super().__init__()
-        self.hidden_sizes = hidden_sizes
-        self.use_context = use_context
-
-        if self.use_context:
-            input_size = context_size + num_functions
-        else:
-            input_size = num_functions
-        self.hidden_layers = nn.ModuleList(
-            [nn.Linear(input_size, self.hidden_sizes[0])]
-        )
-        for i, hidden_size in enumerate(self.hidden_sizes[1:]):
-            self.hidden_layers.append(nn.Linear(self.hidden_sizes[i], hidden_size))
-        self.hidden_layers.append(nn.Linear(self.hidden_sizes[-1], object_size))
-
-        logging.info("Update network:")
-        logging.info(f"Context size: {context_size}")
-        logging.info(f"Num functions: {num_functions}")
-        logging.info(f"Hidden layers:\n{self.hidden_layers}")
-
-    def forward(self, contexts, function_selectors):
-        """`function_selectors` are one-hot vectors representing functions to be applied."""
-        if self.use_context:
-            input = torch.cat((contexts, function_selectors), dim=-1)
-        else:
-            input = function_selectors
-
-        output = F.relu(self.hidden_layers[0](input))
-        for hidden_layer in self.hidden_layers[1:]:
-            output = F.relu(hidden_layer(output))
-        return output
-
-
-def make_update_network_function(
-    context_size, object_size, num_functions, update_network_hidden_sizes, use_context
-):
-    update_network = UpdateNetwork(
-        context_size,
-        object_size,
-        num_functions,
-        update_network_hidden_sizes,
-        use_context,
-    )
-
-    def func(contexts, function_selectors):
-        with torch.no_grad():
-            return update_network.forward(contexts, function_selectors)
-
-    return func
-
-
 class Game(nn.Module):
     def __init__(
         self,
-        context_size,
-        object_size,
-        message_size,
-        num_functions,
+        context_size: int,
+        object_size: int,
+        message_size: int,
+        num_functions: int,
+        target_function: Callable,
         use_context=True,
         shared_context=True,
         shuffle_decoder_context=False,
-        target_function: Optional[Callable] = None,
         context_generator: Optional[Callable] = None,
         hidden_sizes=(64, 64),
-        update_network_hidden_sizes=(64,),
     ):
         super().__init__()
         self.context_size = context_size
@@ -92,22 +31,11 @@ class Game(nn.Module):
         self.message_size = message_size
         self.num_functions = num_functions
         self.hidden_sizes = hidden_sizes
-        self.update_network_hidden_sizes = update_network_hidden_sizes
         self.use_context = use_context
         self.shared_context = shared_context
         self.shuffle_decoder_context = shuffle_decoder_context
         self.context_generator = context_generator
-
-        if target_function is not None:
-            self.target_function = target_function
-        else:
-            self.target_function = make_update_network_function(
-                self.context_size,
-                self.object_size,
-                self.num_functions,
-                self.update_network_hidden_sizes,
-                self.use_context,
-            )
+        self.target_function = target_function
 
         self.criterion = nn.MSELoss()
         self.loss_list = []
@@ -302,7 +230,7 @@ class Game(nn.Module):
             )
 
     def predict_element_by_messages(
-        self, element_to_predict: Text, exemplars_size=40
+        self, element_to_predict: Text, exemplars_size: int = 40
     ) -> float:
         logging.info(f"Predicting {element_to_predict} from messages.")
 

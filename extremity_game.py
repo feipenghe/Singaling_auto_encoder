@@ -6,7 +6,9 @@ import simulations
 import utils
 
 
-def strict_context_generator(batch_size, context_shape):
+def strict_context_generator(
+    batch_size: int, context_shape: Tuple[int, int]
+) -> torch.Tensor:
     object_size = context_shape[1]
 
     contexts = []
@@ -33,7 +35,9 @@ def strict_context_generator(batch_size, context_shape):
     return batch
 
 
-def extremity_game_target_function(context, function_selectors):
+def extremity_game_target_function(
+    context: torch.Tensor, function_selectors: torch.Tensor
+) -> torch.Tensor:
     func_idxs = function_selectors.argmax(dim=1)
     func_min_or_max = func_idxs % 2
     param_idxs = func_idxs // 2
@@ -57,7 +61,7 @@ def make_extremity_game_simulation(
     strict_context: bool = True,
     num_objects: Optional[int] = None,
     **kwargs,
-):
+) -> simulations.Simulation:
     if strict_context:
         num_objects = 2 * object_size
     else:
