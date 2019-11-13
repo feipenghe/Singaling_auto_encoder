@@ -192,7 +192,7 @@ def run_simulation_set(
             run_simulation(simulation)
 
 
-def plot_simulation(simulation_name):
+def plot_simulation(simulation_name: Text):
     simulation_path = pathlib.Path("./simulations/{simulation.name}/")
     with simulation_path.joinpath("supervised_clustering_accuracies.pickle").open(
         "rb"
@@ -262,13 +262,18 @@ def plot_simulation(simulation_name):
     plt.show()
 
 
-def plot_simulation_set(simulation_set_name, element_to_plot):
+def plot_simulation_set_strict(simulation_set_name, element_to_plot):
     with pathlib.Path(f"./simulations/{simulation_set_name}.json").open("r") as f:
         simulations = [Simulation.from_dict(x) for x in json.load(f)]
 
-    num_functions = list(sorted(x.num_functions for x in simulations))
-    context_sizes = list(sorted(x.context_size for x in simulations))
-    object_sizes = list(sorted(x.object_size for x in simulations))
+    num_functions = list(sorted(set(x.num_functions for x in simulations)))
+    context_sizes = [
+        tuple(x) if isinstance(x, list) else x
+        for x in (x.context_size for x in simulations)
+    ]
+    context_sizes = list(sorted(set(context_sizes)))
+    object_sizes = list(sorted(set(x.object_size for x in simulations)))
+    num_objects = list(sorted(set(x[0] for x in context_sizes)))
 
     titles = {
         "functions": "F",
@@ -283,9 +288,7 @@ def plot_simulation_set(simulation_set_name, element_to_plot):
     else:
         metric = "loss"
 
-    fig, ax = plt.subplots(
-        len(num_functions), len(context_sizes), figsize=(18, 12), squeeze=False
-    )
+    fig, ax = plt.subplots(1, 1, figsize=(18, 12), squeeze=False)
     fig.suptitle(f"M -> {titles[element_to_plot]} {metric}")
     # fig.suptitle(f"Network output loss")
 
@@ -314,8 +317,15 @@ def plot_simulation_set(simulation_set_name, element_to_plot):
         losses_err = [np.std(vals) for vals in element_losses]
 
         curr_ax = ax[
-            num_functions.index(simulation.num_functions),
-            context_sizes.index(simulation.context_size),
+            0,
+            0
+            # num_functions.index(simulation.num_functions),
+            # 0
+            # context_sizes.index(
+            #     tuple(simulation.context_size)
+            #     if isinstance(simulation.context_size, list)
+            #     else simulation.context_size
+            # ),
         ]
 
         x_ticks = np.arange(len(simulation.message_sizes))
@@ -327,17 +337,126 @@ def plot_simulation_set(simulation_set_name, element_to_plot):
             x_labels.append(label)
 
         bar_width = 0.3
-        x = x_ticks + (bar_width * object_sizes.index(simulation.object_size))
+        x = x_ticks + (bar_width * (object_sizes.index(simulation.object_size) - 1))
         curr_ax.set(
-            xlabel=f"M",
-            ylabel=metric,
-            title=f"F={simulation.num_functions}, C={simulation.context_size}",
+            xlabel=f"M", ylabel=metric,
         )
         curr_ax.bar(
             x,
             losses_mean,
             width=bar_width,
-            label=f"O={simulation.object_size}",
+            label=f"O={simulation.object_size}, F={simulation.num_functions}, C={tuple(simulation.context_size)}",
+            yerr=losses_err,
+            capsize=4,
+            color=f"C{object_sizes.index(simulation.object_size)}",
+        )
+        curr_ax.set_xticks(x_ticks)
+        curr_ax.set_xticklabels(x_labels)
+
+        global_loss_max = max(global_loss_max, losses_mean.max())
+        try:
+            curr_ax.axvline(
+                x=simulation.message_sizes.index(simulation.context_size),
+                linestyle="--",
+                color="gray",
+            )
+        except ValueError:
+            pass
+
+    y_interval = round(
+        global_loss_max / 10, int(np.abs(np.floor(np.log10(global_loss_max / 10))))
+    )
+    for _, curr_ax in np.ndenumerate(ax):
+        curr_ax.set_yticks(np.arange(0.0, global_loss_max + y_interval, y_interval))
+
+    ax[0, -1].legend(ncol=1, loc="lower right", bbox_to_anchor=(1, 1))
+    plt.show()
+
+
+def plot_simulation_set_non_strict(simulation_set_name, element_to_plot):
+    with pathlib.Path(f"./simulations/{simulation_set_name}.json").open("r") as f:
+        simulations = [Simulation.from_dict(x) for x in json.load(f)]
+
+    num_functions = list(sorted(set(x.num_functions for x in simulations)))
+    context_sizes = [
+        tuple(x) if isinstance(x, list) else x
+        for x in (x.context_size for x in simulations)
+    ]
+    context_sizes = list(sorted(set(context_sizes)))
+    object_sizes = list(sorted(set(x.object_size for x in simulations)))
+    num_objects = list(sorted(set(x[0] for x in context_sizes)))
+
+    titles = {
+        "functions": "F",
+        "object_by_context": "f(c)",
+        "object_by_decoder_context": "f(c')",
+        "context": "C",
+        "decoder_context": "C'",
+    }
+
+    if element_to_plot == "functions":
+        metric = "accuracy"
+    else:
+        metric = "loss"
+
+    fig, ax = plt.subplots(1, len(num_objects), figsize=(20, 6), squeeze=False)
+    fig.suptitle(f"M -> {titles[element_to_plot]} {metric}")
+    # fig.suptitle(f"Network output loss")
+
+    global_loss_max = 0.0
+
+    for simulation in simulations:
+        simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
+
+        with simulation_path.joinpath("network_losses.pickle").open("rb") as f:
+            network_losses = pickle.load(f)
+        with simulation_path.joinpath("prediction_by_messages_losses.pickle").open(
+            "rb"
+        ) as f:
+            prediction_by_messages_losses = pickle.load(f)
+        with simulation_path.joinpath("unsupervised_clustering_loss.pickle").open(
+            "rb"
+        ) as f:
+            unsupervised_clustering_losses = pickle.load(f)
+
+        element_losses = [
+            [x[element_to_plot] for x in trials]
+            for trials in prediction_by_messages_losses
+        ]
+
+        losses_mean = np.array([np.mean(vals) for vals in element_losses])
+        losses_err = [np.std(vals) for vals in element_losses]
+
+        curr_ax = ax[
+            0,
+            num_objects.index(simulation.context_size[0])
+            # num_functions.index(simulation.num_functions),
+            # 0
+            # context_sizes.index(
+            #     tuple(simulation.context_size)
+            #     if isinstance(simulation.context_size, list)
+            #     else simulation.context_size
+            # ),
+        ]
+
+        x_ticks = np.arange(len(simulation.message_sizes))
+        x_labels = []
+        for message_size in simulation.message_sizes:
+            label = str(message_size)
+            if message_size == simulation.context_size:
+                label += "\nC"
+            x_labels.append(label)
+
+        bar_width = 0.3
+        x = x_ticks + (bar_width * (object_sizes.index(simulation.object_size) - 1))
+        curr_ax.set(
+            xlabel=f"M", ylabel=metric, title=f"C=({simulation.context_size[0]},O)",
+        )
+        curr_ax.bar(
+            x,
+            losses_mean,
+            width=bar_width,
+            label=f"O={simulation.object_size}, F={simulation.num_functions}",
             yerr=losses_err,
             capsize=4,
             color=f"C{object_sizes.index(simulation.object_size)}",
