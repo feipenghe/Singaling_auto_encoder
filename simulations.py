@@ -67,17 +67,21 @@ referential_game_simulation = make_referential_game_simulation(
 )
 
 
-def run_simulation(simulation: Simulation, visualize: bool = False):
+def run_simulation(
+    simulation: Simulation, visualize: bool = False
+) -> Tuple[Tuple[game.Game, ...], ...]:
     logging.info(f"Running simulation: {simulation}")
     network_losses: List[List[float]] = []
     prediction_by_messages_losses: List[List[Dict[Text, float]]] = []
     unsupervised_clustering_losses: List[List[float]] = []
 
+    games = []
     for message_size in simulation.message_sizes:
         network_losses_per_trial = []
         prediction_losses_per_trial = []
         unsupervised_losses_per_trial = []
 
+        game_trials = []
         for _ in range(simulation.num_trials):
             current_game: game.Game = game.Game(
                 context_size=simulation.context_size,
@@ -116,9 +120,13 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
             )
             network_losses_per_trial.append(current_game.loss_list[-1][1])
 
+            game_trials.append(current_game)
+
         network_losses.append(network_losses_per_trial)
         prediction_by_messages_losses.append(prediction_losses_per_trial)
         unsupervised_clustering_losses.append(unsupervised_losses_per_trial)
+
+        games.append(tuple(game_trials))
 
     simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
     simulation_path.mkdir(parents=True, exist_ok=True)
@@ -146,6 +154,7 @@ def run_simulation(simulation: Simulation, visualize: bool = False):
             ),
             f,
         )
+    return tuple(games)
 
 
 def run_simulation_set(
