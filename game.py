@@ -23,7 +23,7 @@ class Game(nn.Module):
         shared_context=True,
         shuffle_decoder_context=False,
         context_generator: Optional[Callable] = None,
-        loss_every: int = 100,
+        loss_every: int = 10,
         hidden_sizes=(64, 64),
     ):
         super().__init__()
