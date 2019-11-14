@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 
+import numpy as np
 import torch
 
 import simulations
@@ -10,29 +11,49 @@ def strict_context_generator(
     batch_size: int, context_shape: Tuple[int, int]
 ) -> torch.Tensor:
     object_size = context_shape[1]
+    num_objects = object_size * 2
 
-    contexts = []
-    for _ in range(batch_size):
-        context = torch.randn(*context_shape)
+    context = np.random.random(size=(batch_size, *context_shape))
 
-        argmins = context.argmin(dim=0)
-        argmaxs = context.argmax(dim=0)
+    argmins = context.argmin(axis=1)
+    argmaxs = context.argmax(axis=1)
 
-        for p, argmin, argmax in zip(range(object_size), argmins, argmaxs):
-            temp = context[p * 2, p]  # min
-            context[p * 2, p] = context[argmin, p]
-            context[argmin, p] = temp
+    batch_indexing = np.concatenate([[x] * object_size for x in range(batch_size)] * 2)
 
-            temp = context[p * 2 + 1, p]  # max
-            context[p * 2 + 1, p] = context[argmax, p]
-            context[argmax, p] = temp
+    extreme_idxs = (
+        batch_indexing,
+        np.concatenate((argmins.reshape(-1), argmaxs.reshape(-1))),
+        list(range(object_size)) * 2 * batch_size,
+    )
 
-        contexts.append(context)
+    goal_idxs = (
+        batch_indexing,
+        (list(range(object_size)) * batch_size)
+        + (list(range(object_size, num_objects)) * batch_size),
+        list(range(object_size)) * 2 * batch_size,
+    )
 
-    batch = torch.stack(contexts)
-    # Shuffle objects.
-    batch = batch[:, torch.randperm(batch.shape[1]), :]
-    return batch
+    context[extreme_idxs], context[goal_idxs] = (
+        context[goal_idxs],
+        context[extreme_idxs],
+    )
+
+    # """Correctness test. """
+    # for b in range(batch_size):
+    #     for row in range(num_objects):
+    #         if row // object_size == 0:
+    #             assert (
+    #                 context[b, row, row % object_size]
+    #                 == context[b, :, row % object_size].in()
+    #             )
+    #         else:
+    #             assert (
+    #                 context[b, row, row % object_size]
+    #                 == context[b, :, row % object_size].max()
+    #             )
+
+    context = context[:, np.random.permutation(num_objects), :]  # Shuffle objects.
+    return torch.from_numpy(context).float()
 
 
 def extremity_game_target_function(
