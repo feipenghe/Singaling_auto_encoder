@@ -69,19 +69,26 @@ referential_game_simulation = make_referential_game_simulation(
 
 def run_simulation(
     simulation: Simulation, visualize: bool = False
-) -> Tuple[Tuple[game.Game, ...], ...]:
+) -> List[List[game.Game]]:
     logging.info(f"Running simulation: {simulation}")
-    network_losses: List[List[float]] = []
+    # [Message size x Trial x Epoch x loss]
+    network_losses: List[List[List[float]]] = []
+    # [Message size x Trial x loss]
     prediction_by_messages_losses: List[List[Dict[Text, float]]] = []
+    # [Message size x Trial x loss]
     unsupervised_clustering_losses: List[List[float]] = []
 
-    games = []
+    games: List[List[game.Game]] = []
+
     for message_size in simulation.message_sizes:
-        network_losses_per_trial = []
-        prediction_losses_per_trial = []
+        # [Trial x Epoch x (epoch, loss)]
+        network_losses_per_trial: List[List[float]] = []
+        # [Trial x {parameter name: loss}]
+        prediction_losses_per_trial: List[Dict[Text, float]] = []
+        # [Trial x loss]
         unsupervised_losses_per_trial = []
 
-        game_trials = []
+        game_trials: List[game.Game] = []
         for _ in range(simulation.num_trials):
             current_game: game.Game = game.Game(
                 context_size=simulation.context_size,
@@ -118,7 +125,7 @@ def run_simulation(
             unsupervised_losses_per_trial.append(
                 current_game.clusterize_messages(visualize=visualize)
             )
-            network_losses_per_trial.append(current_game.loss_list[-1][1])
+            network_losses_per_trial.append(current_game.loss_per_epoch)
 
             game_trials.append(current_game)
 
@@ -126,12 +133,19 @@ def run_simulation(
         prediction_by_messages_losses.append(prediction_losses_per_trial)
         unsupervised_clustering_losses.append(unsupervised_losses_per_trial)
 
-        games.append(tuple(game_trials))
+        games.append(game_trials)
 
     simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
     simulation_path.mkdir(parents=True, exist_ok=True)
 
     # TODO Save jsons.
+
+    with simulation_path.joinpath("network_losses.pickle").open("wb") as f:
+        pickle.dump(network_losses, f)
+
+    with simulation_path.joinpath("epochs.pickle").open("wb") as f:
+        pickle.dump(games[0][0].epoch_nums, f)
+
     with simulation_path.joinpath("network_losses.pickle").open("wb") as f:
         pickle.dump(network_losses, f)
 
@@ -145,16 +159,15 @@ def run_simulation(
     ) as f:
         pickle.dump(unsupervised_clustering_losses, f)
 
-    with simulation_path.joinpath(f"{simulation.name}.pickle").open(
-        "wb"
-    ) as f:  # TODO use json
-        pickle.dump(
+    with simulation_path.joinpath(f"{simulation.name}.json").open("w") as f:
+        json.dump(
             dataclasses.replace(
                 simulation, target_function=None, context_generator=None
-            ),
+            ).to_dict(),
             f,
         )
-    return tuple(games)
+
+    return games
 
 
 def run_simulation_set(
@@ -268,6 +281,74 @@ def plot_simulation(simulation_name: Text):
     plt.ylabel("Clustering loss", fontsize=5)
     plt.title("Clustering loss")
     plt.savefig(f"./simulations/{simulation_name}_unsupervised_clustering.png")
+    plt.show()
+
+
+def plot_simulation_training_loss(
+    simulation_display_name_to_file_name: Dict[Text, Text]
+):
+    display_name_to_simulation: Dict[Text, Simulation] = {
+        display_name: Simulation.from_dict(
+            json.load(
+                pathlib.Path(f"./simulations/{file_name}/{file_name}.json").open()
+            )
+        )
+        for display_name, file_name in simulation_display_name_to_file_name.items()
+    }
+
+    fig, ax = plt.subplots(1, figsize=(16, 6))
+    fig.suptitle(f"Training losses (MSE)")
+
+    global_max_loss = 0.0
+
+    for simulation_display_name, simulation in display_name_to_simulation.items():
+        simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
+
+        epoch_nums = pickle.load(simulation_path.joinpath("epochs.pickle").open("rb"))
+
+        with simulation_path.joinpath("network_losses.pickle").open("rb") as f:
+            # [Message size x Trial x Epoch x loss]
+            training_losses_per_message_size: List[List[List[float]]] = pickle.load(f)
+
+        for m, message_size in enumerate(simulation.message_sizes):
+            # [Trial x Epoch x loss]
+            training_losses_per_trial: List[
+                List[float]
+            ] = training_losses_per_message_size[m]
+
+            losses_mean_per_epoch = np.mean(np.array(training_losses_per_trial), axis=0)
+            losses_err_per_epoch = np.std(np.array(training_losses_per_trial), axis=0)
+
+            global_max_loss = max(global_max_loss, losses_mean_per_epoch.max())
+
+            # TODO use message size information
+            x = range(len(epoch_nums))
+            ax.bar(
+                x,
+                losses_mean_per_epoch,
+                width=0.5,
+                yerr=losses_err_per_epoch,
+                capsize=2,
+                label=simulation_display_name,
+                color=f"C{m}",
+            )
+            ax.set_xticks(x)
+            ax.set_xticklabels(
+                [
+                    str(x) if (x == epoch_nums[-1] or x % 1000 == 0) else ""
+                    for x in epoch_nums
+                ]
+            )
+
+    y_interval = round(
+        global_max_loss / 10, int(np.abs(np.floor(np.log10(global_max_loss / 10))))
+    )
+    ax.set_yticks(np.arange(0.0, global_max_loss + y_interval, y_interval))
+
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("MSE Loss")
+
+    ax.legend(ncol=1, loc="lower right", bbox_to_anchor=(1, 1))
     plt.show()
 
 

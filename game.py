@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Callable, Optional, Text
+from typing import Callable, List, Optional, Text
 
 import torch
 import torch.nn as nn
@@ -23,6 +23,7 @@ class Game(nn.Module):
         shared_context=True,
         shuffle_decoder_context=False,
         context_generator: Optional[Callable] = None,
+        loss_every: int = 100,
         hidden_sizes=(64, 64),
     ):
         super().__init__()
@@ -36,9 +37,11 @@ class Game(nn.Module):
         self.shuffle_decoder_context = shuffle_decoder_context
         self.context_generator = context_generator
         self.target_function = target_function
+        self.loss_every = loss_every
 
         self.criterion = nn.MSELoss()
-        self.loss_list = []
+        self.epoch_nums: List[int] = []
+        self.loss_per_epoch: List[float] = []
 
         if isinstance(self.context_size, tuple):
             self.flat_context_size = utils.reduce_prod(self.context_size)
@@ -79,7 +82,7 @@ class Game(nn.Module):
         logging.info(f"Encoder layers:\n{self.encoder_hidden_layers}")
         logging.info(f"Decoder layers:\n{self.decoder_hidden_layers}")
 
-    def play(self, num_batches, mini_batch_size, loss_every=100):
+    def play(self, num_batches, mini_batch_size):
         optimizer = optim.Adam(self.parameters(), lr=0.001)
 
         for batch_num in range(num_batches):
@@ -94,11 +97,10 @@ class Game(nn.Module):
             loss.backward()
             optimizer.step()
 
-            self.loss_list.append((batch_num, loss.item()))
-            if batch_num % loss_every == 0:
-                self.loss_list.append((batch_num, loss.item()))
+            if batch_num % self.loss_every == 0:
+                self.log_epoch_loss(batch_num, loss.item())
                 logging.info(
-                    f"Batch {batch_num + (1 if batch_num == 0 else 0)} loss:\t{self.loss_list[-1][1]:.2e}"
+                    f"Batch {batch_num + (1 if batch_num == 0 else 0)} loss:\t{self.loss_per_epoch[-1]:.2e}"
                 )
 
     def encoder_forward_pass(self, context, function_selector):
@@ -189,6 +191,10 @@ class Game(nn.Module):
         function_selectors = self.generate_function_selectors(batch_size, random=False)
         messages = self.message(contexts, function_selectors)
         return function_selectors, contexts, messages
+
+    def log_epoch_loss(self, epoch, loss):
+        self.loss_per_epoch.append(loss)
+        self.epoch_nums.append(epoch)
 
     def visualize(self):
         self.plot_messages_information()
