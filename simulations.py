@@ -61,6 +61,17 @@ def _load_simulation(simulation_name: Text) -> Simulation:
     )
 
 
+def _save_simulation(simulation: Simulation):
+    # Can't serialize functions.
+    simulation.target_function = None
+    simulation.context_generator = None
+
+    simulation_path = pathlib.Path(f"./simulations/")
+    simulation_path.mkdir(parents=True, exist_ok=True)
+    with simulation_path.joinpath(f"{simulation.name}.json").open("w") as f:
+        json.dump(simulation.to_dict(), f, indent=1)
+
+
 def run_simulation(
     simulation: Simulation, visualize: bool = False
 ) -> List[List[game.Game]]:
@@ -131,16 +142,7 @@ def run_simulation(
         games.append(game_per_trial)
 
     simulation.epoch_nums = games[0][0].epoch_nums
-
-    # Can't serialize functions.
-    simulation.target_function = None
-    simulation.context_generator = None
-
-    simulation_path = pathlib.Path(f"./simulations/")
-    simulation_path.mkdir(parents=True, exist_ok=True)
-    with simulation_path.joinpath(f"{simulation.name}.json").open("w") as f:
-        json.dump(simulation.to_dict(), f, indent=1)
-
+    _save_simulation(simulation)
     return games
 
 
@@ -311,7 +313,7 @@ def plot_simulation_training_loss(
 
             x_tick_idxs = np.arange(0, len(epoch_nums))
 
-            x = x_tick_idxs + bar_width * (s - 1)
+            x = x_tick_idxs + (bar_width * (-0.5 if s == 0 else 0.5))
 
             x_labels = [
                 str(epoch_nums[i])
@@ -325,7 +327,7 @@ def plot_simulation_training_loss(
                 losses_mean_per_epoch,
                 width=bar_width,
                 yerr=losses_err_per_epoch,
-                capsize=2,
+                capsize=1.5,
                 label=simulation_display_name,
                 color=f"C{s}",
             )

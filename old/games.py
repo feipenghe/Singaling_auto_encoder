@@ -40,7 +40,7 @@ def plot_categorical_transition():
         message = (t * message_1) + ((1 - t) * message_2)
         situation = (t * situation_1) + ((1 - t) * situation_2)
 
-        prediction = game.output_by_message(
+        prediction = game._output_by_message(
             torch.unsqueeze(message, dim=0), torch.unsqueeze(situation, dim=0)
         )
 
@@ -61,10 +61,10 @@ def plot_categorical_transition():
 
     ts = []
     predictions = []
-    prediction_1 = game.output_by_message(
+    prediction_1 = game._output_by_message(
         torch.unsqueeze(message_1, dim=0), torch.unsqueeze(situation_1, dim=0)
     )
-    prediction_2 = game.output_by_message(
+    prediction_2 = game._output_by_message(
         torch.unsqueeze(message_2, dim=0), torch.unsqueeze(situation_2, dim=0)
     )
 
@@ -259,10 +259,12 @@ def game6():
             )
             if print_first:
                 logging.info(
-                    f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}"
+                    f"Epoch {game.loss_per_epoch[0][0]}:\t{game.loss_per_epoch[0][1]:.2e}"
                 )
                 print_first = False
-            logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+            logging.info(
+                f"Epoch {game.loss_per_epoch[-1][0]}:\t{game.loss_per_epoch[-1][1]:.2e}"
+            )
 
         all_losses.append(get_loss_per_function(game))
         # plot_messages_information(game, 40)
@@ -286,9 +288,13 @@ def game7():
     for lr in [0.01, 0.001, 0.0001]:
         play_game(game, 1000, learning_rate=lr)
         if print_first:
-            logging.info(f"Epoch {game.loss_list[0][0]}:\t{game.loss_list[0][1]:.2e}")
+            logging.info(
+                f"Epoch {game.loss_per_epoch[0][0]}:\t{game.loss_per_epoch[0][1]:.2e}"
+            )
             print_first = False
-        logging.info(f"Epoch {game.loss_list[-1][0]}:\t{game.loss_list[-1][1]:.2e}")
+        logging.info(
+            f"Epoch {game.loss_per_epoch[-1][0]}:\t{game.loss_per_epoch[-1][1]:.2e}"
+        )
     plot_messages_information(game, 40)
 
     # Compute the average messages
@@ -301,7 +307,7 @@ def game7():
     func_switches = torch.cat(
         [torch.arange(game.func_size) for _ in range(replications_per_func)]
     )
-    targets = game.target(situations, func_switches)
+    targets = game._target(situations, func_switches)
 
     LOSS = game.criterion(
         game.discrete_forward(situations, func_switches), targets

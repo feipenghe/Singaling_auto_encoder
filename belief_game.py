@@ -8,7 +8,7 @@ import simulations
 import utils
 
 
-class BeliefUpdateNetwork(nn.Module):
+class _BeliefUpdateNetwork(nn.Module):
     def __init__(
         self,
         context_size: int,
@@ -50,14 +50,14 @@ class BeliefUpdateNetwork(nn.Module):
         return output
 
 
-def make_update_network_function(
+def _make_update_network_function(
     context_size: int,
     object_size: int,
     num_functions: int,
     update_network_hidden_sizes: Tuple[int, ...],
     use_context: bool,
 ) -> Callable:
-    update_network = BeliefUpdateNetwork(
+    update_network = _BeliefUpdateNetwork(
         context_size,
         object_size,
         num_functions,
@@ -83,7 +83,7 @@ def make_belief_update_simulation(
     return simulations.Simulation(
         name=f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_vals(message_sizes)}_sharedcontext{int(shared_context)}",
         context_size=context_size,
-        target_function=make_update_network_function(
+        target_function=_make_update_network_function(
             context_size, object_size, num_functions, (64,), use_context
         ),
         object_size=object_size,
@@ -93,11 +93,14 @@ def make_belief_update_simulation(
     )
 
 
-belief_update_simulation = make_belief_update_simulation(
-    context_size=10,
-    object_size=10,
-    num_functions=4,
-    message_sizes=(1, 2, 4, 6, 8, 10),
-    shared_context=True,
-    use_context=True,
-)
+if __name__ == "__main__":
+    belief_update_simulation = make_belief_update_simulation(
+        context_size=10,
+        object_size=10,
+        num_functions=4,
+        message_sizes=(1, 2, 4, 6, 8, 10),
+        shared_context=True,
+        use_context=True,
+    )
+
+    games = simulations.run_simulation(belief_update_simulation, visualize=True)

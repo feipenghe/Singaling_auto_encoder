@@ -120,27 +120,6 @@ def plot_bar_list(L, L_labels=None, transform=True):
     plt.show()
 
 
-def plot_losses(G, losses=None, exemplars_size=200):
-    if losses is None:
-        with torch.no_grad():
-            situations = torch.randn(exemplars_size, G.situation_size)
-            func_switches = torch.cat(
-                [torch.arange(G.func_size) for _ in range(exemplars_size)]
-            )
-
-            loss_func = []
-            for ind in range(len(G.functions)):
-                loss_func.append(
-                    G.loss(
-                        situations, torch.ones(exemplars_size, dtype=torch.long) * ind
-                    )
-                )
-            losses = loss_func
-
-    plot_bar_list(losses, transform=G.transform)
-    return losses
-
-
 def plot_pca_3d(x, data, xlabel, ylabel, zlabel, title):
     pca = PCA(2)
     predictions_pca = pca.fit_transform(data)

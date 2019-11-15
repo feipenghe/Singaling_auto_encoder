@@ -7,7 +7,7 @@ import simulations
 import utils
 
 
-def strict_context_generator(
+def _strict_context_generator(
     batch_size: int, context_shape: Tuple[int, int]
 ) -> torch.Tensor:
     object_size = context_shape[1]
@@ -56,7 +56,7 @@ def strict_context_generator(
     return torch.from_numpy(context).float()
 
 
-def extremity_game_target_function(
+def _extremity_game_target_function(
     context: torch.Tensor, function_selectors: torch.Tensor
 ) -> torch.Tensor:
     func_idxs = function_selectors.argmax(dim=1)
@@ -100,8 +100,8 @@ def make_extremity_game_simulation(
         shuffle_decoder_context=True,
         message_sizes=message_sizes,
         num_trials=3,
-        context_generator=strict_context_generator if strict_context else None,
-        target_function=extremity_game_target_function,
+        context_generator=_strict_context_generator if strict_context else None,
+        target_function=_extremity_game_target_function,
         num_batches=10_000,
         mini_batch_size=32,
     )
@@ -110,9 +110,10 @@ def make_extremity_game_simulation(
 if __name__ == "__main__":
     extremity_sim = make_extremity_game_simulation(
         object_size=8,
+        num_objects=24,
         message_sizes=(2,),
         num_processes=None,
-        strict_context=True,
-        shared_context=True,
+        strict_context=False,
+        shared_context=False,
     )
-    games = simulations.run_simulation(extremity_sim, visualize=True)
+    games = simulations.run_simulation(extremity_sim, visualize=False)
