@@ -193,10 +193,12 @@ class Game(nn.Module):
             function_idxs, num_classes=self.num_functions
         ).float()
 
-    def _generate_funcs_contexts_messages(self, exemplars_size):
+    def _generate_funcs_contexts_messages(self, exemplars_size, random=False):
         batch_size = exemplars_size * self.num_functions
         contexts = self._generate_contexts(batch_size)
-        function_selectors = self._generate_function_selectors(batch_size, random=False)
+        function_selectors = self._generate_function_selectors(
+            batch_size, random=random
+        )
         messages = self._message(contexts, function_selectors)
         return function_selectors, contexts, messages
 
@@ -206,13 +208,11 @@ class Game(nn.Module):
 
     def plot_messages_information(self, exemplars_size=50):
         with torch.no_grad():
-            batch_size = exemplars_size * self.num_functions
-            contexts = self._generate_contexts(batch_size)
-            function_selectors = self._generate_function_selectors(
-                batch_size, random=False
-            )
-
-            messages = self._message(contexts, function_selectors).numpy()
+            (
+                func_selectors,
+                contexts,
+                messages,
+            ) = self._generate_funcs_contexts_messages(exemplars_size, random=False)
 
             message_masks = []
             message_labels = []
@@ -225,13 +225,13 @@ class Game(nn.Module):
             title_information_row = f"M={self.message_size}, O={self.object_size}, C={self.context_size}, F={self.num_functions}"
 
             utils.plot_raw_and_pca(
-                messages,
+                messages.numpy(),
                 message_masks,
                 message_labels,
                 f"Messages\n{title_information_row}",
             )
 
-            targets = self._target(contexts, function_selectors)
+            targets = self._target(contexts, func_selectors)
             utils.plot_raw_and_pca(
                 targets.numpy(),
                 message_masks,
@@ -245,7 +245,7 @@ class Game(nn.Module):
         logging.info(f"Predicting {element_to_predict} from messages.")
 
         (func_selectors, contexts, messages,) = self._generate_funcs_contexts_messages(
-            exemplars_size
+            exemplars_size, random=False
         )
         batch_size = func_selectors.shape[0]
 
@@ -353,10 +353,128 @@ class Game(nn.Module):
         logging.info(f"Prediction result for {element_to_predict}: {result}")
         return result
 
+    def compositionality_network(self):
+        hidden_size = 64
+        num_exemplars = 100
+        num_epochs = 10000
+
+        # Generate functions for all parameters except last one.
+        num_train_funcs = (self.object_size - 1) * 2
+        train_function_input_idx = torch.cat(
+            [torch.arange(0, num_train_funcs, 2) for _ in range(num_exemplars)]
+        )
+        train_function_target_idx = torch.cat(
+            [torch.arange(1, num_train_funcs + 1, 2) for _ in range(num_exemplars)]
+        )
+
+        train_function_input_selectors = torch.nn.functional.one_hot(
+            train_function_input_idx, num_classes=self.num_functions
+        ).float()
+
+        train_function_target_selectors = torch.nn.functional.one_hot(
+            train_function_target_idx, num_classes=self.num_functions
+        ).float()
+
+        batch_size = train_function_input_selectors.shape[0]
+
+        # Test on last parameter functions
+        last_obj_idx = self.object_size - 1
+
+        test_function_input_selectors = torch.nn.functional.one_hot(
+            torch.Tensor([last_obj_idx * 2] * batch_size).long(),
+            num_classes=self.num_functions,
+        ).float()
+
+        test_function_target_selectors = torch.nn.functional.one_hot(
+            torch.Tensor([last_obj_idx * 2 + 1] * batch_size).long(),
+            num_classes=self.num_functions,
+        ).float()
+
+        # Network
+
+        layers = [
+            torch.nn.Linear(self.message_size, hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_size, hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_size, self.message_size),
+        ]
+
+        model = torch.nn.Sequential(*layers)
+        logging.info(f"Prediction network layers:\n{layers}")
+
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+        loss_func = torch.nn.MSELoss()
+
+        for epoch in range(num_epochs):
+            context = self._generate_contexts(batch_size)
+
+            input_messages = self._message(context, train_function_input_selectors)
+            target_messages = self._message(context, train_function_target_selectors)
+
+            if epoch == 0:
+                utils.plot_raw_and_pca(
+                    input_messages.numpy(),
+                    [
+                        list(range(msg, batch_size, num_train_funcs))
+                        for msg in range(num_train_funcs)
+                    ],
+                    [f"M{m}" for m in range(0, num_train_funcs, 2)],
+                    f"Input Messages",
+                )
+
+                utils.plot_raw_and_pca(
+                    target_messages.numpy(),
+                    [
+                        list(range(msg, batch_size, num_train_funcs))
+                        for msg in range(num_train_funcs)
+                    ],
+                    [f"M{m}" for m in range(1, num_train_funcs + 1, 2)],
+                    f"Target Messages",
+                )
+
+            y_pred = model(input_messages)
+
+            loss = loss_func(y_pred, target_messages)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            if epoch % 100 == 0:
+                logging.info(
+                    f"Epoch {epoch + (1 if epoch == 0 else 0)}:\t{loss.item():.2e}"
+                )
+
+        test_context = self._generate_contexts(batch_size)
+        test_input_messages = self._message(test_context, test_function_input_selectors)
+        test_target_messages = self._message(
+            test_context, test_function_target_selectors
+        )
+
+        with torch.no_grad():
+            test_predicted = model(test_input_messages)
+
+        result = loss_func(test_predicted, test_target_messages).item()
+        logging.info(f"Prediction result: {result:.2e}")
+
+        rand_function_selectors = self._generate_function_selectors(
+            batch_size, random=True
+        )
+        random_messages = self._message(test_context, rand_function_selectors)
+        bad_result = loss_func(test_predicted, random_messages).item()
+
+        logging.info(f"Baseline result: {bad_result:.2e}")
+
+        # self._decoder_forward_pass(test_predicted, test_context)
+        # # vs
+        # self._decoder_forward_pass(target_messages)
+
+        return result
+
     def clusterize_messages(self, exemplars_size=50, visualize=False):
         num_clusters = self.num_functions
         (func_selectors, contexts, messages,) = self._generate_funcs_contexts_messages(
-            exemplars_size
+            exemplars_size, random=False
         )
 
         k_means = cluster.KMeans(n_clusters=num_clusters)
@@ -380,7 +498,7 @@ class Game(nn.Module):
 
         # Sample unseen messages from clusters.
         (_, test_contexts, test_messages,) = self._generate_funcs_contexts_messages(
-            exemplars_size
+            exemplars_size, random=False
         )
         cluster_label_per_test_message = k_means.predict(test_messages)
 
