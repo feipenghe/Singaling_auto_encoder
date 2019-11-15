@@ -28,8 +28,8 @@ class Simulation:
     object_size: int
     num_functions: int
     message_sizes: Iterable[int]
-    target_function: Optional[Callable] = None
-    context_generator: Optional[Callable] = None
+    target_function: Callable
+    context_generator: Callable
     use_context: bool = True
     shared_context: bool = True
     shuffle_decoder_context: bool = False
@@ -38,57 +38,42 @@ class Simulation:
     mini_batch_size: int = 64
     num_batches: int = 1000
 
+    epoch_nums: List[int] = dataclasses.field(default_factory=list)
 
-def make_referential_game_simulation(
-    object_size, context_size, num_functions, message_sizes
-):
-    # TODO how to choose the number of functions?
-    functions = torch.randn(num_functions, context_size)
+    """ Results """
 
-    def referential_game_target_function(context, function_selectors):
-        # TODO Check correctness.
-        selected_functions = torch.matmul(function_selectors.unsqueeze(1), functions)
-        objects = torch.matmul(selected_functions, context).squeeze(1)
-        return objects
-
-    return Simulation(
-        name="referential_game",
-        object_size=object_size,
-        num_functions=num_functions,
-        context_size=(context_size, object_size),
-        message_sizes=message_sizes,
-        num_trials=3,
-        target_function=referential_game_target_function,
+    # {Message size -> Trial x {parameter -> loss}}
+    prediction_by_message_losses: Dict[
+        int, List[Dict[Text, float]]
+    ] = dataclasses.field(default_factory=dict)
+    # {Message size -> Trial x Epoch x loss}
+    training_losses: Dict[int, List[List[float]]] = dataclasses.field(
+        default_factory=dict
     )
-
-
-referential_game_simulation = make_referential_game_simulation(
-    object_size=2, context_size=10, num_functions=4, message_sizes=(1, 2, 4, 6, 10)
-)
+    # {Message size -> Trial x loss}
+    unsupervised_clustering_losses: Dict[int, List[float]] = dataclasses.field(
+        default_factory=dict
+    )
 
 
 def run_simulation(
     simulation: Simulation, visualize: bool = False
 ) -> List[List[game.Game]]:
     logging.info(f"Running simulation: {simulation}")
-    # [Message size x Trial x Epoch x loss]
-    network_losses: List[List[List[float]]] = []
-    # [Message size x Trial x loss]
-    prediction_by_messages_losses: List[List[Dict[Text, float]]] = []
-    # [Message size x Trial x loss]
-    unsupervised_clustering_losses: List[List[float]] = []
 
+    # [Message size x Trial x game]
     games: List[List[game.Game]] = []
 
     for message_size in simulation.message_sizes:
-        # [Trial x Epoch x (epoch, loss)]
-        network_losses_per_trial: List[List[float]] = []
+        # [Trial x epoch x loss]
+        training_losses_per_trial: List[List[float]] = []
         # [Trial x {parameter name: loss}]
-        prediction_losses_per_trial: List[Dict[Text, float]] = []
+        prediction_loss_per_trial: List[Dict[Text, float]] = []
         # [Trial x loss]
-        unsupervised_losses_per_trial = []
+        unsupervised_loss_per_trial = []
 
-        game_trials: List[game.Game] = []
+        game_per_trial: List[game.Game] = []
+
         for _ in range(simulation.num_trials):
             current_game: game.Game = game.Game(
                 context_size=simulation.context_size,
@@ -121,51 +106,35 @@ def run_simulation(
                     "decoder_context",
                 )
             }
-            prediction_losses_per_trial.append(element_losses)
-            unsupervised_losses_per_trial.append(
+            prediction_loss_per_trial.append(element_losses)
+            unsupervised_loss_per_trial.append(
                 current_game.clusterize_messages(visualize=visualize)
             )
-            network_losses_per_trial.append(current_game.loss_per_epoch)
+            training_losses_per_trial.append(current_game.loss_per_epoch)
 
-            game_trials.append(current_game)
+            game_per_trial.append(current_game)
 
-        network_losses.append(network_losses_per_trial)
-        prediction_by_messages_losses.append(prediction_losses_per_trial)
-        unsupervised_clustering_losses.append(unsupervised_losses_per_trial)
+        simulation.training_losses[message_size] = training_losses_per_trial
+        simulation.prediction_by_message_losses[
+            message_size
+        ] = prediction_loss_per_trial
 
-        games.append(game_trials)
+        simulation.unsupervised_clustering_losses[
+            message_size
+        ] = unsupervised_loss_per_trial
+
+        games.append(game_per_trial)
+
+    simulation.epoch_nums = games[0][0].epoch_nums
+
+    # Can't serialize functions.
+    simulation.target_function = None
+    simulation.context_generator = None
 
     simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
     simulation_path.mkdir(parents=True, exist_ok=True)
-
-    # TODO Save jsons.
-
-    with simulation_path.joinpath("network_losses.pickle").open("wb") as f:
-        pickle.dump(network_losses, f)
-
-    with simulation_path.joinpath("epochs.pickle").open("wb") as f:
-        pickle.dump(games[0][0].epoch_nums, f)
-
-    with simulation_path.joinpath("network_losses.pickle").open("wb") as f:
-        pickle.dump(network_losses, f)
-
-    with simulation_path.joinpath("prediction_by_messages_losses.pickle").open(
-        "wb"
-    ) as f:
-        pickle.dump(prediction_by_messages_losses, f)
-
-    with simulation_path.joinpath("unsupervised_clustering_loss.pickle").open(
-        "wb"
-    ) as f:
-        pickle.dump(unsupervised_clustering_losses, f)
-
     with simulation_path.joinpath(f"{simulation.name}.json").open("w") as f:
-        json.dump(
-            dataclasses.replace(
-                simulation, target_function=None, context_generator=None
-            ).to_dict(),
-            f,
-        )
+        json.dump(simulation.to_dict(), f, indent=1)
 
     return games
 
