@@ -9,7 +9,6 @@ from typing import Callable, Dict, Iterable, List, Optional, Text, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
 
 import dataclasses_json
 import game
@@ -17,7 +16,7 @@ import utils
 
 utils.setup_logging()
 
-ContextSizeType = Union[Tuple[int, int], int]
+ContextSizeType = Union[int, Tuple[int, int]]
 
 
 @dataclasses_json.dataclass_json
@@ -53,6 +52,12 @@ class Simulation:
     # {Message size -> Trial x loss}
     unsupervised_clustering_losses: Dict[int, List[float]] = dataclasses.field(
         default_factory=dict
+    )
+
+
+def _load_simulation(simulation_name: Text) -> Simulation:
+    return Simulation.from_dict(
+        json.load(pathlib.Path(f"./simulations/{simulation_name}.json").open())
     )
 
 
@@ -131,7 +136,7 @@ def run_simulation(
     simulation.target_function = None
     simulation.context_generator = None
 
-    simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
+    simulation_path = pathlib.Path(f"./simulations/")
     simulation_path.mkdir(parents=True, exist_ok=True)
     with simulation_path.joinpath(f"{simulation.name}.json").open("w") as f:
         json.dump(simulation.to_dict(), f, indent=1)
@@ -254,60 +259,78 @@ def plot_simulation(simulation_name: Text):
 
 
 def plot_simulation_training_loss(
-    simulation_display_name_to_file_name: Dict[Text, Text]
+    simulation_display_name_to_file_name: Dict[Text, Text],
+    max_epochs: Optional[int] = None,
+    epoch_interval: Optional[int] = 100,
+    label_interval: int = 10,
 ):
     display_name_to_simulation: Dict[Text, Simulation] = {
-        display_name: Simulation.from_dict(
-            json.load(
-                pathlib.Path(f"./simulations/{file_name}/{file_name}.json").open()
-            )
-        )
+        display_name: _load_simulation(file_name)
         for display_name, file_name in simulation_display_name_to_file_name.items()
     }
 
-    fig, ax = plt.subplots(1, figsize=(16, 6))
+    fig, ax = plt.subplots(1, figsize=(10, 5))
     fig.suptitle(f"Training losses (MSE)")
 
     global_max_loss = 0.0
 
-    for simulation_display_name, simulation in display_name_to_simulation.items():
-        simulation_path = pathlib.Path(f"./simulations/{simulation.name}/")
+    for s, (simulation_display_name, simulation) in enumerate(
+        display_name_to_simulation.items()
+    ):
+        simulation = Simulation.from_dict(
+            json.load(pathlib.Path(f"./simulations/{simulation.name}.json").open())
+        )
 
-        epoch_nums = pickle.load(simulation_path.joinpath("epochs.pickle").open("rb"))
-
-        with simulation_path.joinpath("network_losses.pickle").open("rb") as f:
-            # [Message size x Trial x Epoch x loss]
-            training_losses_per_message_size: List[List[List[float]]] = pickle.load(f)
+        epoch_nums = np.array(simulation.epoch_nums)
 
         for m, message_size in enumerate(simulation.message_sizes):
-            # [Trial x Epoch x loss]
-            training_losses_per_trial: List[
-                List[float]
-            ] = training_losses_per_message_size[m]
+            # TODO use message size information
+
+            training_losses_per_trial: List[List[float]] = simulation.training_losses[
+                message_size
+            ]
 
             losses_mean_per_epoch = np.mean(np.array(training_losses_per_trial), axis=0)
             losses_err_per_epoch = np.std(np.array(training_losses_per_trial), axis=0)
 
             global_max_loss = max(global_max_loss, losses_mean_per_epoch.max())
 
-            # TODO use message size information
-            x = range(len(epoch_nums))
+            if max_epochs is not None:
+                epoch_nums = epoch_nums[:max_epochs]
+                losses_mean_per_epoch = losses_mean_per_epoch[:max_epochs]
+                losses_err_per_epoch = losses_err_per_epoch[:max_epochs]
+
+            if epoch_interval is not None:
+                idxs = np.arange(0, epoch_nums[-1], epoch_interval)
+                # idxs = np.append(idxs, -1)  # Always plot last epoch
+                epoch_nums = epoch_nums[idxs]
+                losses_mean_per_epoch = losses_mean_per_epoch[idxs]
+                losses_err_per_epoch = losses_err_per_epoch[idxs]
+
+            bar_width = 0.5
+
+            x_tick_idxs = np.arange(0, len(epoch_nums))
+
+            x = x_tick_idxs + bar_width * (s - 1)
+
+            x_labels = [
+                str(epoch_nums[i])
+                if i % label_interval == 0 or i + 1 == len(epoch_nums)
+                else ""
+                for i in range(len(epoch_nums))
+            ]
+
             ax.bar(
                 x,
                 losses_mean_per_epoch,
-                width=0.5,
+                width=bar_width,
                 yerr=losses_err_per_epoch,
                 capsize=2,
                 label=simulation_display_name,
-                color=f"C{m}",
+                color=f"C{s}",
             )
-            ax.set_xticks(x)
-            ax.set_xticklabels(
-                [
-                    str(x) if (x == epoch_nums[-1] or x % 1000 == 0) else ""
-                    for x in epoch_nums
-                ]
-            )
+            ax.set_xticks(x_tick_idxs)
+            ax.set_xticklabels(x_labels)
 
     y_interval = round(
         global_max_loss / 10, int(np.abs(np.floor(np.log10(global_max_loss / 10))))
