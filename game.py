@@ -354,7 +354,7 @@ class Game(nn.Module):
         return result
 
     def compositionality_network(self):
-        hidden_size = 64
+        hidden_size = 128
         num_exemplars = 100
         num_epochs = 10000
 
@@ -394,9 +394,7 @@ class Game(nn.Module):
 
         layers = [
             torch.nn.Linear(self.message_size, hidden_size),
-            torch.nn.ReLU(),
-            torch.nn.Linear(hidden_size, hidden_size),
-            torch.nn.ReLU(),
+            torch.nn.Sigmoid(),
             torch.nn.Linear(hidden_size, self.message_size),
         ]
 
@@ -461,9 +459,9 @@ class Game(nn.Module):
             batch_size, random=True
         )
         random_messages = self._message(test_context, rand_function_selectors)
-        bad_result = loss_func(test_predicted, random_messages).item()
+        baseline_result = loss_func(test_predicted, random_messages).item()
 
-        logging.info(f"Baseline result: {bad_result:.2e}")
+        logging.info(f"Baseline result: {baseline_result:.2e}")
 
         # self._decoder_forward_pass(test_predicted, test_context)
         # # vs
