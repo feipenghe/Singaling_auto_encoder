@@ -97,8 +97,10 @@ class Game(nn.Module):
             loss.backward()
             optimizer.step()
 
-            if batch_num % self.loss_every == 0:
+            if batch_num % self.loss_every == 0 or batch_num == (num_batches - 1):
                 self.log_epoch_loss(batch_num, loss.item())
+
+            if batch_num % 100 == 0:
                 logging.info(
                     f"Batch {batch_num + (1 if batch_num == 0 else 0)} loss:\t{self.loss_per_epoch[-1]:.2e}"
                 )
@@ -185,7 +187,7 @@ class Game(nn.Module):
             function_idxs, num_classes=self.num_functions
         ).float()
 
-    def generate_func_selectors_contexts_messages(self, exemplars_size):
+    def generate_funcs_contexts_messages(self, exemplars_size):
         batch_size = exemplars_size * self.num_functions
         contexts = self.generate_contexts(batch_size)
         function_selectors = self.generate_function_selectors(batch_size, random=False)
@@ -200,7 +202,7 @@ class Game(nn.Module):
         self.plot_messages_information()
         self.clusterize_messages(visualize=True)
 
-    def plot_messages_information(self, exemplars_size=40):
+    def plot_messages_information(self, exemplars_size=50):
         with torch.no_grad():
             batch_size = exemplars_size * self.num_functions
             contexts = self.generate_contexts(batch_size)
@@ -236,15 +238,13 @@ class Game(nn.Module):
             )
 
     def predict_element_by_messages(
-        self, element_to_predict: Text, exemplars_size: int = 40
+        self, element_to_predict: Text, exemplars_size: int = 50
     ) -> float:
         logging.info(f"Predicting {element_to_predict} from messages.")
 
-        (
-            func_selectors,
-            contexts,
-            messages,
-        ) = self.generate_func_selectors_contexts_messages(exemplars_size)
+        (func_selectors, contexts, messages,) = self.generate_funcs_contexts_messages(
+            exemplars_size
+        )
         batch_size = func_selectors.shape[0]
 
         train_test_ratio = 0.7
@@ -307,11 +307,9 @@ class Game(nn.Module):
             messages[num_train_samples:],
         )
 
-        classifier_hidden_size = 64
+        classifier_hidden_size = 32
         layers = [
             torch.nn.Linear(self.message_size, classifier_hidden_size),
-            torch.nn.ReLU(),
-            torch.nn.Linear(classifier_hidden_size, classifier_hidden_size),
             torch.nn.ReLU(),
             torch.nn.Linear(classifier_hidden_size, test_target.shape[-1]),
         ]
@@ -353,13 +351,11 @@ class Game(nn.Module):
         logging.info(f"Prediction result for {element_to_predict}: {result}")
         return result
 
-    def clusterize_messages(self, exemplars_size=40, visualize=False):
+    def clusterize_messages(self, exemplars_size=50, visualize=False):
         num_clusters = self.num_functions
-        (
-            func_selectors,
-            contexts,
-            messages,
-        ) = self.generate_func_selectors_contexts_messages(exemplars_size)
+        (func_selectors, contexts, messages,) = self.generate_funcs_contexts_messages(
+            exemplars_size
+        )
 
         k_means = cluster.KMeans(n_clusters=num_clusters)
         labels = k_means.fit_predict(messages)
@@ -367,7 +363,7 @@ class Game(nn.Module):
         if visualize:
             utils.plot_clusters(messages, labels, "Training messages clusters")
 
-        # Find cluster for each message.
+        # Align cluster ids with with message ids.
         message_distance_from_centers = k_means.transform(messages)
         representative_message_idx_per_cluster = message_distance_from_centers.argmin(
             axis=0
@@ -381,11 +377,9 @@ class Game(nn.Module):
         }
 
         # Sample unseen messages from clusters.
-        (
-            _,
-            test_contexts,
-            test_messages,
-        ) = self.generate_func_selectors_contexts_messages(exemplars_size)
+        (_, test_contexts, test_messages,) = self.generate_funcs_contexts_messages(
+            exemplars_size
+        )
         cluster_label_per_test_message = k_means.predict(test_messages)
 
         batch_size = test_messages.shape[0]
