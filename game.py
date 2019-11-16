@@ -3,12 +3,14 @@ import math
 import random
 from typing import Callable, List, Optional, Text
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sklearn import cluster, metrics
 from torch import optim
+from collections import defaultdict
 
 import utils
 
@@ -358,7 +360,7 @@ class Game(nn.Module):
     def run_compositionality_network(self):
         hidden_size = 64
         num_exemplars = 100
-        num_epochs = 1000
+        num_epochs = 10_000
 
         # Generate functions for all parameters except one.
 
@@ -398,6 +400,8 @@ class Game(nn.Module):
         layers = [
             torch.nn.Linear(self.message_size, hidden_size),
             torch.nn.ReLU(),
+            torch.nn.Linear(hidden_size, hidden_size),
+            torch.nn.ReLU(),
             torch.nn.Linear(hidden_size, self.message_size),
         ]
 
@@ -414,18 +418,35 @@ class Game(nn.Module):
             target_messages = self._message(context, train_function_target_selectors)
 
             if epoch == 0:
-                messages_to_visualize = np.concatenate(
-                    [input_messages, target_messages], axis=0
+                test_messages_input = self._message(
+                    context, test_function_input_selectors
                 )
-                num_input_messages = input_messages.shape[0]
+                test_messages_target = self._message(
+                    context, test_function_target_selectors
+                )
+
+                messages_to_visualize = np.concatenate(
+                    [
+                        input_messages,
+                        target_messages,
+                        test_messages_input,
+                        test_messages_target,
+                    ],
+                    axis=0,
+                )
                 utils.plot_raw_and_pca(
                     messages_to_visualize,
                     masks=[
-                        list(range(num_input_messages)),
-                        list(range(num_input_messages, num_input_messages * 2)),
+                        list(range(i * batch_size, (i + 1) * batch_size))
+                        for i in range(4)
                     ],
                     title="Input/Target messages",
-                    labels=["Input messages", "Target messages"],
+                    labels=[
+                        "Training input",
+                        "Training target",
+                        "Test input",
+                        "Test target",
+                    ],
                 )
 
             y_pred = model(input_messages)
@@ -440,6 +461,8 @@ class Game(nn.Module):
                     f"Epoch {epoch + (1 if epoch == 0 else 0)}:\t{loss.item():.2e}"
                 )
 
+        # Evaluate
+
         test_context = self._generate_contexts(batch_size)
         test_input_messages = self._message(test_context, test_function_input_selectors)
         test_target_messages = self._message(
@@ -447,23 +470,108 @@ class Game(nn.Module):
         )
 
         with torch.no_grad():
-            test_predicted = model(test_input_messages)
+            test_predicted_messages = model(test_input_messages)
 
-        result = loss_func(test_predicted, test_target_messages).item()
-        logging.info(f"Prediction result: {result:.2e}")
+        result = loss_func(test_predicted_messages, test_target_messages).item()
+        logging.info(f"Prediction loss: {result:.2e}")
 
-        rand_function_selectors = self._generate_function_selectors(
+        predicted_objects = self._decoder_forward_pass(
+            test_predicted_messages, test_context
+        )
+        target_objects = self._decoder_forward_pass(test_target_messages, test_context)
+
+        object_prediction_loss = loss_func(predicted_objects, target_objects)
+        logging.info(f"Object prediction loss: {object_prediction_loss:.2e}")
+
+        target_for_training = self._message(
+            test_context, train_function_target_selectors
+        )
+
+        with torch.no_grad():
+            prediction_for_training = model(
+                self._message(test_context, train_function_input_selectors)
+            )
+
+        mse_per_training_sample = (
+            ((prediction_for_training - target_for_training) ** 2).mean(dim=1).numpy()
+        )
+
+        losses_per_training_func = defaultdict(list)
+        for i, train_param in enumerate(train_param_idxs):
+            losses_per_training_func[train_param].append(mse_per_training_sample[i])
+
+        mean_loss_per_func = {
+            func: np.mean(losses) for func, losses in losses_per_training_func.items()
+        }
+        mean_loss_per_func[left_out_param] = torch.nn.MSELoss()(
+            test_predicted_messages, test_target_messages
+        ).numpy()
+
+        mean_loss_per_func[left_out_param] = (
+            ((test_predicted_messages - test_target_messages) ** 2).mean().numpy()
+        )
+
+        funcs = list(sorted(mean_loss_per_func.keys()))
+        losses = [mean_loss_per_func[func] for func in funcs]
+
+        plt.bar(
+            funcs,
+            losses,
+            color=["blue" if func != left_out_param else "red" for func in funcs],
+        )
+        plt.xticks(list(range(len(funcs))), funcs, fontsize=5)
+        plt.xlabel("Parameters", fontsize=5)
+        plt.ylabel("MSELoss", fontsize=5)
+        plt.title("Prediction loss per parameter k (M_{2k} -> M_{2k+1})")
+        plt.show()
+
+        # Visualize prediction
+
+        messages_to_visualize = np.concatenate(
+            [test_input_messages, test_predicted_messages, test_target_messages,],
+            axis=0,
+        )
+        utils.plot_raw_and_pca(
+            messages_to_visualize,
+            masks=[
+                list(range(i * batch_size, (i + 1) * batch_size))
+                for i in range(messages_to_visualize.shape[0])
+            ],
+            title="Input/Target messages",
+            labels=["Test input messages", "Test predicted messages", "Test target",],
+        )
+
+        # Baseline
+
+        prediction_for_training = model(
+            self._message(test_context, train_function_input_selectors)
+        )
+        training_prediction_loss = loss_func(
+            prediction_for_training,
+            self._message(test_context, train_function_target_selectors),
+        )
+        logging.info(f"Baseline using training data: {training_prediction_loss:.2e}")
+
+        rand_function_selectors_1 = self._generate_function_selectors(
             batch_size, random=True
         )
         rand_function_selectors_2 = self._generate_function_selectors(
             batch_size, random=True
         )
 
-        random_messages = self._message(test_context, rand_function_selectors)
+        random_messages_1 = self._message(test_context, rand_function_selectors_1)
         random_messages_2 = self._message(test_context, rand_function_selectors_2)
-        baseline_result = loss_func(random_messages, random_messages_2).item()
+        baseline_result = loss_func(random_messages_1, random_messages_2).item()
 
-        logging.info(f"Baseline result: {baseline_result:.2e}")
+        baseline_object_prediction_loss = loss_func(
+            self._decoder_forward_pass(random_messages_1, test_context),
+            self._decoder_forward_pass(random_messages_2, test_context),
+        )
+
+        logging.info(f"Baseline loss: {baseline_result:.2e}")
+        logging.info(
+            f"Object prediction baseline loss: {baseline_object_prediction_loss:.2e}"
+        )
 
         return result
 
