@@ -1,7 +1,9 @@
 import logging
 import math
+import random
 from typing import Callable, List, Optional, Text
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -353,40 +355,41 @@ class Game(nn.Module):
         logging.info(f"Prediction result for {element_to_predict}: {result}")
         return result
 
-    def compositionality_network(self):
-        hidden_size = 128
+    def run_compositionality_network(self):
+        hidden_size = 64
         num_exemplars = 100
-        num_epochs = 10000
+        num_epochs = 1000
 
-        # Generate functions for all parameters except last one.
-        num_train_funcs = (self.object_size - 1) * 2
-        train_function_input_idx = torch.cat(
-            [torch.arange(0, num_train_funcs, 2) for _ in range(num_exemplars)]
-        )
-        train_function_target_idx = torch.cat(
-            [torch.arange(1, num_train_funcs + 1, 2) for _ in range(num_exemplars)]
-        )
+        # Generate functions for all parameters except one.
+
+        left_out_param = random.randrange(self.object_size)
+
+        train_param_idxs = [
+            i for i in range(self.object_size) if i != left_out_param
+        ] * num_exemplars
+
+        train_function_input_idx = np.array([x * 2 for x in train_param_idxs])
+        train_function_target_idx = train_function_input_idx + 1
 
         train_function_input_selectors = torch.nn.functional.one_hot(
-            train_function_input_idx, num_classes=self.num_functions
+            torch.from_numpy(train_function_input_idx), num_classes=self.num_functions
         ).float()
 
         train_function_target_selectors = torch.nn.functional.one_hot(
-            train_function_target_idx, num_classes=self.num_functions
+            torch.from_numpy(train_function_target_idx), num_classes=self.num_functions
         ).float()
 
         batch_size = train_function_input_selectors.shape[0]
 
-        # Test on last parameter functions
-        last_obj_idx = self.object_size - 1
+        # Test on left-out parameter.
 
         test_function_input_selectors = torch.nn.functional.one_hot(
-            torch.Tensor([last_obj_idx * 2] * batch_size).long(),
+            torch.from_numpy(np.array([left_out_param * 2] * batch_size)).long(),
             num_classes=self.num_functions,
         ).float()
 
         test_function_target_selectors = torch.nn.functional.one_hot(
-            torch.Tensor([last_obj_idx * 2 + 1] * batch_size).long(),
+            torch.from_numpy(np.array([left_out_param * 2 + 1] * batch_size)).long(),
             num_classes=self.num_functions,
         ).float()
 
@@ -394,12 +397,12 @@ class Game(nn.Module):
 
         layers = [
             torch.nn.Linear(self.message_size, hidden_size),
-            torch.nn.Sigmoid(),
+            torch.nn.ReLU(),
             torch.nn.Linear(hidden_size, self.message_size),
         ]
 
         model = torch.nn.Sequential(*layers)
-        logging.info(f"Prediction network layers:\n{layers}")
+        logging.info(f"Compositionality network layers:\n{layers}")
 
         optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
         loss_func = torch.nn.MSELoss()
@@ -411,30 +414,24 @@ class Game(nn.Module):
             target_messages = self._message(context, train_function_target_selectors)
 
             if epoch == 0:
-                utils.plot_raw_and_pca(
-                    input_messages.numpy(),
-                    [
-                        list(range(msg, batch_size, num_train_funcs))
-                        for msg in range(num_train_funcs)
-                    ],
-                    [f"M{m}" for m in range(0, num_train_funcs, 2)],
-                    f"Input Messages",
+                messages_to_visualize = np.concatenate(
+                    [input_messages, target_messages], axis=0
                 )
-
+                num_input_messages = input_messages.shape[0]
                 utils.plot_raw_and_pca(
-                    target_messages.numpy(),
-                    [
-                        list(range(msg, batch_size, num_train_funcs))
-                        for msg in range(num_train_funcs)
+                    messages_to_visualize,
+                    masks=[
+                        list(range(num_input_messages)),
+                        list(range(num_input_messages, num_input_messages * 2)),
                     ],
-                    [f"M{m}" for m in range(1, num_train_funcs + 1, 2)],
-                    f"Target Messages",
+                    title="Input/Target messages",
+                    labels=["Input messages", "Target messages"],
                 )
 
             y_pred = model(input_messages)
 
-            loss = loss_func(y_pred, target_messages)
             optimizer.zero_grad()
+            loss = loss_func(y_pred, target_messages)
             loss.backward()
             optimizer.step()
 
@@ -458,14 +455,15 @@ class Game(nn.Module):
         rand_function_selectors = self._generate_function_selectors(
             batch_size, random=True
         )
+        rand_function_selectors_2 = self._generate_function_selectors(
+            batch_size, random=True
+        )
+
         random_messages = self._message(test_context, rand_function_selectors)
-        baseline_result = loss_func(test_predicted, random_messages).item()
+        random_messages_2 = self._message(test_context, rand_function_selectors_2)
+        baseline_result = loss_func(random_messages, random_messages_2).item()
 
         logging.info(f"Baseline result: {baseline_result:.2e}")
-
-        # self._decoder_forward_pass(test_predicted, test_context)
-        # # vs
-        # self._decoder_forward_pass(target_messages)
 
         return result
 
