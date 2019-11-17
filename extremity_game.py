@@ -99,11 +99,9 @@ def make_extremity_game_simulation(
         shared_context=shared_context,
         shuffle_decoder_context=True,
         message_sizes=message_sizes,
-        num_trials=3,
         context_generator=_strict_context_generator if strict_context else None,
         target_function=_extremity_game_target_function,
-        num_batches=10_000,
-        mini_batch_size=32,
+        **kwargs,
     )
 
 
@@ -115,5 +113,8 @@ if __name__ == "__main__":
         num_processes=None,
         strict_context=False,
         shared_context=False,
+        num_batches=(10_000,),
+        mini_batch_size=(32,),
+        num_trials=(3,),
     )
     games = simulations.run_simulation(extremity_sim, visualize=False)
