@@ -68,8 +68,9 @@ def plot_simulation(simulation_name: Text, element_to_plot: Text):
 
 def plot_simulation_training_loss(
     simulation_display_name_to_file_name: Dict[Text, Text],
+    plot_type: Text = "line",  # "bar" or "line"
     max_epochs: Optional[int] = None,
-    epoch_interval: Optional[int] = 100,
+    epoch_interval: int = 100,
     label_interval: int = 10,
 ):
     display_name_to_simulation: Dict[Text, simulations.Simulation] = {
@@ -90,32 +91,24 @@ def plot_simulation_training_loss(
         for m, message_size in enumerate(simulation.message_sizes):
             # TODO use message size information
 
-            training_losses_per_trial: List[List[float]] = simulation.training_losses[
-                message_size
-            ]
-
-            losses_mean_per_epoch = np.mean(np.array(training_losses_per_trial), axis=0)
-            losses_err_per_epoch = np.std(np.array(training_losses_per_trial), axis=0)
-
-            global_max_loss = max(global_max_loss, losses_mean_per_epoch.max())
+            training_losses_per_trial = np.array(
+                simulation.training_losses[message_size]
+            )
 
             if max_epochs is not None:
                 epoch_nums = epoch_nums[:max_epochs]
-                losses_mean_per_epoch = losses_mean_per_epoch[:max_epochs]
-                losses_err_per_epoch = losses_err_per_epoch[:max_epochs]
+                training_losses_per_trial = training_losses_per_trial[:, :max_epochs]
 
-            if epoch_interval is not None:
-                idxs = np.arange(0, epoch_nums[-1], epoch_interval)
-                # idxs = np.append(idxs, -1)  # Always plot last epoch
-                epoch_nums = epoch_nums[idxs]
-                losses_mean_per_epoch = losses_mean_per_epoch[idxs]
-                losses_err_per_epoch = losses_err_per_epoch[idxs]
+            losses_mean_per_epoch = np.mean(training_losses_per_trial, axis=0)
+            losses_err_per_epoch = np.std(training_losses_per_trial, axis=0)
 
-            bar_width = 0.5
+            global_max_loss = max(global_max_loss, losses_mean_per_epoch.max())
 
-            x_tick_idxs = np.arange(0, len(epoch_nums))
-
-            x = x_tick_idxs + (bar_width * (-0.5 if s == 0 else 0.5))
+            epoch_idxs = np.arange(0, epoch_nums[-1] + 1, epoch_interval)
+            # idxs = np.append(idxs, -1)  # Always plot last epoch
+            epoch_nums = epoch_nums[epoch_idxs]
+            losses_mean_per_epoch = losses_mean_per_epoch[epoch_idxs]
+            losses_err_per_epoch = losses_err_per_epoch[epoch_idxs]
 
             x_labels = [
                 str(epoch_nums[i])
@@ -123,16 +116,38 @@ def plot_simulation_training_loss(
                 else ""
                 for i in range(len(epoch_nums))
             ]
+            x_tick_idxs = np.arange(0, len(epoch_nums))
+            color = f"C{s}"
 
-            ax.bar(
-                x,
-                losses_mean_per_epoch,
-                width=bar_width,
-                yerr=losses_err_per_epoch,
-                capsize=1.5,
-                label=simulation_display_name,
-                color=f"C{s}",
-            )
+            if plot_type == "bar":
+                bar_width = 0.5
+                x = x_tick_idxs + (bar_width * (-0.5 if s == 0 else 0.5))
+
+                ax.bar(
+                    x,
+                    losses_mean_per_epoch,
+                    width=bar_width,
+                    yerr=losses_err_per_epoch,
+                    capsize=1.5,
+                    label=simulation_display_name,
+                    color=color,
+                )
+
+            elif plot_type == "line":
+                x = x_tick_idxs
+                _, caps, bars = ax.errorbar(
+                    x,
+                    losses_mean_per_epoch,
+                    yerr=losses_err_per_epoch,
+                    capsize=2,
+                    marker=".",
+                    linestyle="solid",
+                    label=simulation_display_name,
+                    color=color,
+                )
+                [bar.set_alpha(0.3) for bar in bars]
+                [cap.set_alpha(0.3) for cap in caps]
+
             ax.set_xticks(x_tick_idxs)
             ax.set_xticklabels(x_labels)
 
