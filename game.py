@@ -28,14 +28,16 @@ class Game(nn.Module):
         shuffle_decoder_context=False,
         context_generator: Optional[Callable] = None,
         loss_every: int = 1,
-        hidden_sizes=(64, 64),
+        encoder_hidden_sizes: Tuple[int, ...] = (64, 64),
+        decoder_hidden_sizes: Tuple[int, ...] = (64, 64),
     ):
         super().__init__()
         self.context_size = context_size
         self.object_size = object_size
         self.message_size = message_size
         self.num_functions = num_functions
-        self.hidden_sizes = hidden_sizes
+        self.encoder_hidden_sizes = encoder_hidden_sizes
+        self.decoder_hidden_sizes = decoder_hidden_sizes
         self.use_context = use_context
         self.shared_context = shared_context
         self.shuffle_decoder_context = shuffle_decoder_context
@@ -61,15 +63,23 @@ class Game(nn.Module):
             encoder_input_size = self.num_functions
             decoder_input_size = self.message_size
 
-        encoder_layer_dimensions = [(encoder_input_size, self.hidden_sizes[0])]
-        decoder_layer_dimensions = [(decoder_input_size, self.hidden_sizes[0])]
+        encoder_layer_dimensions = [(encoder_input_size, self.encoder_hidden_sizes[0])]
+        decoder_layer_dimensions = [(decoder_input_size, self.decoder_hidden_sizes[0])]
 
-        for i, hidden_size in enumerate(self.hidden_sizes[1:]):
-            hidden_shape = (self.hidden_sizes[i], hidden_size)
+        for i, hidden_size in enumerate(self.encoder_hidden_sizes[1:]):
+            hidden_shape = (self.encoder_hidden_sizes[i], hidden_size)
             encoder_layer_dimensions.append(hidden_shape)
+
+        for i, hidden_size in enumerate(self.decoder_hidden_sizes[1:]):
+            hidden_shape = (self.decoder_hidden_sizes[i], hidden_size)
             decoder_layer_dimensions.append(hidden_shape)
-        encoder_layer_dimensions.append((self.hidden_sizes[-1], self.message_size))
-        decoder_layer_dimensions.append((self.hidden_sizes[-1], self.object_size))
+
+        encoder_layer_dimensions.append(
+            (self.encoder_hidden_sizes[-1], self.message_size)
+        )
+        decoder_layer_dimensions.append(
+            (self.decoder_hidden_sizes[-1], self.object_size)
+        )
 
         self.encoder_hidden_layers = nn.ModuleList(
             [nn.Linear(*dimensions) for dimensions in encoder_layer_dimensions]
@@ -744,18 +754,23 @@ class Game(nn.Module):
         encoder_context = self._generate_contexts(batch_size)
         decoder_context = self._get_decoder_context(batch_size, encoder_context)
 
-        target_predictions = self._predict(
-            encoder_context, torch.cat(function_selectors, dim=0), decoder_context
-        )
+        function_selectors = torch.cat(function_selectors, dim=0)
+        average_messages = torch.cat(average_messages, dim=0)
+
+        target_objects = self._target(encoder_context, function_selectors)
         predictions_by_average_msg = self._predict_by_message(
-            torch.cat(average_messages, dim=0), decoder_context
+            average_messages, decoder_context
         )
         predictions_by_average_msg_accuracy = self._evaluate_object_prediction_accuracy(
-            encoder_context, predictions_by_average_msg, target_predictions
+            encoder_context, predictions_by_average_msg, target_objects
         )
 
         logging.info(
             f"Perception evaluation: prediction by average message accuracy {predictions_by_average_msg_accuracy}"
+        )
+
+        target_predictions = self._predict(
+            encoder_context, function_selectors, decoder_context
         )
 
         predictions_by_average_msg_loss = torch.nn.MSELoss()(
@@ -835,21 +850,3 @@ class Game(nn.Module):
         ).item()
         logging.info(f"Loss for unseen message/information: {object_prediction_loss}")
         return object_prediction_loss
-
-    def _get_average_messages_for_function(
-        self, function_idx: int, batch_size: int, num_messages_to_average: int = 10
-    ):
-        function_selectors = torch.nn.functional.one_hot(
-            torch.tensor([function_idx] * batch_size * num_messages_to_average),
-            num_classes=self.num_functions,
-        ).float()
-
-        contexts = self._generate_contexts(batch_size * num_messages_to_average)
-
-        messages = self._message(contexts, function_selectors)
-        return torch.stack(
-            [
-                message_batch.mean(dim=0)
-                for message_batch in messages.split(num_messages_to_average, dim=0)
-            ]
-        )
