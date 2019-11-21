@@ -4,8 +4,8 @@ import json
 import logging
 import multiprocessing
 import pathlib
-from typing import Callable, Dict, Iterable, List, Optional, Text, Tuple, Union
-
+import pickle
+from typing import Any, Callable, Dict, List, Optional, Text, Tuple, Union
 
 import dataclasses_json
 import game
@@ -23,7 +23,7 @@ class Simulation:
     context_size: ContextSizeType
     object_size: int
     num_functions: int
-    message_sizes: Iterable[int]
+    message_sizes: Tuple[int]
     target_function: Callable
     context_generator: Callable = None
     use_context: bool = True
@@ -36,55 +36,48 @@ class Simulation:
 
     epoch_nums: List[int] = dataclasses.field(default_factory=list)
 
-    """ Results """
-
-    # {Message size -> Trial x {parameter -> loss}}
-    prediction_by_message_losses: Dict[
-        int, List[Dict[Text, float]]
-    ] = dataclasses.field(default_factory=dict)
-    # {Message size -> Trial x Epoch x loss}
-    training_losses: Dict[int, List[List[float]]] = dataclasses.field(
-        default_factory=dict
-    )
-    # {Message size -> Trial x loss}
-    unsupervised_clustering_losses: Dict[int, List[float]] = dataclasses.field(
+    # {Message size -> [Trial x {Evaluation name -> values}]}
+    evaluations: Dict[int, List[Dict[Text, Any]]] = dataclasses.field(
         default_factory=dict
     )
 
 
 def load_simulation(simulation_name: Text) -> Simulation:
-    return Simulation.from_dict(
-        json.load(pathlib.Path(f"./simulations/{simulation_name}.json").open())
+    return Simulation.from_json(
+        pathlib.Path(
+            f"./simulations/{simulation_name}/{simulation_name}.json"
+        ).read_text()
     )
 
 
 def _save_simulation(simulation: Simulation):
     # Can't serialize functions.
-    simulation.target_function = None
-    simulation.context_generator = None
-
-    simulation_path = pathlib.Path(f"./simulations/")
+    simulation_copy = dataclasses.replace(
+        simulation, target_function=None, context_generator=None
+    )
+    simulation_path = pathlib.Path(f"./simulations/{simulation_copy.name}/")
     simulation_path.mkdir(parents=True, exist_ok=True)
-    with simulation_path.joinpath(f"{simulation.name}.json").open("w") as f:
-        json.dump(simulation.to_dict(), f, indent=1)
+    simulation_path.joinpath(f"{simulation_copy.name}.json").write_text(
+        simulation_copy.to_json(indent=2)
+    )
+
+
+def _save_games(simulation: Simulation, games: Dict[int, List[game.Game]]):
+    pickle.dump(
+        games, pathlib.Path(f"./simulations/{simulation.name}/games.pickle").open("wb")
+    )
 
 
 def run_simulation(
     simulation: Simulation, visualize: bool = False
-) -> List[List[game.Game]]:
+) -> Dict[int, List[game.Game]]:
     logging.info(f"Running simulation: {simulation}")
 
-    # [Message size x Trial x game]
-    games: List[List[game.Game]] = []
+    # {Message size -> Trial x Game}
+    games: Dict[int, List[game.Game]] = {}
 
     for message_size in simulation.message_sizes:
-        # [Trial x epoch x loss]
-        training_losses_per_trial: List[List[float]] = []
-        # [Trial x {parameter name: loss}]
-        prediction_loss_per_trial: List[Dict[Text, float]] = []
-        # [Trial x loss]
-        unsupervised_loss_per_trial = []
-
+        evaluations_per_trial: List[Dict[Text, Any]] = []
         game_per_trial: List[game.Game] = []
 
         for _ in range(simulation.num_trials):
@@ -106,44 +99,21 @@ def run_simulation(
             if visualize:
                 current_game.visualize()
 
-            element_losses = {
-                element: current_game.predict_element_by_messages(element)
-                for element in (
-                    "functions",
-                    "min_max",
-                    "dimension",
-                    "sanity",
-                    "object_by_context",
-                    "object_by_decoder_context",
-                    "context",
-                    "decoder_context",
-                )
-            }
-            prediction_loss_per_trial.append(element_losses)
-            unsupervised_loss_per_trial.append(
-                current_game.clusterize_messages(visualize=visualize)
-            )
-            training_losses_per_trial.append(current_game.loss_per_epoch)
+            evaluation_vals = current_game.get_evaluations()
+            evaluations_per_trial.append(evaluation_vals)
 
             game_per_trial.append(current_game)
 
-        simulation.training_losses[message_size] = training_losses_per_trial
-        simulation.prediction_by_message_losses[
-            message_size
-        ] = prediction_loss_per_trial
+        simulation.evaluations[message_size] = evaluations_per_trial
+        games[message_size] = game_per_trial
 
-        simulation.unsupervised_clustering_losses[
-            message_size
-        ] = unsupervised_loss_per_trial
-
-        games.append(game_per_trial)
-
-    simulation.epoch_nums = games[0][0].epoch_nums
+    simulation.epoch_nums = games[simulation.message_sizes[0]][0].epoch_nums
     _save_simulation(simulation)
+    _save_games(simulation, games)
     return games
 
 
-def run_simulation_set(
+def run_simulation_grid(
     simulation_name: Text,
     simulation_factory: Callable,
     message_sizes: Tuple[int, ...],
@@ -163,21 +133,21 @@ def run_simulation_set(
         simulation = simulation_factory(message_sizes=message_sizes, **kw)
         simulations.append(simulation)
 
-    simulation_set_name = f"{simulation_name}_simulations__" + "__".join(
+    simulation_grid_name = f"{simulation_name}_grid__" + "__".join(
         f"{key}_{utils.str_val(val)}" for key, val in kwargs.items()
     )
 
-    with pathlib.Path(f"./simulations/{simulation_set_name}.json").open("w") as f:
-        json.dump(
+    pathlib.Path(f"./simulations/{simulation_grid_name}.json").write_text(
+        json.dumps(
             [
                 dataclasses.replace(
                     x, target_function=None, context_generator=None
                 ).to_dict()
                 for x in simulations
             ],
-            f,
             indent=2,
         )
+    )
 
     if num_processes is not None:
         pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)

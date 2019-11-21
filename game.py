@@ -1,7 +1,8 @@
+import collections
 import logging
 import math
-import random
-from typing import Callable, List, Optional, Text
+from collections import defaultdict
+from typing import Any, Callable, Dict, List, Optional, Text, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +11,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sklearn import cluster, metrics
 from torch import optim
-from collections import defaultdict
 
 import utils
 
@@ -109,10 +109,6 @@ class Game(nn.Module):
                     f"Batch {batch_num + (1 if batch_num == 0 else 0)} loss:\t{self.loss_per_epoch[-1]:.2e}"
                 )
 
-    def visualize(self):
-        self.plot_messages_information()
-        self.clusterize_messages(visualize=True)
-
     def _encoder_forward_pass(self, context, function_selector):
         if self.use_context:
             context_flattened = utils.batch_flatten(context)
@@ -144,11 +140,15 @@ class Game(nn.Module):
     def _forward(self, context, function_selector, decoder_context):
         message = self._encoder_forward_pass(context, function_selector)
         prediction = self._decoder_forward_pass(message, decoder_context)
-        return prediction, message  # TODO do we still need to return the message?
+        return prediction
 
-    def _output_by_message(self, message, context):
+    def _predict(self, context, function_selector, decoder_context):
         with torch.no_grad():
-            return self._decoder_forward_pass(message, context)
+            return self._forward(context, function_selector, decoder_context)
+
+    def _predict_by_message(self, message, decoder_context):
+        with torch.no_grad():
+            return self._decoder_forward_pass(message, decoder_context)
 
     def _target(self, context, function_selector):
         return self.target_function(context, function_selector)
@@ -159,9 +159,7 @@ class Game(nn.Module):
 
     def _loss(self, context, function_selectors, decoder_context):
         target = self._target(context, function_selectors)
-        prediction, message = self._forward(
-            context, function_selectors, decoder_context
-        )
+        prediction = self._forward(context, function_selectors, decoder_context)
         return self.criterion(prediction, target)
 
     def _generate_contexts(self, batch_size):
@@ -197,32 +195,107 @@ class Game(nn.Module):
             function_idxs, num_classes=self.num_functions
         ).float()
 
-    def _generate_funcs_contexts_messages(self, exemplars_size, random=False):
-        batch_size = exemplars_size * self.num_functions
-        contexts = self._generate_contexts(batch_size)
+    def _generate_funcs_contexts_messages(self, num_exemplars, random=False):
+        batch_size = num_exemplars * self.num_functions
+        encoder_contexts = self._generate_contexts(batch_size)
+        decoder_contexts = self._get_decoder_context(batch_size, encoder_contexts)
         function_selectors = self._generate_function_selectors(
             batch_size, random=random
         )
-        messages = self._message(contexts, function_selectors)
-        return function_selectors, contexts, messages
+        messages = self._message(encoder_contexts, function_selectors)
+        return function_selectors, encoder_contexts, decoder_contexts, messages
 
     def _log_epoch_loss(self, epoch, loss):
         self.loss_per_epoch.append(loss)
         self.epoch_nums.append(epoch)
 
-    def plot_messages_information(self, exemplars_size=50):
+    def visualize(self):
+        self.plot_messages_information()
+        self._evaluate_unsupervised_clustering(visualize=True)
+
+    def get_evaluations(self) -> Dict[Text, Any]:
+        evaluations = {
+            eval_name: f()
+            for eval_name, f in {
+                "object_prediction_accuracy": self._evaluate_prediction_accuracy,
+                "unsupervised_clustering": self._evaluate_unsupervised_clustering,
+                "training_loss": lambda: self.loss_per_epoch,
+            }.items()
+        }
+
+        elements_to_predict_from_messages = (
+            "functions",
+            "min_max",
+            "dimension",
+            "sanity",
+            "object_by_context",
+            "object_by_decoder_context",
+            "context",
+            "decoder_context",
+        )
+        for element in elements_to_predict_from_messages:
+            evaluations[f"{element}_from_messages"] = self.predict_element_by_messages(
+                element
+            )
+
+        return evaluations
+
+    def _evaluate_prediction_accuracy(self, num_exemplars=100):
+        (
+            function_selectors,
+            encoder_contexts,
+            decoder_contexts,
+            _,
+        ) = self._generate_funcs_contexts_messages(num_exemplars, random=False)
+        predicted_objects = self._predict(
+            encoder_contexts, function_selectors, decoder_contexts
+        )
+        target_objects = self._target(encoder_contexts, function_selectors)
+        return self._evaluate_object_prediction_accuracy(
+            encoder_contexts, predicted_objects, target_objects
+        )
+
+    def _evaluate_object_prediction_accuracy(
+        self,
+        contexts: torch.Tensor,
+        predicted_objects: torch.Tensor,
+        target_objects: torch.Tensor,
+    ) -> float:
+        if len(contexts.shape) != 3:
+            logging.info(f"Object prediction accuracy only valid for extremity game.")
+            return 0.0
+
+        batch_size = contexts.shape[0]
+        correct = 0
+        for b in range(batch_size):
+            context = contexts[b]
+            predicted_obj = predicted_objects[b].unsqueeze(dim=0)
+            mse_per_obj = torch.mean((context - predicted_obj) ** 2, dim=1)
+            closest_obj_idx = torch.argmin(mse_per_obj)
+            closest_obj = context[closest_obj_idx]
+            if torch.all(closest_obj == target_objects[b]):
+                correct += 1
+
+        accuracy = correct / batch_size
+        logging.info(
+            f"Object prediction accuracy: {correct}/{batch_size} = {accuracy:.2f}"
+        )
+        return accuracy
+
+    def plot_messages_information(self, num_exemplars=100):
         with torch.no_grad():
             (
                 func_selectors,
-                contexts,
+                encoder_contexts,
+                _,
                 messages,
-            ) = self._generate_funcs_contexts_messages(exemplars_size, random=False)
+            ) = self._generate_funcs_contexts_messages(num_exemplars, random=False)
 
             message_masks = []
             message_labels = []
             for func_idx in range(self.num_functions):
                 message_masks.append(
-                    [i * self.num_functions + func_idx for i in range(exemplars_size)]
+                    [i * self.num_functions + func_idx for i in range(num_exemplars)]
                 )
                 message_labels.append(f"F{func_idx}")
 
@@ -235,7 +308,7 @@ class Game(nn.Module):
                 f"Messages\n{title_information_row}",
             )
 
-            targets = self._target(contexts, func_selectors)
+            targets = self._target(encoder_contexts, func_selectors)
             utils.plot_raw_and_pca(
                 targets.numpy(),
                 message_masks,
@@ -244,13 +317,16 @@ class Game(nn.Module):
             )
 
     def predict_element_by_messages(
-        self, element_to_predict: Text, exemplars_size: int = 50
+        self, element_to_predict: Text, num_exemplars: int = 100
     ) -> float:
         logging.info(f"Predicting {element_to_predict} from messages.")
 
-        (func_selectors, contexts, messages,) = self._generate_funcs_contexts_messages(
-            exemplars_size, random=False
-        )
+        (
+            func_selectors,
+            contexts,
+            _,
+            messages,
+        ) = self._generate_funcs_contexts_messages(num_exemplars, random=False)
         batch_size = func_selectors.shape[0]
 
         train_test_ratio = 0.7
@@ -357,7 +433,9 @@ class Game(nn.Module):
         logging.info(f"Prediction result for {element_to_predict}: {result}")
         return result
 
-    def run_compositionality_network(self, element_to_predict: Text):
+    def run_compositionality_network(
+        self, taken_out_param: int, element_to_predict: Text
+    ):
         """`element_to_predict`: 'messages', 'dimension', 'min_max'. """
 
         hidden_size = 64
@@ -365,8 +443,6 @@ class Game(nn.Module):
         num_epochs = 10_000
 
         # Generate functions for all parameters except one.
-
-        taken_out_param = 3  # random.randrange(self.object_size)
 
         logging.info(f"Taken out param: {taken_out_param}")
 
@@ -389,12 +465,12 @@ class Game(nn.Module):
         # Test on left-out parameter.
 
         test_function_input_selectors = torch.nn.functional.one_hot(
-            torch.from_numpy(np.array([taken_out_param * 2] * batch_size)).long(),
+            torch.tensor([taken_out_param * 2] * batch_size).long(),
             num_classes=self.num_functions,
         ).float()
 
         test_function_target_selectors = torch.nn.functional.one_hot(
-            torch.from_numpy(np.array([taken_out_param * 2 + 1] * batch_size)).long(),
+            torch.tensor([taken_out_param * 2 + 1] * batch_size).long(),
             num_classes=self.num_functions,
         ).float()
 
@@ -411,11 +487,13 @@ class Game(nn.Module):
                 function_selectors.argmax(dim=1) % 2, num_classes=2
             )
 
-        # Network
+        ###########
+        # Network #
+        ###########
 
         element_to_output_size = {
-            "dimension": self.object_size,
             "messages": self.message_size,
+            "dimension": self.object_size,
             "min_or_max": 2,
         }
 
@@ -460,7 +538,9 @@ class Game(nn.Module):
             if epoch % 100 == 0:
                 logging.info(f"Epoch {epoch}:\t{loss.item():.2e}")
 
-        # Evaluate
+        ############
+        # Evaluate #
+        ############
 
         test_context = self._generate_contexts(batch_size)
         test_input_messages = self._message(test_context, test_function_input_selectors)
@@ -473,8 +553,31 @@ class Game(nn.Module):
         if element_to_predict in ONE_HOT_PREDICTIONS:
             test_targets = test_targets.argmax(dim=1)
 
-        result = loss_func(test_predictions, test_targets).item()
-        logging.info(f"Prediction loss: {result:.2e}")
+        taken_out_prediction_loss = loss_func(test_predictions, test_targets).item()
+        logging.info(
+            f"Taken-out param argmax prediction loss: {taken_out_prediction_loss:.2e}"
+        )
+
+        # Decoding predictions
+
+        decoding_test_context = self._generate_contexts(batch_size)
+        decoded_target_messages = self._decoder_forward_pass(
+            test_targets, decoding_test_context
+        )
+
+        with torch.no_grad():
+            test_predictions = model(test_input_messages)
+
+        decoded_predicted_messages = self._decoder_forward_pass(
+            test_predictions, decoding_test_context
+        )
+
+        decoded_prediction_loss = loss_func(
+            decoded_target_messages, decoded_predicted_messages
+        )
+        logging.info(f"Decoding loss: {decoded_prediction_loss:.2e}")
+
+        return taken_out_prediction_loss, decoded_prediction_loss
 
         targets_for_training_messages = target_func(
             test_context, train_function_target_selectors
@@ -553,65 +656,200 @@ class Game(nn.Module):
         )
         plt.show()
 
-        return result
+        return taken_out_prediction_loss
 
-    def clusterize_messages(self, exemplars_size=50, visualize=False):
+    def _evaluate_unsupervised_clustering(self, num_exemplars=100, visualize=False):
         num_clusters = self.num_functions
-        (func_selectors, contexts, messages,) = self._generate_funcs_contexts_messages(
-            exemplars_size, random=False
+        (_, _, _, training_messages,) = self._generate_funcs_contexts_messages(
+            num_exemplars
         )
 
         k_means = cluster.KMeans(n_clusters=num_clusters)
-        labels = k_means.fit_predict(messages)
+        training_labels = k_means.fit_predict(training_messages)
 
         if visualize:
-            utils.plot_clusters(messages, labels, "Training messages clusters")
+            utils.plot_clusters(training_messages, training_labels, "Messages clusters")
 
-        # Align cluster ids with with message ids.
-        message_distance_from_centers = k_means.transform(messages)
-        representative_message_idx_per_cluster = message_distance_from_centers.argmin(
-            axis=0
+        # Aligning cluster ids with with function/message ids:
+        # Generate messages for each function, pair a function id
+        # with the most matched cluster id.
+        cluster_label_to_func_idx = {}
+        (
+            alignment_func_selectors,
+            _,
+            _,
+            alignment_messages,
+        ) = self._generate_funcs_contexts_messages(num_exemplars)
+        alignment_labels = k_means.predict(alignment_messages)
+        for func_idx in range(self.num_functions):
+            func_messages_mask = alignment_func_selectors.argmax(dim=1) == func_idx
+            cluster_labels_for_func = alignment_labels[func_messages_mask]
+            majority_label = collections.Counter(cluster_labels_for_func).most_common(
+                1
+            )[0][0]
+            cluster_label_to_func_idx[majority_label] = func_idx
+
+        object_prediction_by_cluster_loss = self._evaluate_object_prediction_by_cluster(
+            k_means, cluster_label_to_func_idx, num_exemplars
         )
-        message_num_per_cluster = func_selectors[
-            representative_message_idx_per_cluster, :
-        ].argmax(axis=1)
-        cluster_label_to_message_num = {
-            cluster_num: message_num
-            for cluster_num, message_num in enumerate(message_num_per_cluster)
+
+        function_prediction_f_score = self._evaluate_clusterization_f_score(
+            k_means, cluster_label_to_func_idx, num_exemplars
+        )
+
+        (
+            average_message_prediction_loss,
+            average_message_prediction_acc,
+        ) = self._evaluate_perception_prediction(
+            k_means, cluster_label_to_func_idx, num_exemplars
+        )
+
+        return {
+            "object_prediction_by_cluster_loss": object_prediction_by_cluster_loss,
+            "function_prediction_f_score": function_prediction_f_score,
+            "average_message_prediction_loss": average_message_prediction_loss,
+            "average_message_prediction_acc": average_message_prediction_acc,
         }
 
-        # Sample unseen messages from clusters.
-        (_, test_contexts, test_messages,) = self._generate_funcs_contexts_messages(
-            exemplars_size, random=False
+    def _evaluate_perception_prediction(
+        self,
+        clustering_model,
+        cluster_label_to_func_idx: Dict[int, int],
+        num_exemplars: int,
+        num_messages_to_average: int = 100,
+    ) -> Tuple[float, float]:
+        """Sample unseen message from each cluster (the average of N cluster messages),
+        feed to decoder, check if prediction is close to prediction of encoder's message for same context."""
+        (_, _, _, messages,) = self._generate_funcs_contexts_messages(
+            num_messages_to_average
         )
-        cluster_label_per_test_message = k_means.predict(test_messages)
+        cluster_label_per_message = clustering_model.predict(messages)
 
-        batch_size = test_messages.shape[0]
-        func_by_message_cluster = torch.zeros((batch_size, self.num_functions))
-        for i, cluster_label in enumerate(cluster_label_per_test_message):
-            func_by_message_cluster[
-                i, cluster_label_to_message_num[cluster_label]
-            ] = 1.0
-
-        if visualize:
-            utils.plot_clusters(
-                test_messages, cluster_label_per_test_message, "Test message clusters"
+        average_messages = []
+        function_selectors = []
+        for cluster_idx in cluster_label_to_func_idx.keys():
+            mask = cluster_label_per_message == cluster_idx
+            cluster_messages = messages[mask]
+            cluster_average_message = cluster_messages.mean(dim=0).unsqueeze(dim=0)
+            average_messages.append(
+                torch.cat([cluster_average_message] * num_exemplars, dim=0)
             )
+            cluster_function_selectors = torch.nn.functional.one_hot(
+                torch.tensor([cluster_label_to_func_idx[cluster_idx]] * num_exemplars),
+                num_classes=self.num_functions,
+            ).float()
+            function_selectors.append(cluster_function_selectors)
 
-        predictions_by_unseen_messages = self._output_by_message(
-            test_messages, test_contexts
+        batch_size = num_exemplars * self.num_functions
+        encoder_context = self._generate_contexts(batch_size)
+        decoder_context = self._get_decoder_context(batch_size, encoder_context)
+
+        target_predictions = self._predict(
+            encoder_context, torch.cat(function_selectors, dim=0), decoder_context
+        )
+        predictions_by_average_msg = self._predict_by_message(
+            torch.cat(average_messages, dim=0), decoder_context
+        )
+        predictions_by_average_msg_accuracy = self._evaluate_object_prediction_accuracy(
+            encoder_context, predictions_by_average_msg, target_predictions
         )
 
-        decoder_contexts = self._get_decoder_context(batch_size, test_contexts)
-        with torch.no_grad():
-            predictions_by_inferred_func, _ = self._forward(
-                test_contexts, func_by_message_cluster, decoder_contexts
-            )
+        logging.info(
+            f"Perception evaluation: prediction by average message accuracy {predictions_by_average_msg_accuracy}"
+        )
 
-        loss_func = torch.nn.MSELoss()
-        loss = loss_func(
-            predictions_by_unseen_messages, predictions_by_inferred_func
+        predictions_by_average_msg_loss = torch.nn.MSELoss()(
+            predictions_by_average_msg, target_predictions
         ).item()
-        logging.info(f"Loss for unseen message/information: {loss}")
+        logging.info(
+            f"Perception evaluation: prediction by average message loss: {predictions_by_average_msg_loss}"
+        )
+        return predictions_by_average_msg_loss, predictions_by_average_msg_accuracy
 
-        return loss
+    def _evaluate_clusterization_f_score(
+        self,
+        clustering_model,
+        cluster_label_to_func_idx: Dict[int, int],
+        num_exemplars: int,
+    ) -> float:
+        """Sample unseen messages, clusterize them, return F-score of inferred F from Cluster(M) vs. actual F that generated M."""
+        (
+            func_selectors,
+            encoder_contexts,
+            decoder_contexts,
+            messages,
+        ) = self._generate_funcs_contexts_messages(num_exemplars)
+        cluster_label_per_message = clustering_model.predict(messages)
+
+        predicted_func_idxs = np.array(
+            [
+                cluster_label_to_func_idx[cluster_label]
+                for cluster_label in cluster_label_per_message
+            ]
+        )
+        function_prediction_f_score = metrics.f1_score(
+            func_selectors.argmax(dim=1).numpy(), predicted_func_idxs, average="micro",
+        )
+        logging.info(f"Unsupervised clustering F score: {function_prediction_f_score}")
+        return function_prediction_f_score
+
+    def _evaluate_object_prediction_by_cluster(
+        self,
+        clustering_model,
+        cluster_label_to_func_idx: Dict[int, int],
+        num_exemplars: int,
+    ) -> float:
+        """Generate messages M, get two predictions:
+        1. Decoder output for M.
+        2. Encoder-Decoder output based on functions F inferred from clusters of M.
+        -> Return loss between 1 and 2.
+        """
+        (
+            func_selectors,
+            encoder_contexts,
+            decoder_contexts,
+            messages,
+        ) = self._generate_funcs_contexts_messages(num_exemplars)
+
+        cluster_label_per_message = clustering_model.predict(messages)
+
+        inferred_func_idxs = np.array(
+            [
+                cluster_label_to_func_idx[cluster_label]
+                for cluster_label in cluster_label_per_message
+            ]
+        )
+        inferred_func_selectors = torch.nn.functional.one_hot(
+            torch.tensor(inferred_func_idxs)
+        ).float()
+
+        predictions_by_inferred_func = self._predict(
+            encoder_contexts, inferred_func_selectors, decoder_contexts
+        )
+        predictions_by_func_selectors = self._predict(
+            encoder_contexts, func_selectors, decoder_contexts
+        )
+
+        object_prediction_loss = torch.nn.MSELoss()(
+            predictions_by_func_selectors, predictions_by_inferred_func
+        ).item()
+        logging.info(f"Loss for unseen message/information: {object_prediction_loss}")
+        return object_prediction_loss
+
+    def _get_average_messages_for_function(
+        self, function_idx: int, batch_size: int, num_messages_to_average: int = 10
+    ):
+        function_selectors = torch.nn.functional.one_hot(
+            torch.tensor([function_idx] * batch_size * num_messages_to_average),
+            num_classes=self.num_functions,
+        ).float()
+
+        contexts = self._generate_contexts(batch_size * num_messages_to_average)
+
+        messages = self._message(contexts, function_selectors)
+        return torch.stack(
+            [
+                message_batch.mean(dim=0)
+                for message_batch in messages.split(num_messages_to_average, dim=0)
+            ]
+        )

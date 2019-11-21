@@ -105,7 +105,7 @@ if __name__ == "__main__":
     #     use_context=True,
     # )
 
-    simulations.run_simulation_set(
+    simulations.run_simulation_grid(
         "belief_update",
         make_belief_update_simulation,
         message_sizes=(1, 2, 4, 6, 8, 10, 12),

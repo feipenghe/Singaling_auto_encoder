@@ -106,17 +106,17 @@ def make_extremity_game_simulation(
 
 
 if __name__ == "__main__":
-    # extremity_sim = make_extremity_game_simulation(
-    #     object_size=5,
-    #     num_objects=15,
-    #     message_sizes=(2,),
-    #     strict_context=True,
-    #     shared_context=True,
-    #     num_batches=10_000,
-    #     mini_batch_size=128,
-    #     num_trials=1,
-    # )
-    # games = simulations.run_simulation(extremity_sim, visualize=False)
+    extremity_sim = make_extremity_game_simulation(
+        object_size=5,
+        num_objects=15,
+        message_sizes=(2,),
+        strict_context=True,
+        shared_context=True,
+        num_batches=10_000,
+        mini_batch_size=128,
+        num_trials=1,
+    )
+    games = simulations.run_simulation(extremity_sim, visualize=False)
 
     simulations.run_simulation_grid(
         "extremity_game_acl_1",

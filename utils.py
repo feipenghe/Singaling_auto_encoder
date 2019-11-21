@@ -87,16 +87,16 @@ def plot_clusters(data, labels, title="Clusters"):
     plot_raw_and_pca(data, masks, labels, title)
 
 
-# def plot_information(game: Game, exemplars_size = 40):
-#     situations = torch.randn(exemplars_size * game.func_size, game.context_size)
-#     func_switches = torch.cat([torch.arange(game.func_size) for _ in range(exemplars_size)])
+# def plot_information(game: Game, num_exemplars = 40):
+#     situations = torch.randn(num_exemplars * game.func_size, game.context_size)
+#     func_switches = torch.cat([torch.arange(game.func_size) for _ in range(num_exemplars)])
 #     targets = game.target(situations, func_switches)
 #     targets = targets.numpy()
 #
 #     masks = []
 #     labels = []
 #     for fc in range(game.object_size):
-#         masks.append([i * game.object_size + fc for i in range(exemplars_size)])
+#         masks.append([i * game.object_size + fc for i in range(num_exemplars)])
 #         labels.append(f"F{fc}")
 #
 #     plot_raw_and_pca(targets, masks, labels, "Targets")

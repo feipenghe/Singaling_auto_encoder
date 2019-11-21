@@ -40,7 +40,7 @@ def plot_categorical_transition():
         message = (t * message_1) + ((1 - t) * message_2)
         situation = (t * situation_1) + ((1 - t) * situation_2)
 
-        prediction = game._output_by_message(
+        prediction = game._predict_by_message(
             torch.unsqueeze(message, dim=0), torch.unsqueeze(situation, dim=0)
         )
 
@@ -61,10 +61,10 @@ def plot_categorical_transition():
 
     ts = []
     predictions = []
-    prediction_1 = game._output_by_message(
+    prediction_1 = game._predict_by_message(
         torch.unsqueeze(message_1, dim=0), torch.unsqueeze(situation_1, dim=0)
     )
-    prediction_2 = game._output_by_message(
+    prediction_2 = game._predict_by_message(
         torch.unsqueeze(message_2, dim=0), torch.unsqueeze(situation_2, dim=0)
     )
 
@@ -106,7 +106,7 @@ def plot_loss_by_message_information_ratio():
         )
         game.play()
 
-        loss = clusterize_messages(game, exemplars_size=50)
+        loss = clusterize_messages(game, num_exemplars=50)
         logging.info(f"Loss: {loss}")
 
         ratios.append(ratio)
