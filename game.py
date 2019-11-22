@@ -1,6 +1,8 @@
 import collections
+import itertools
 import logging
 import math
+import random
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Text, Tuple
 
@@ -30,8 +32,11 @@ class Game(nn.Module):
         loss_every: int = 1,
         encoder_hidden_sizes: Tuple[int, ...] = (64, 64),
         decoder_hidden_sizes: Tuple[int, ...] = (64, 64),
+        seed: int = 100,
     ):
         super().__init__()
+        random.seed(seed)
+
         self.context_size = context_size
         self.object_size = object_size
         self.message_size = message_size
@@ -44,6 +49,7 @@ class Game(nn.Module):
         self.context_generator = context_generator
         self.target_function = target_function
         self.loss_every = loss_every
+        self.seed = seed
 
         self.criterion = nn.MSELoss()
         self.epoch_nums: List[int] = []
@@ -89,6 +95,7 @@ class Game(nn.Module):
         )
 
         logging.info("Game details:")
+        logging.info(f"Seed: {seed}")
         logging.info(
             f"\nContext size: {context_size}\nObject size: {object_size}\nMessage size: {message_size}\nNumber of functions: {num_functions}"
         )
@@ -230,6 +237,8 @@ class Game(nn.Module):
                 "object_prediction_accuracy": self._evaluate_prediction_accuracy,
                 "unsupervised_clustering": self._evaluate_unsupervised_clustering,
                 "training_loss": lambda: self.loss_per_epoch,
+                "addition_compositionality_loss": self._evaluate_addition_compositionality,
+                "simple_compositionality_loss": self._evaluate_simple_compositionality_network,
             }.items()
         }
 
@@ -280,7 +289,7 @@ class Game(nn.Module):
         for b in range(batch_size):
             context = contexts[b]
             predicted_obj = predicted_objects[b].unsqueeze(dim=0)
-            mse_per_obj = torch.mean((context - predicted_obj) ** 2, dim=1)
+            mse_per_obj = utils.batch_mse(context, predicted_obj)
             closest_obj_idx = torch.argmin(mse_per_obj)
             closest_obj = context[closest_obj_idx]
             if torch.all(closest_obj == target_objects[b]):
@@ -442,6 +451,117 @@ class Game(nn.Module):
             result = loss_func(test_predicted, test_target).item()
         logging.info(f"Prediction result for {element_to_predict}: {result}")
         return result
+
+    def _evaluate_addition_compositionality(self, num_exemplars: int = 100):
+        losses = []
+        for d1, d2 in itertools.combinations(range(self.object_size), 2):
+            (
+                function_selectors,
+                _,
+                _,
+                messages,
+            ) = self._generate_funcs_contexts_messages(num_exemplars)
+
+            function_idxs = function_selectors.argmax(dim=1)
+            argmin_mask = function_idxs % 2 == 0
+            argmax_mask = function_idxs % 2 == 1
+            d1_mask = function_idxs // 2 == d1
+            d2_mask = function_idxs // 2 == d2
+
+            d1_argmin_messages = messages[d1_mask * argmin_mask]
+            d1_argmax_messages = messages[d1_mask * argmax_mask]
+            d2_argmin_messages = messages[d2_mask * argmin_mask]
+            d2_argmax_messages = messages[d2_mask * argmax_mask]
+
+            predictions = d1_argmax_messages - d1_argmin_messages + d2_argmin_messages
+
+            mse = utils.batch_mse(d2_argmax_messages, predictions).mean().item()
+
+            logging.info(f"MSE for d{d1} <-> d{d2}: {mse}")
+            losses.append(mse)
+        return np.mean(losses)
+
+    def _evaluate_simple_compositionality_network(
+        self, taken_out_param: int = 0, num_exemplars: int = 100
+    ):
+        train_inputs = []
+        train_targets = []
+        test_inputs = []
+        test_targets = []
+
+        for d1, d2 in itertools.combinations(range(self.object_size), 2):
+            (
+                function_selectors,
+                _,
+                _,
+                messages,
+            ) = self._generate_funcs_contexts_messages(num_exemplars)
+
+            function_idxs = function_selectors.argmax(dim=1)
+            argmin_mask = function_idxs % 2 == 0
+            argmax_mask = function_idxs % 2 == 1
+            d1_mask = function_idxs // 2 == d1
+            d2_mask = function_idxs // 2 == d2
+
+            d1_argmin_messages = messages[d1_mask * argmin_mask]
+            d1_argmax_messages = messages[d1_mask * argmax_mask]
+            d2_argmin_messages = messages[d2_mask * argmin_mask]
+            d2_argmax_messages = messages[d2_mask * argmax_mask]
+
+            if taken_out_param in (d1, d2):
+                inputs = test_inputs
+                targets = test_targets
+            else:
+                inputs = train_inputs
+                targets = train_targets
+
+            inputs.append(
+                torch.cat(
+                    [d1_argmin_messages, d1_argmax_messages, d2_argmax_messages], dim=1
+                )
+            )
+            targets.append(d2_argmin_messages)
+
+        train_inputs = torch.cat(train_inputs, dim=0)
+        train_targets = torch.cat(train_targets, dim=0)
+        test_inputs = torch.cat(test_inputs, dim=0)
+        test_targets = torch.cat(test_targets, dim=0)
+
+        hidden_size = 64
+        num_epochs = 1000
+        mini_batch_size = 32
+
+        layers = [
+            torch.nn.Linear(train_inputs.shape[1], hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_size, hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_size, train_targets.shape[1]),
+        ]
+
+        model = torch.nn.Sequential(*layers)
+        loss_func = torch.nn.MSELoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+        for epoch in range(num_epochs):
+            for inputs_batch, targets_batch in zip(
+                train_inputs.split(mini_batch_size),
+                train_targets.split(mini_batch_size),
+            ):
+                pred = model(inputs_batch)
+                optimizer.zero_grad()
+                loss = loss_func(pred, targets_batch)
+                loss.backward()
+                optimizer.step()
+
+            if epoch % 100 == 0:
+                logging.info(f"Epoch {epoch}:\t{loss.item():.2e}")
+
+        # Evaluate
+        test_predicted = model(test_inputs)
+        test_loss = loss_func(test_predicted, test_targets)
+        logging.info(f"Test loss: {test_loss}")
+        return test_loss
 
     def run_compositionality_network(
         self, taken_out_param: int, element_to_predict: Text
@@ -610,14 +730,9 @@ class Game(nn.Module):
             )
         else:
             # MSE
-            score_per_training_sample = (
-                (
-                    (prediction_for_training_messages - targets_for_training_messages)
-                    ** 2
-                )
-                .mean(dim=1)
-                .numpy()
-            )
+            score_per_training_sample = utils.batch_mse(
+                prediction_for_training_messages, targets_for_training_messages
+            ).numpy()
 
         scores_per_training_func = defaultdict(list)
         for i, train_param in enumerate(train_param_idxs):

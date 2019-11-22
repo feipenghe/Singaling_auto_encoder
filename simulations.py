@@ -69,7 +69,7 @@ def _save_games(simulation: Simulation, games: Dict[int, List[game.Game]]):
 
 
 def run_simulation(
-    simulation: Simulation, visualize: bool = False
+    simulation: Simulation, visualize: bool = False, base_seed: int = 1000
 ) -> Dict[int, List[game.Game]]:
     logging.info(f"Running simulation: {simulation}")
 
@@ -80,7 +80,7 @@ def run_simulation(
         evaluations_per_trial: List[Dict[Text, Any]] = []
         game_per_trial: List[game.Game] = []
 
-        for _ in range(simulation.num_trials):
+        for trial in range(simulation.num_trials):
             current_game: game.Game = game.Game(
                 context_size=simulation.context_size,
                 object_size=simulation.object_size,
@@ -91,6 +91,7 @@ def run_simulation(
                 shuffle_decoder_context=simulation.shuffle_decoder_context,
                 target_function=simulation.target_function,
                 context_generator=simulation.context_generator,
+                seed=base_seed + trial,
             )
             current_game.play(
                 num_batches=simulation.num_batches,

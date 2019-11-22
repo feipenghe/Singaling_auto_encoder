@@ -146,6 +146,12 @@ def setup_logging():
     )
 
 
+def batch_mse(target: torch.Tensor, prediction: torch.Tensor) -> torch.Tensor:
+    """Assumes 2 tensors of shape (batch_size, sample_size) or `target` of size
+    (batch_size, sample_size) and `prediction` of shape (1, sample_size)."""
+    return torch.mean((target - prediction) ** 2, dim=1)
+
+
 def reduce_prod(vals):
     return functools.reduce(operator.mul, vals)
 
