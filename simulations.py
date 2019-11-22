@@ -118,6 +118,7 @@ def run_simulation_grid(
     simulation_name: Text,
     simulation_factory: Callable,
     message_sizes: Tuple[int, ...],
+    num_trials: int,
     num_processes: Optional[int] = None,
     **kwargs,
 ):
@@ -125,13 +126,17 @@ def run_simulation_grid(
 
     simulations_grid = list(itertools.product(*values))
 
-    logging.info(f"Running {len(simulations_grid) * len(message_sizes)} total games")
+    logging.info(
+        f"Running {len(simulations_grid) * len(message_sizes) * num_trials} total games"
+    )
 
     simulations = []
     for grid_values in simulations_grid:
         kw = {k: v for k, v in zip(keys, grid_values)}
 
-        simulation = simulation_factory(message_sizes=message_sizes, **kw)
+        simulation = simulation_factory(
+            message_sizes=message_sizes, num_trials=num_trials, **kw
+        )
         simulations.append(simulation)
 
     simulation_grid_name = f"{simulation_name}_grid__" + "__".join(
