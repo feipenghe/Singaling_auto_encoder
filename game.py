@@ -514,8 +514,10 @@ class Game(nn.Module):
                 predicted_function_idxs_by_clusters == target_function_idxs
             ).mean()
 
-            logging.info(f"MSE for d{d1} <-> d{d2}: {mse}")
-            logging.info(f"Cluster accuracy for d{d1} <-> d{d2}: {cluster_accuracy}")
+            logging.info(f"Addition compositionality loss for d{d1} <-> d{d2}: {mse}")
+            logging.info(
+                f"Addition compositionality accuracy for d{d1} <-> d{d2}: {cluster_accuracy}"
+            )
 
             losses.append(mse)
             cluster_accuracies.append(cluster_accuracy)
@@ -602,7 +604,7 @@ class Game(nn.Module):
         train_targets = torch.cat(train_targets, dim=0)
         test_inputs = torch.cat(test_inputs, dim=0)
         test_targets = torch.cat(test_targets, dim=0)
-        test_function_idxs = torch.cat(test_function_idxs)
+        test_function_idxs = torch.cat(test_function_idxs).numpy()
 
         hidden_size = 64
         num_epochs = 100
@@ -610,6 +612,8 @@ class Game(nn.Module):
 
         layers = [
             torch.nn.Linear(train_inputs.shape[1], hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_size, hidden_size),
             torch.nn.ReLU(),
             torch.nn.Linear(hidden_size, train_targets.shape[1]),
         ]
@@ -629,14 +633,16 @@ class Game(nn.Module):
                 loss.backward()
                 optimizer.step()
 
-            if epoch % 100 == 0:
+            if epoch % 10 == 0:
                 logging.info(f"Epoch {epoch}:\t{loss.item():.2e}")
 
         # Evaluate
         with torch.no_grad():
             test_predicted = model(test_inputs)
         test_loss = loss_func(test_predicted, test_targets).item()
-        logging.info(f"Analogy compositionality net loss: {test_loss}")
+        logging.info(
+            f"Analogy compositionality loss for taken-out param {taken_out_param}: {test_loss}"
+        )
 
         # mask1 = np.array(
         #     [True] * test_predicted.shape[0] + [False] * test_predicted.shape[0]
@@ -649,14 +655,14 @@ class Game(nn.Module):
         #     title="masks",
         # )
 
-        target_function_idxs = test_function_idxs.numpy()
         predicted_clusters = self.clustering_model.predict(test_predicted)
         predicted_function_idxs_by_clusters = np.array(
             [self.cluster_label_to_func_idx[c] for c in predicted_clusters]
         )
         cluster_accuracy = (
-            predicted_function_idxs_by_clusters == target_function_idxs
+            predicted_function_idxs_by_clusters == test_function_idxs
         ).mean()
+
         logging.info(
             f"Analogy compositionality network accuracy for taken-out param {taken_out_param}: {cluster_accuracy}"
         )
@@ -978,7 +984,8 @@ class Game(nn.Module):
         }
 
     def _evaluate_clusterization_f_score(self) -> float:
-        """Sample unseen messages, clusterize them, return F-score of inferred F from Cluster(M) vs. actual F that generated M."""
+        """Sample unseen messages, clusterize them, return F-score of
+        inferred F from Cluster(M) vs. actual F that generated M."""
         (
             func_selectors,
             encoder_contexts,
