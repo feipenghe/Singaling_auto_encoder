@@ -542,7 +542,7 @@ class Game(nn.Module):
             )
             prediction_loss = torch.nn.MSELoss()(
                 predicted_output_by_inferred_messages, target_output
-            )
+            ).item()
             prediction_accuracy = self._evaluate_object_prediction_accuracy(
                 encoder_contexts[target_messages_mask],
                 predicted_output_by_inferred_messages,
