@@ -506,7 +506,7 @@ class Game(nn.Module):
                 d1_argmax_messages - d1_argmin_messages + d2_argmin_messages
             )
 
-            # Test production quality
+            # Evaluate production quality
 
             messages_loss = torch.nn.MSELoss()(
                 d2_argmax_messages, inferred_messages
@@ -517,7 +517,7 @@ class Game(nn.Module):
             inferred_function_idxs_by_clusters = np.array(
                 [self.cluster_label_to_func_idx[c] for c in inferred_clusters]
             )
-            cluster_accuracy = (
+            clustering_accuracy = (
                 inferred_function_idxs_by_clusters == target_function_idxs
             ).mean()
 
@@ -525,11 +525,11 @@ class Game(nn.Module):
                 f"Addition compositionality messages loss for d{d1} <-> d{d2}: {messages_loss}"
             )
             logging.info(
-                f"Addition compositionality message cluster accuracy for d{d1} <-> d{d2}: {cluster_accuracy}"
+                f"Addition compositionality message cluster accuracy for d{d1} <-> d{d2}: {clustering_accuracy}"
             )
 
             message_losses.append(messages_loss)
-            message_cluster_accuracies.append(cluster_accuracy)
+            message_cluster_accuracies.append(clustering_accuracy)
 
             # Test perception quality
 
@@ -588,24 +588,25 @@ class Game(nn.Module):
     def _evaluate_analogy_compositionality_network(self):
         message_losses = []
         message_cluster_accuracies = []
-        prediction_losses = []
-        prediction_accuracies = []
-        for param_idx in range(self.object_size):
+        production_output_losses = []
+        production_output_accuracies = []
+
+        for p in range(self.object_size):
             (
                 test_loss,
                 cluster_accuracy,
                 prediction_loss,
                 prediction_accuracy,
-            ) = self._run_analogy_compositionality_network(taken_out_param=param_idx)
+            ) = self._run_analogy_compositionality_network(taken_out_param=p)
             message_losses.append(test_loss)
             message_cluster_accuracies.append(cluster_accuracy)
-            prediction_losses.append(prediction_loss)
-            prediction_accuracies.append(prediction_accuracy)
+            production_output_losses.append(prediction_loss)
+            production_output_accuracies.append(prediction_accuracy)
 
         mean_message_loss = np.mean(message_losses)
         mean_message_acc = np.mean(message_cluster_accuracies)
-        mean_prediction_loss = np.mean(prediction_losses)
-        mean_prediction_acc = np.mean(prediction_accuracies)
+        mean_prediction_loss = np.mean(production_output_losses)
+        mean_prediction_acc = np.mean(production_output_accuracies)
 
         logging.info(f"Mean analogy network message loss: {mean_message_loss}")
         logging.info(f"Mean analogy network message accuracy: {mean_message_acc}")
@@ -619,7 +620,9 @@ class Game(nn.Module):
             f"analogy_compositionality_net_prediction_mean_accuracy": mean_prediction_acc,
         }
 
-    def _run_analogy_compositionality_network(self, taken_out_param: int):
+    def _run_analogy_compositionality_network(
+        self, taken_out_param: int, visualize: bool = False
+    ):
         train_input_messages = []
         train_target_messages = []
 
@@ -669,17 +672,17 @@ class Game(nn.Module):
             )
             targets.append(d2_argmax_messages)
 
-        train_input_messages = torch.cat(train_input_messages, dim=0)
-        train_target_messages = torch.cat(train_target_messages, dim=0)
-        test_input_messages = torch.cat(test_input_messages, dim=0)
-        test_target_messages = torch.cat(test_target_messages, dim=0)
-        test_encoder_contexts = torch.cat(test_encoder_contexts, dim=0)
-        test_decoder_contexts = torch.cat(test_decoder_contexts, dim=0)
+        train_input_messages = torch.cat(train_input_messages)
+        train_target_messages = torch.cat(train_target_messages)
+        test_input_messages = torch.cat(test_input_messages)
+        test_target_messages = torch.cat(test_target_messages)
+        test_encoder_contexts = torch.cat(test_encoder_contexts)
+        test_decoder_contexts = torch.cat(test_decoder_contexts)
         test_function_idxs = torch.cat(test_function_idxs)
 
         hidden_size = 64
-        num_epochs = 100
-        mini_batch_size = 32
+        num_epochs = 1000
+        mini_batch_size = 64
 
         layers = [
             torch.nn.Linear(train_input_messages.shape[1], hidden_size),
@@ -707,21 +710,23 @@ class Game(nn.Module):
             if epoch % 10 == 0:
                 logging.info(f"Epoch {epoch}:\t{loss.item():.2e}")
 
-        # Evaluate production
-
-        # mask1 = np.array(
-        #     [True] * test_predicted.shape[0] + [False] * test_predicted.shape[0]
-        # )
-        # mask2 = mask1 ^ True
-        # utils.plot_raw_and_pca(
-        #     torch.cat([test_targets, test_predicted], dim=0),
-        #     masks=[mask1, mask2],
-        #     labels=["Target", "predicted"],
-        #     title="masks",
-        # )
-
         with torch.no_grad():
             inferred_messages = model(test_input_messages)
+
+        # Visualize network predictions vs targets
+
+        if visualize:
+            num_test_messages = inferred_messages.shape[0]
+            mask1 = np.array([True] * num_test_messages + [False] * num_test_messages)
+            mask2 = mask1 ^ True
+            utils.plot_raw_and_pca(
+                data=torch.cat([test_target_messages, inferred_messages], dim=0),
+                masks=[mask1, mask2],
+                labels=["Target messages", "Inferred messages"],
+                title="Analogy network predictions vs. targets",
+            )
+
+        # Evaluate production
 
         messages_loss = loss_func(inferred_messages, test_target_messages).item()
         logging.info(
@@ -754,7 +759,7 @@ class Game(nn.Module):
             test_decoder_contexts,
         )
 
-        prediction_loss = torch.nn.MSELoss()(
+        prediction_loss = loss_func(
             predicted_output_by_inferred_messages, target_output
         ).item()
         prediction_accuracy = self._evaluate_object_prediction_accuracy(
