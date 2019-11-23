@@ -107,10 +107,11 @@ def run_simulation(
                 evaluations_per_trial.append(evaluation_vals)
 
                 game_per_trial.append(current_game)
-            except Exception:
+            except Exception as e:
                 logging.error(
                     f"Simulation {simulation.name} crashed:\n{traceback.format_exc()}"
                 )
+                raise e
 
         simulation.evaluations[message_size] = evaluations_per_trial
         games[message_size] = game_per_trial
