@@ -476,13 +476,16 @@ class Game(nn.Module):
         return result
 
     def _evaluate_addition_compositionality(self):
-        losses = []
-        cluster_accuracies = []
+        message_losses = []
+        message_cluster_accuracies = []
+        production_output_losses = []
+        production_output_accuracies = []
+
         for d1, d2 in itertools.permutations(range(self.object_size), 2):
             (
                 function_selectors,
-                _,
-                _,
+                encoder_contexts,
+                decoder_contexts,
                 messages,
             ) = self._generate_funcs_contexts_messages(self.num_exemplars)
 
@@ -499,38 +502,87 @@ class Game(nn.Module):
             target_messages_mask = d2_mask * argmax_mask
             d2_argmax_messages = messages[target_messages_mask]
 
-            predicted_messages = (
+            inferred_messages = (
                 d1_argmax_messages - d1_argmin_messages + d2_argmin_messages
             )
 
-            mse = utils.batch_mse(d2_argmax_messages, predicted_messages).mean().item()
+            # Test production quality
+
+            messages_loss = torch.nn.MSELoss()(
+                d2_argmax_messages, inferred_messages
+            ).item()
 
             target_function_idxs = function_idxs[target_messages_mask].numpy()
-            predicted_clusters = self.clustering_model.predict(predicted_messages)
-            predicted_function_idxs_by_clusters = np.array(
-                [self.cluster_label_to_func_idx[c] for c in predicted_clusters]
+            inferred_clusters = self.clustering_model.predict(inferred_messages)
+            inferred_function_idxs_by_clusters = np.array(
+                [self.cluster_label_to_func_idx[c] for c in inferred_clusters]
             )
             cluster_accuracy = (
-                predicted_function_idxs_by_clusters == target_function_idxs
+                inferred_function_idxs_by_clusters == target_function_idxs
             ).mean()
 
-            logging.info(f"Addition compositionality loss for d{d1} <-> d{d2}: {mse}")
             logging.info(
-                f"Addition compositionality accuracy for d{d1} <-> d{d2}: {cluster_accuracy}"
+                f"Addition compositionality messages loss for d{d1} <-> d{d2}: {messages_loss}"
+            )
+            logging.info(
+                f"Addition compositionality message cluster accuracy for d{d1} <-> d{d2}: {cluster_accuracy}"
             )
 
-            losses.append(mse)
-            cluster_accuracies.append(cluster_accuracy)
+            message_losses.append(messages_loss)
+            message_cluster_accuracies.append(cluster_accuracy)
 
-        mean_loss = np.mean(losses)
-        mean_acc = np.mean(cluster_accuracies)
+            # Test perception quality
 
-        logging.info(f"Addition compositionality mean loss: {mean_loss}")
-        logging.info(f"Addition compositionality mean accuracy: {mean_acc}")
+            predicted_output_by_inferred_messages = self._predict_by_message(
+                inferred_messages, decoder_contexts[target_messages_mask]
+            )
+            target_output = self._target(
+                encoder_contexts[target_messages_mask],
+                function_selectors[target_messages_mask],
+            )
+            prediction_loss = torch.nn.MSELoss()(
+                predicted_output_by_inferred_messages, target_output
+            )
+            prediction_accuracy = self._evaluate_object_prediction_accuracy(
+                encoder_contexts[target_messages_mask],
+                predicted_output_by_inferred_messages,
+                target_output,
+            )
+
+            logging.info(
+                f"Addition compositionality output loss for d{d1} <-> d{d2}: {prediction_loss}"
+            )
+            logging.info(
+                f"Addition compositionality output accuracy for d{d1} <-> d{d2}: {prediction_accuracy}"
+            )
+            production_output_losses.append(prediction_loss)
+            production_output_accuracies.append(prediction_accuracy)
+
+        messages_mean_loss = np.mean(message_losses)
+        message_clusters_mean_acc = np.mean(message_cluster_accuracies)
+
+        production_mean_loss = np.mean(production_output_losses)
+        production_mean_acc = np.mean(production_output_accuracies)
+
+        logging.info(
+            f"Addition compositionality mean messages loss: {messages_mean_loss}"
+        )
+        logging.info(
+            f"Addition compositionality mean message cluster accuracy: {message_clusters_mean_acc}"
+        )
+
+        logging.info(
+            f"Addition compositionality mean production loss: {production_mean_loss}"
+        )
+        logging.info(
+            f"Addition compositionality mean production accuracy: {production_mean_acc}"
+        )
 
         return {
-            "addition_compositionality_mean_loss": mean_loss,
-            "addition_compositionality_cluster_accuracy": mean_acc,
+            "addition_compositionality_mean_message_loss": messages_mean_loss,
+            "addition_compositionality_mean_message_cluster_accuracy": message_clusters_mean_acc,
+            "addition_compositionality_mean_production_loss": production_mean_loss,
+            "addition_compositionality_mean_production_accuracy": production_mean_acc,
         }
 
     def _evaluate_analogy_compositionality_network(self):
