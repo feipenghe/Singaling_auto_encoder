@@ -586,39 +586,54 @@ class Game(nn.Module):
         }
 
     def _evaluate_analogy_compositionality_network(self):
-        losses = []
-        accuracies = []
+        message_losses = []
+        message_cluster_accuracies = []
+        prediction_losses = []
+        prediction_accuracies = []
         for param_idx in range(self.object_size):
-            test_loss, cluster_accuracy = self._run_analogy_compositionality_network(
-                taken_out_param=param_idx
-            )
-            losses.append(test_loss)
-            accuracies.append(cluster_accuracy)
+            (
+                test_loss,
+                cluster_accuracy,
+                prediction_loss,
+                prediction_accuracy,
+            ) = self._run_analogy_compositionality_network(taken_out_param=param_idx)
+            message_losses.append(test_loss)
+            message_cluster_accuracies.append(cluster_accuracy)
+            prediction_losses.append(prediction_loss)
+            prediction_accuracies.append(prediction_accuracy)
 
-        mean_loss = np.mean(losses)
-        mean_acc = np.mean(accuracies)
+        mean_message_loss = np.mean(message_losses)
+        mean_message_acc = np.mean(message_cluster_accuracies)
+        mean_prediction_loss = np.mean(prediction_losses)
+        mean_prediction_acc = np.mean(prediction_accuracies)
 
-        logging.info(f"Mean analogy network loss: {mean_loss}")
-        logging.info(f"Mean analogy network accuracy: {mean_acc}")
+        logging.info(f"Mean analogy network message loss: {mean_message_loss}")
+        logging.info(f"Mean analogy network message accuracy: {mean_message_acc}")
+        logging.info(f"Mean analogy network prediction loss: {mean_prediction_loss}")
+        logging.info(f"Mean analogy network prediction accuracy: {mean_prediction_acc}")
 
         return {
-            f"analogy_compositionality_net_mean_loss": mean_loss,
-            f"analogy_compositionality_net_cluster_mean_accuracy": mean_acc,
+            f"analogy_compositionality_net_message_mean_loss": mean_message_loss,
+            f"analogy_compositionality_net_message_cluster_mean_accuracy": mean_message_acc,
+            f"analogy_compositionality_net_prediction_mean_loss": mean_prediction_loss,
+            f"analogy_compositionality_net_prediction_mean_accuracy": mean_prediction_acc,
         }
 
     def _run_analogy_compositionality_network(self, taken_out_param: int):
-        train_inputs = []
-        train_targets = []
+        train_input_messages = []
+        train_target_messages = []
 
-        test_inputs = []
-        test_targets = []
+        test_input_messages = []
+        test_target_messages = []
         test_function_idxs = []
+        test_encoder_contexts = []
+        test_decoder_contexts = []
 
         for d1, d2 in itertools.permutations(range(self.object_size), 2):
             (
                 function_selectors,
-                _,
-                _,
+                encoder_contexts,
+                decoder_contexts,
                 messages,
             ) = self._generate_funcs_contexts_messages(self.num_exemplars)
 
@@ -638,12 +653,14 @@ class Game(nn.Module):
             # Train to predict [argmax_d2] from [d1_argmin_messages, d1_argmax_messages, d2_argmin_messages].
 
             if taken_out_param == d2:
-                inputs = test_inputs
-                targets = test_targets
+                inputs = test_input_messages
+                targets = test_target_messages
                 test_function_idxs.append(function_idxs[target_messages_mask])
+                test_encoder_contexts.append(encoder_contexts[target_messages_mask])
+                test_decoder_contexts.append(decoder_contexts[target_messages_mask])
             else:
-                inputs = train_inputs
-                targets = train_targets
+                inputs = train_input_messages
+                targets = train_target_messages
 
             inputs.append(
                 torch.cat(
@@ -652,22 +669,24 @@ class Game(nn.Module):
             )
             targets.append(d2_argmax_messages)
 
-        train_inputs = torch.cat(train_inputs, dim=0)
-        train_targets = torch.cat(train_targets, dim=0)
-        test_inputs = torch.cat(test_inputs, dim=0)
-        test_targets = torch.cat(test_targets, dim=0)
-        test_function_idxs = torch.cat(test_function_idxs).numpy()
+        train_input_messages = torch.cat(train_input_messages, dim=0)
+        train_target_messages = torch.cat(train_target_messages, dim=0)
+        test_input_messages = torch.cat(test_input_messages, dim=0)
+        test_target_messages = torch.cat(test_target_messages, dim=0)
+        test_encoder_contexts = torch.cat(test_encoder_contexts, dim=0)
+        test_decoder_contexts = torch.cat(test_decoder_contexts, dim=0)
+        test_function_idxs = torch.cat(test_function_idxs)
 
         hidden_size = 64
         num_epochs = 100
         mini_batch_size = 32
 
         layers = [
-            torch.nn.Linear(train_inputs.shape[1], hidden_size),
+            torch.nn.Linear(train_input_messages.shape[1], hidden_size),
             torch.nn.ReLU(),
             torch.nn.Linear(hidden_size, hidden_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(hidden_size, train_targets.shape[1]),
+            torch.nn.Linear(hidden_size, train_target_messages.shape[1]),
         ]
 
         model = torch.nn.Sequential(*layers)
@@ -676,8 +695,8 @@ class Game(nn.Module):
 
         for epoch in range(num_epochs):
             for inputs_batch, targets_batch in zip(
-                train_inputs.split(mini_batch_size),
-                train_targets.split(mini_batch_size),
+                train_input_messages.split(mini_batch_size),
+                train_target_messages.split(mini_batch_size),
             ):
                 pred = model(inputs_batch)
                 optimizer.zero_grad()
@@ -688,13 +707,7 @@ class Game(nn.Module):
             if epoch % 10 == 0:
                 logging.info(f"Epoch {epoch}:\t{loss.item():.2e}")
 
-        # Evaluate
-        with torch.no_grad():
-            test_predicted = model(test_inputs)
-        test_loss = loss_func(test_predicted, test_targets).item()
-        logging.info(
-            f"Analogy compositionality loss for taken-out param {taken_out_param}: {test_loss}"
-        )
+        # Evaluate production
 
         # mask1 = np.array(
         #     [True] * test_predicted.shape[0] + [False] * test_predicted.shape[0]
@@ -707,19 +720,60 @@ class Game(nn.Module):
         #     title="masks",
         # )
 
-        predicted_clusters = self.clustering_model.predict(test_predicted)
+        with torch.no_grad():
+            inferred_messages = model(test_input_messages)
+
+        messages_loss = loss_func(inferred_messages, test_target_messages).item()
+        logging.info(
+            f"Analogy compositionality messages loss for taken-out param {taken_out_param}: {messages_loss}"
+        )
+
+        predicted_clusters = self.clustering_model.predict(inferred_messages)
         predicted_function_idxs_by_clusters = np.array(
             [self.cluster_label_to_func_idx[c] for c in predicted_clusters]
         )
-        cluster_accuracy = (
-            predicted_function_idxs_by_clusters == test_function_idxs
+        message_cluster_accuracy = (
+            predicted_function_idxs_by_clusters == test_function_idxs.numpy()
         ).mean()
 
         logging.info(
-            f"Analogy compositionality network accuracy for taken-out param {taken_out_param}: {cluster_accuracy}"
+            f"Analogy compositionality network accuracy for taken-out param {taken_out_param}: {message_cluster_accuracy}"
         )
 
-        return test_loss, cluster_accuracy
+        # Evaluate perception
+
+        # TODO(ask Emmanuel): do we want to test using the trained param context or the taken-out context? Does it matter?
+        predicted_output_by_inferred_messages = self._predict_by_message(
+            inferred_messages, test_decoder_contexts
+        )
+        target_output = self._predict(
+            test_encoder_contexts,
+            torch.nn.functional.one_hot(
+                test_function_idxs, num_classes=self.num_functions
+            ).float(),
+            test_decoder_contexts,
+        )
+
+        prediction_loss = torch.nn.MSELoss()(
+            predicted_output_by_inferred_messages, target_output
+        ).item()
+        prediction_accuracy = self._evaluate_object_prediction_accuracy(
+            test_encoder_contexts, predicted_output_by_inferred_messages, target_output,
+        )
+
+        logging.info(
+            f"Analogy compositionality output loss for taken-out {taken_out_param}: {prediction_loss}"
+        )
+        logging.info(
+            f"Analogy compositionality output accuracy for taken-out {taken_out_param}: {prediction_accuracy}"
+        )
+
+        return (
+            messages_loss,
+            message_cluster_accuracy,
+            prediction_loss,
+            prediction_accuracy,
+        )
 
     def run_compositionality_network(
         self, taken_out_param: int, element_to_predict: Text
