@@ -5,6 +5,7 @@ import logging
 import multiprocessing
 import pathlib
 import pickle
+import traceback
 from typing import Any, Callable, Dict, List, Optional, Text, Tuple, Union
 
 import dataclasses_json
@@ -93,17 +94,23 @@ def run_simulation(
                 context_generator=simulation.context_generator,
                 seed=base_seed + trial,
             )
-            current_game.play(
-                num_batches=simulation.num_batches,
-                mini_batch_size=simulation.mini_batch_size,
-            )
-            if visualize:
-                current_game.visualize()
 
-            evaluation_vals = current_game.get_evaluations()
-            evaluations_per_trial.append(evaluation_vals)
+            try:
+                current_game.play(
+                    num_batches=simulation.num_batches,
+                    mini_batch_size=simulation.mini_batch_size,
+                )
+                if visualize:
+                    current_game.visualize()
 
-            game_per_trial.append(current_game)
+                evaluation_vals = current_game.get_evaluations()
+                evaluations_per_trial.append(evaluation_vals)
+
+                game_per_trial.append(current_game)
+            except Exception:
+                logging.error(
+                    f"Simulation {simulation.name} crashed:\n{traceback.format_exc()}"
+                )
 
         simulation.evaluations[message_size] = evaluations_per_trial
         games[message_size] = game_per_trial
