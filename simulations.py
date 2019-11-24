@@ -31,7 +31,7 @@ class Simulation:
     shared_context: bool = True
     shuffle_decoder_context: bool = False
 
-    num_trials: int = 3
+    num_trials: int = 20
     mini_batch_size: int = 64
     num_batches: int = 10_000
 
@@ -76,6 +76,8 @@ def run_simulation(
 
     # {Message size -> Trial x Game}
     games: Dict[int, List[game.Game]] = {}
+
+    # TODO decouple simulations from message size.
 
     for message_size in simulation.message_sizes:
         evaluations_per_trial: List[Dict[Text, Any]] = []

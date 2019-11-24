@@ -3,10 +3,8 @@ import itertools
 import logging
 import math
 import random
-from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Text, Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -133,8 +131,8 @@ class Game(nn.Module):
 
     def _encoder_forward_pass(self, context, function_selector):
         if self.use_context:
-            context_flattened = utils.batch_flatten(context)
-            encoder_input = torch.cat((context_flattened, function_selector), dim=1)
+            context_flat = utils.batch_flatten(context)
+            encoder_input = torch.cat((context_flat, function_selector), dim=1)
         else:
             encoder_input = function_selector
 
@@ -250,6 +248,7 @@ class Game(nn.Module):
             # Compositionality
             "addition_compositionality_loss": self._evaluate_addition_compositionality,
             "analogy_compositionality_loss": self._evaluate_analogy_compositionality_network,
+            "compositionality_loss": self._evaluate_compositionality_network,
         }
 
         evaluation_results = {
@@ -323,12 +322,12 @@ class Game(nn.Module):
             encoder_contexts, predicted_objects, target_objects
         )
 
-    def _plot_messages_information(self):
+    def _plot_messages_information(self, visualize_latent_space: bool = False):
         with torch.no_grad():
             (
                 func_selectors,
                 encoder_contexts,
-                _,
+                decoder_contexts,
                 messages,
             ) = self._generate_funcs_contexts_messages(self.num_exemplars, random=False)
 
@@ -352,6 +351,8 @@ class Game(nn.Module):
                 f"Messages\n{title_information_row}",
             )
 
+            # Plot targets
+
             targets = self._target(encoder_contexts, func_selectors)
             utils.plot_raw_and_pca(
                 targets.numpy(),
@@ -359,6 +360,57 @@ class Game(nn.Module):
                 message_labels,
                 f"Targets\n{title_information_row}",
             )
+
+            if visualize_latent_space:
+                # Plot latent encoder space
+                encoder_context_flat = utils.batch_flatten(encoder_contexts)
+                encoder_input = torch.cat((encoder_context_flat, func_selectors), dim=1)
+
+                latent_messages_level_1 = F.relu(
+                    self.encoder_hidden_layers[0](encoder_input)
+                )
+
+                latent_messages_level_2 = F.relu(
+                    self.encoder_hidden_layers[1](latent_messages_level_1)
+                )
+
+                utils.plot_raw_and_pca(
+                    latent_messages_level_1.numpy(),
+                    message_masks,
+                    message_labels,
+                    f"Encoder latent level 1 -- ReLu(W_e1(input))",
+                )
+
+                utils.plot_raw_and_pca(
+                    latent_messages_level_2.numpy(),
+                    message_masks,
+                    message_labels,
+                    f"Encoder latent level 2 -- ReLu(W_e2(ReLu(W_e1(input))))",
+                )
+
+                # Plot latent decoder space
+                decoder_context_flat = utils.batch_flatten(decoder_contexts)
+                decoder_input = torch.cat((messages, decoder_context_flat), dim=1)
+                latent_decoder_level_1 = F.relu(
+                    self.decoder_hidden_layers[0](decoder_input)
+                )
+                latent_decoder_level_2 = F.relu(
+                    self.decoder_hidden_layers[1](latent_decoder_level_1)
+                )
+
+                utils.plot_raw_and_pca(
+                    latent_decoder_level_1.numpy(),
+                    message_masks,
+                    message_labels,
+                    f"Decoder latent level 1 -- ReLu(W_d1(messages+context))",
+                )
+
+                utils.plot_raw_and_pca(
+                    latent_decoder_level_2.numpy(),
+                    message_masks,
+                    message_labels,
+                    f"Decoder latent level 2 -- ReLu(W_d2(ReLu(W_d1(messages+context))))",
+                )
 
     def predict_element_by_messages(self, element_to_predict: Text) -> float:
         logging.info(f"Predicting {element_to_predict} from messages.")
@@ -500,36 +552,35 @@ class Game(nn.Module):
             d2_argmin_messages = messages[d2_mask * argmin_mask]
 
             target_messages_mask = d2_mask * argmax_mask
-            d2_argmax_messages = messages[target_messages_mask]
+            target_messages = messages[target_messages_mask]
+            target_function_idxs = function_idxs[target_messages_mask]
 
             inferred_messages = (
                 d1_argmax_messages - d1_argmin_messages + d2_argmin_messages
             )
 
-            # Evaluate production quality
-
-            messages_loss = torch.nn.MSELoss()(
-                d2_argmax_messages, inferred_messages
-            ).item()
-
-            target_function_idxs = function_idxs[target_messages_mask].numpy()
-            inferred_clusters = self.clustering_model.predict(inferred_messages)
-            inferred_function_idxs_by_clusters = np.array(
-                [self.cluster_label_to_func_idx[c] for c in inferred_clusters]
+            (
+                messages_loss,
+                message_cluster_accuracy,
+                prediction_loss,
+                prediction_accuracy,
+            ) = self._evaluate_inferred_messages(
+                target_messages,
+                inferred_messages,
+                encoder_contexts[target_messages_mask],
+                decoder_contexts[target_messages_mask],
+                target_function_idxs,
             )
-            clustering_accuracy = (
-                inferred_function_idxs_by_clusters == target_function_idxs
-            ).mean()
 
             logging.info(
                 f"Addition compositionality messages loss for d{d1} <-> d{d2}: {messages_loss}"
             )
             logging.info(
-                f"Addition compositionality message cluster accuracy for d{d1} <-> d{d2}: {clustering_accuracy}"
+                f"Addition compositionality message cluster accuracy for d{d1} <-> d{d2}: {message_cluster_accuracy}"
             )
 
             message_losses.append(messages_loss)
-            message_cluster_accuracies.append(clustering_accuracy)
+            message_cluster_accuracies.append(message_cluster_accuracy)
 
             # Test perception quality
 
@@ -685,11 +736,11 @@ class Game(nn.Module):
         mini_batch_size = 64
 
         layers = [
-            torch.nn.Linear(train_input_messages.shape[1], hidden_size),
+            torch.nn.Linear(self.message_size * 3, hidden_size),
             torch.nn.ReLU(),
             torch.nn.Linear(hidden_size, hidden_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(hidden_size, train_target_messages.shape[1]),
+            torch.nn.Linear(hidden_size, self.message_size),
         ]
 
         model = torch.nn.Sequential(*layers)
@@ -726,51 +777,76 @@ class Game(nn.Module):
                 title="Analogy network predictions vs. targets",
             )
 
-        # Evaluate production
-
-        messages_loss = loss_func(inferred_messages, test_target_messages).item()
+        (
+            messages_loss,
+            message_cluster_accuracy,
+            prediction_loss,
+            prediction_accuracy,
+        ) = self._evaluate_inferred_messages(
+            test_target_messages,
+            inferred_messages,
+            test_encoder_contexts,
+            test_decoder_contexts,
+            test_function_idxs,
+        )
         logging.info(
             f"Analogy compositionality messages loss for taken-out param {taken_out_param}: {messages_loss}"
         )
+        logging.info(
+            f"Analogy compositionality network accuracy for taken-out param {taken_out_param}: {message_cluster_accuracy}"
+        )
+        logging.info(
+            f"Analogy compositionality output loss for taken-out {taken_out_param}: {prediction_loss}"
+        )
+        logging.info(
+            f"Analogy compositionality output accuracy for taken-out {taken_out_param}: {prediction_accuracy}"
+        )
+        return (
+            messages_loss,
+            message_cluster_accuracy,
+            prediction_loss,
+            prediction_accuracy,
+        )
+
+    def _evaluate_inferred_messages(
+        self,
+        target_messages: torch.Tensor,
+        inferred_messages: torch.Tensor,
+        encoder_contexts: torch.Tensor,
+        decoder_contexts: torch.Tensor,
+        target_function_idxs: torch.Tensor,
+    ):
+        # Evaluate production
+
+        loss_func = torch.nn.MSELoss()
+        messages_loss = loss_func(inferred_messages, target_messages).item()
 
         predicted_clusters = self.clustering_model.predict(inferred_messages)
         predicted_function_idxs_by_clusters = np.array(
             [self.cluster_label_to_func_idx[c] for c in predicted_clusters]
         )
         message_cluster_accuracy = (
-            predicted_function_idxs_by_clusters == test_function_idxs.numpy()
+            predicted_function_idxs_by_clusters == target_function_idxs.numpy()
         ).mean()
-
-        logging.info(
-            f"Analogy compositionality network accuracy for taken-out param {taken_out_param}: {message_cluster_accuracy}"
-        )
 
         # Evaluate perception
 
         # TODO(ask Emmanuel): do we want to test using the trained param context or the taken-out context? Does it matter?
         predicted_output_by_inferred_messages = self._predict_by_message(
-            inferred_messages, test_decoder_contexts
+            inferred_messages, decoder_contexts
         )
-        target_output = self._predict(
-            test_encoder_contexts,
+        target_output = self._target(
+            encoder_contexts,
             torch.nn.functional.one_hot(
-                test_function_idxs, num_classes=self.num_functions
+                target_function_idxs, num_classes=self.num_functions
             ).float(),
-            test_decoder_contexts,
         )
 
         prediction_loss = loss_func(
             predicted_output_by_inferred_messages, target_output
         ).item()
         prediction_accuracy = self._evaluate_object_prediction_accuracy(
-            test_encoder_contexts, predicted_output_by_inferred_messages, target_output,
-        )
-
-        logging.info(
-            f"Analogy compositionality output loss for taken-out {taken_out_param}: {prediction_loss}"
-        )
-        logging.info(
-            f"Analogy compositionality output accuracy for taken-out {taken_out_param}: {prediction_accuracy}"
+            encoder_contexts, predicted_output_by_inferred_messages, target_output,
         )
 
         return (
@@ -780,224 +856,139 @@ class Game(nn.Module):
             prediction_accuracy,
         )
 
-    def run_compositionality_network(
-        self, taken_out_param: int, element_to_predict: Text
-    ):
-        """`element_to_predict`: 'messages', 'dimension', 'min_max'. """
+    def _evaluate_compositionality_network(self):
+        message_losses = []
+        message_cluster_accuracies = []
+        production_output_losses = []
+        production_output_accuracies = []
+
+        for p in range(self.object_size):
+            (
+                test_loss,
+                cluster_accuracy,
+                prediction_loss,
+                prediction_accuracy,
+            ) = self._run_compositionality_network(taken_out_param=p)
+            message_losses.append(test_loss)
+            message_cluster_accuracies.append(cluster_accuracy)
+            production_output_losses.append(prediction_loss)
+            production_output_accuracies.append(prediction_accuracy)
+
+        mean_message_loss = np.mean(message_losses)
+        mean_message_acc = np.mean(message_cluster_accuracies)
+        mean_prediction_loss = np.mean(production_output_losses)
+        mean_prediction_acc = np.mean(production_output_accuracies)
+
+        logging.info(f"Mean compositionality network message loss: {mean_message_loss}")
+        logging.info(
+            f"Mean compositionality network message accuracy: {mean_message_acc}"
+        )
+        logging.info(
+            f"Mean compositionality network prediction loss: {mean_prediction_loss}"
+        )
+        logging.info(
+            f"Mean compositionality network prediction accuracy: {mean_prediction_acc}"
+        )
+
+        return {
+            f"compositionality_net_message_mean_loss": mean_message_loss,
+            f"compositionality_net_message_cluster_mean_accuracy": mean_message_acc,
+            f"compositionality_net_prediction_mean_loss": mean_prediction_loss,
+            f"compositionality_net_prediction_mean_accuracy": mean_prediction_acc,
+        }
+
+    def _run_compositionality_network(self, taken_out_param: int):
+        """Train to predict argmin_d from argmax_d using all d's except one. """
+        (
+            function_selectors,
+            encoder_contexts,
+            decoder_contexts,
+            messages,
+        ) = self._generate_funcs_contexts_messages(self.num_exemplars)
+
+        function_idxs = function_selectors.argmax(dim=1)
+        argmin_mask = function_idxs % 2 == 0
+        argmax_mask = function_idxs % 2 == 1
+
+        taken_out_mask = function_idxs // 2 == taken_out_param
+        training_mask = taken_out_mask ^ True
+        training_input_mask = training_mask * argmax_mask
+        training_target_mask = training_mask * argmin_mask
+        test_target_mask = taken_out_mask * argmin_mask
+
+        training_input_messages = messages[training_input_mask]
+        training_target_messages = messages[training_target_mask]
+
+        test_input_messages = messages[taken_out_mask * argmax_mask]
+        test_target_messages = messages[taken_out_mask * argmin_mask]
+
+        test_encoder_contexts = encoder_contexts[test_target_mask]
+        test_decoder_contexts = decoder_contexts[test_target_mask]
+        test_function_idxs = function_idxs[test_target_mask]
 
         hidden_size = 64
-        num_epochs = 10_000
-
-        # Generate functions for all parameters except one.
-
-        logging.info(f"Taken out param: {taken_out_param}")
-
-        train_params = [i for i in range(self.object_size) if i != taken_out_param]
-        train_param_idxs = train_params * self.num_exemplars
-
-        train_function_input_idx = np.array([x * 2 for x in train_param_idxs])
-        train_function_target_idx = train_function_input_idx + 1
-
-        train_function_input_selectors = torch.nn.functional.one_hot(
-            torch.from_numpy(train_function_input_idx), num_classes=self.num_functions
-        ).float()
-
-        train_function_target_selectors = torch.nn.functional.one_hot(
-            torch.from_numpy(train_function_target_idx), num_classes=self.num_functions
-        ).float()
-
-        batch_size = train_function_input_selectors.shape[0]
-
-        # Test on left-out parameter.
-
-        test_function_input_selectors = torch.nn.functional.one_hot(
-            torch.tensor([taken_out_param * 2] * batch_size).long(),
-            num_classes=self.num_functions,
-        ).float()
-
-        test_function_target_selectors = torch.nn.functional.one_hot(
-            torch.tensor([taken_out_param * 2 + 1] * batch_size).long(),
-            num_classes=self.num_functions,
-        ).float()
-
-        if element_to_predict == "messages":
-            target_func = lambda context, function_selectors: self._message(
-                context, function_selectors
-            )
-        elif element_to_predict == "dimension":
-            target_func = lambda _, function_selectors: torch.nn.functional.one_hot(
-                function_selectors.argmax(dim=1) // 2, num_classes=self.object_size,
-            )
-        elif element_to_predict == "min_or_max":
-            target_func = lambda _, function_selectors: torch.nn.functional.one_hot(
-                function_selectors.argmax(dim=1) % 2, num_classes=2
-            )
-
-        ###########
-        # Network #
-        ###########
-
-        element_to_output_size = {
-            "messages": self.message_size,
-            "dimension": self.object_size,
-            "min_or_max": 2,
-        }
+        num_epochs = 1000
+        mini_batch_size = 64
 
         layers = [
             torch.nn.Linear(self.message_size, hidden_size),
             torch.nn.ReLU(),
             torch.nn.Linear(hidden_size, hidden_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(hidden_size, element_to_output_size[element_to_predict]),
+            torch.nn.Linear(hidden_size, self.message_size),
         ]
-
-        ONE_HOT_PREDICTIONS = ("dimension", "min_or_max")
-
-        if element_to_predict in ONE_HOT_PREDICTIONS:
-            loss_func = torch.nn.NLLLoss()
-            layers.append(torch.nn.LogSoftmax(dim=1))
-        else:
-            loss_func = torch.nn.MSELoss()
 
         model = torch.nn.Sequential(*layers)
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-
-        logging.info(f"Compositionality network layers:\n{layers}")
-
-        # Training
+        loss_func = torch.nn.MSELoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
         for epoch in range(num_epochs):
-            context = self._generate_contexts(batch_size)
+            for inputs_batch, targets_batch in zip(
+                training_input_messages.split(mini_batch_size),
+                training_target_messages.split(mini_batch_size),
+            ):
+                pred = model(inputs_batch)
+                optimizer.zero_grad()
+                loss = loss_func(pred, targets_batch)
+                loss.backward()
+                optimizer.step()
 
-            input_messages = self._message(context, train_function_input_selectors)
-            targets = target_func(context, train_function_target_selectors)
-
-            y_pred = model(input_messages)
-
-            optimizer.zero_grad()
-            if element_to_predict in ONE_HOT_PREDICTIONS:
-                targets = targets.argmax(dim=1)
-            loss = loss_func(y_pred, targets)
-            loss.backward()
-            optimizer.step()
-
-            if epoch % 100 == 0:
+            if epoch % 10 == 0:
                 logging.info(f"Epoch {epoch}:\t{loss.item():.2e}")
 
-        ############
-        # Evaluate #
-        ############
-
-        test_context = self._generate_contexts(batch_size)
-        test_input_messages = self._message(test_context, test_function_input_selectors)
-
-        test_targets = target_func(test_context, test_function_target_selectors)
-
         with torch.no_grad():
-            test_predictions = model(test_input_messages)
+            inferred_messages = model(test_input_messages)
 
-        if element_to_predict in ONE_HOT_PREDICTIONS:
-            test_targets = test_targets.argmax(dim=1)
-
-        taken_out_prediction_loss = loss_func(test_predictions, test_targets).item()
+        (
+            messages_loss,
+            message_cluster_accuracy,
+            prediction_loss,
+            prediction_accuracy,
+        ) = self._evaluate_inferred_messages(
+            test_target_messages,
+            inferred_messages,
+            test_encoder_contexts,
+            test_decoder_contexts,
+            test_function_idxs,
+        )
         logging.info(
-            f"Taken-out param argmax prediction loss: {taken_out_prediction_loss:.2e}"
+            f"Compositionality network messages loss for taken-out param {taken_out_param}: {messages_loss}"
         )
-
-        # Decoding predictions
-
-        decoding_test_context = self._generate_contexts(batch_size)
-        decoded_target_messages = self._decoder_forward_pass(
-            test_targets, decoding_test_context
+        logging.info(
+            f"Compositionality network network accuracy for taken-out param {taken_out_param}: {message_cluster_accuracy}"
         )
-
-        with torch.no_grad():
-            test_predictions = model(test_input_messages)
-
-        decoded_predicted_messages = self._decoder_forward_pass(
-            test_predictions, decoding_test_context
+        logging.info(
+            f"Compositionality network output loss for taken-out {taken_out_param}: {prediction_loss}"
         )
-
-        decoded_prediction_loss = loss_func(
-            decoded_target_messages, decoded_predicted_messages
+        logging.info(
+            f"Compositionality network output accuracy for taken-out {taken_out_param}: {prediction_accuracy}"
         )
-        logging.info(f"Decoding loss: {decoded_prediction_loss:.2e}")
-
-        return taken_out_prediction_loss, decoded_prediction_loss
-
-        targets_for_training_messages = target_func(
-            test_context, train_function_target_selectors
+        return (
+            messages_loss,
+            message_cluster_accuracy,
+            prediction_loss,
+            prediction_accuracy,
         )
-
-        with torch.no_grad():
-            prediction_for_training_messages = model(
-                self._message(test_context, train_function_input_selectors)
-            )
-
-        if element_to_predict in ONE_HOT_PREDICTIONS:
-            # Accuracy
-            score_per_training_sample = (
-                (
-                    prediction_for_training_messages.argmax(dim=1)
-                    == targets_for_training_messages.argmax(dim=1)
-                )
-                .float()
-                .numpy()
-            )
-        else:
-            # MSE
-            score_per_training_sample = utils.batch_mse(
-                prediction_for_training_messages, targets_for_training_messages
-            ).numpy()
-
-        scores_per_training_func = defaultdict(list)
-        for i, train_param in enumerate(train_param_idxs):
-            scores_per_training_func[train_param].append(score_per_training_sample[i])
-
-        mean_score_per_func = {
-            func: np.mean(losses) for func, losses in scores_per_training_func.items()
-        }
-        err_per_func = {
-            func: np.std(losses) for func, losses in scores_per_training_func.items()
-        }
-
-        if element_to_predict in ONE_HOT_PREDICTIONS:
-            taken_out_vals = (
-                (test_predictions.argmax(dim=1) == test_targets).float().numpy()
-            )
-        else:
-            taken_out_vals = mean_score_per_func[taken_out_param] = (
-                (test_predictions - test_targets) ** 2
-            ).numpy()
-        mean_score_per_func[taken_out_param] = taken_out_vals.mean()
-        err_per_func[taken_out_param] = taken_out_vals.std()
-
-        funcs = list(sorted(mean_score_per_func.keys()))
-        mean_scores = [mean_score_per_func[func] for func in funcs]
-        err_scores = [err_per_func[func] for func in funcs]
-
-        func_labels = [
-            f"{str(x)}{' (absent)' if x==taken_out_param else ''}"
-            for x in sorted(mean_score_per_func.keys())
-        ]
-
-        plt.bar(
-            funcs,
-            mean_scores,
-            yerr=err_scores,
-            capsize=2,
-            color=["blue" if func != taken_out_param else "red" for func in funcs],
-        )
-        plt.xticks(ticks=list(range(len(funcs))), labels=func_labels, fontsize=5)
-        plt.xlabel("Parameters", fontsize=5)
-        plt.ylabel("MSELoss", fontsize=5)
-        plt.title(
-            f"{element_to_predict.title()} prediction {'accuracy' if element_to_predict in ONE_HOT_PREDICTIONS else 'MSE'} per parameter k (2k -> 2k+1)\n"
-            f"Taken out parameter #: {taken_out_param}"
-        )
-        plt.show()
-
-        return taken_out_prediction_loss
 
     def _run_unsupervised_clustering(self, visualize: bool = False):
         num_clusters = self.num_functions
