@@ -530,8 +530,8 @@ class Game(nn.Module):
     def _evaluate_addition_compositionality(self):
         message_losses = []
         message_cluster_accuracies = []
-        production_output_losses = []
-        production_output_accuracies = []
+        prediction_output_losses = []
+        prediction_output_accuracies = []
 
         for d1, d2 in itertools.permutations(range(self.object_size), 2):
             (
@@ -606,14 +606,14 @@ class Game(nn.Module):
             logging.info(
                 f"Addition compositionality output accuracy for d{d1} <-> d{d2}: {prediction_accuracy}"
             )
-            production_output_losses.append(prediction_loss)
-            production_output_accuracies.append(prediction_accuracy)
+            prediction_output_losses.append(prediction_loss)
+            prediction_output_accuracies.append(prediction_accuracy)
 
         messages_mean_loss = np.mean(message_losses)
         message_clusters_mean_acc = np.mean(message_cluster_accuracies)
 
-        production_mean_loss = np.mean(production_output_losses)
-        production_mean_acc = np.mean(production_output_accuracies)
+        prediction_mean_loss = np.mean(prediction_output_losses)
+        prediction_mean_acc = np.mean(prediction_output_accuracies)
 
         logging.info(
             f"Addition compositionality mean messages loss: {messages_mean_loss}"
@@ -623,17 +623,17 @@ class Game(nn.Module):
         )
 
         logging.info(
-            f"Addition compositionality mean production loss: {production_mean_loss}"
+            f"Addition compositionality mean prediction loss: {prediction_mean_loss}"
         )
         logging.info(
-            f"Addition compositionality mean production accuracy: {production_mean_acc}"
+            f"Addition compositionality mean prediction accuracy: {prediction_mean_acc}"
         )
 
         return {
             "addition_compositionality_mean_message_loss": messages_mean_loss,
             "addition_compositionality_mean_message_cluster_accuracy": message_clusters_mean_acc,
-            "addition_compositionality_mean_production_loss": production_mean_loss,
-            "addition_compositionality_mean_production_accuracy": production_mean_acc,
+            "addition_compositionality_mean_prediction_loss": prediction_mean_loss,
+            "addition_compositionality_mean_prediction_accuracy": prediction_mean_acc,
         }
 
     def _evaluate_analogy_compositionality_network(self):
