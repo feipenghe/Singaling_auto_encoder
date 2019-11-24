@@ -1,11 +1,13 @@
 import json
 import pathlib
 import pickle
-from typing import Dict, List, Optional, Text
+from collections import defaultdict
+from typing import Dict, Optional, Text
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+import game
 import simulations
 
 
@@ -92,7 +94,10 @@ def plot_simulation_training_loss(
             # TODO use message size information
 
             training_losses_per_trial = np.array(
-                simulation.training_losses[message_size]
+                [
+                    simulation.evaluations[message_size][i]["training_losses"]
+                    for i in range(simulation.num_trials)
+                ]
             )
 
             if max_epochs is not None:
