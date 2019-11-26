@@ -1156,3 +1156,8 @@ class Game(nn.Module):
         logging.info(f"Loss for unseen message/information: {object_prediction_loss}")
 
         return object_prediction_loss
+
+    def __getstate__(self):
+        self.target_function = None
+        self.context_generator = None
+        return self.__dict__
