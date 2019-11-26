@@ -1000,7 +1000,8 @@ class Game(nn.Module):
         )
 
     def _run_unsupervised_clustering(self, visualize: bool = False):
-        num_clusters = self.num_functions
+        num_clusters = self._detect_num_clusters()
+
         (_, _, _, training_messages,) = self._generate_funcs_contexts_messages(
             self.num_exemplars
         )
@@ -1034,7 +1035,7 @@ class Game(nn.Module):
         self.cluster_label_to_func_idx = cluster_label_to_func_idx
 
     def _evaluate_average_cluster_message_perception(
-        self, num_messages_to_average: int = 1,
+        self, num_messages_to_average: int = 10,
     ):
         """Sample unseen message from each cluster (the average of N cluster messages),
         feed to decoder, check if prediction is close to prediction of encoder's message for same context."""
@@ -1060,12 +1061,12 @@ class Game(nn.Module):
             ).float()
             function_selectors.append(cluster_function_selectors)
 
-        batch_size = self.num_exemplars * self.num_functions
-        encoder_context = self._generate_contexts(batch_size)
-        decoder_context = self._get_decoder_context(batch_size, encoder_context)
-
         function_selectors = torch.cat(function_selectors, dim=0)
         average_messages = torch.cat(average_messages, dim=0)
+
+        batch_size = average_messages.shape[0]
+        encoder_context = self._generate_contexts(batch_size)
+        decoder_context = self._get_decoder_context(batch_size, encoder_context)
 
         target_objects = self._target(encoder_context, function_selectors)
         predictions_by_average_msg = self._predict_by_message(
