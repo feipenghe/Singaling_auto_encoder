@@ -35,6 +35,8 @@ class Game(nn.Module):
     ):
         super().__init__()
         random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
 
         self.context_size = context_size
         self.object_size = object_size
