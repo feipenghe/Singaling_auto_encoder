@@ -242,6 +242,7 @@ class Game(nn.Module):
             "training_losses": lambda: self.loss_per_epoch,
             "object_prediction_accuracy": self._evaluate_encoder_decoder_prediction_accuracy,
             # Unsupervised clustering
+            "detected_num_clusters": self._detect_num_clusters,
             "object_prediction_by_cluster_loss": self._evaluate_object_prediction_by_cluster,
             "clusterization_f_score": self._evaluate_clusterization_f_score,
             "average_cluster_message_perception": self._evaluate_average_cluster_message_perception,
@@ -279,6 +280,14 @@ class Game(nn.Module):
             ] = self.predict_element_by_messages(element)
 
         return evaluation_results
+
+    def _detect_num_clusters(self):
+        _, _, _, messages = self._generate_funcs_contexts_messages(self.num_exemplars)
+        dbscan = cluster.DBSCAN(eps=0.5, min_samples=5)
+        dbscan.fit(messages)
+        num_predicted_clusters = len(set(dbscan.labels_))
+        logging.info(f"Number of predicted clusters: {num_predicted_clusters}")
+        return num_predicted_clusters
 
     @staticmethod
     def _evaluate_object_prediction_accuracy(
@@ -1025,7 +1034,7 @@ class Game(nn.Module):
         self.cluster_label_to_func_idx = cluster_label_to_func_idx
 
     def _evaluate_average_cluster_message_perception(
-        self, num_messages_to_average: int = 10,
+        self, num_messages_to_average: int = 1,
     ):
         """Sample unseen message from each cluster (the average of N cluster messages),
         feed to decoder, check if prediction is close to prediction of encoder's message for same context."""
