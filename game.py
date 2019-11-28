@@ -4,7 +4,7 @@ import logging
 import math
 import random
 from typing import Any, Callable, Dict, List, Optional, Text, Tuple
-import copy
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -732,7 +732,7 @@ class Game(nn.Module):
                     [d1_argmin_messages, d1_argmax_messages, d2_argmin_messages], dim=1
                 )
             )
-            targets.append(d1_argmin_messages + d1_argmax_messages + d2_argmin_messages)
+            targets.append(d2_argmax_messages)
 
         train_input_messages = torch.cat(train_input_messages)
         train_target_messages = torch.cat(train_target_messages)
