@@ -258,7 +258,7 @@ class Game(nn.Module):
             eval_name: f() for eval_name, f in evaluation_funcs.items()
         }
 
-        # Ugly hack to collect nested dicts values at top level.
+        # Collect nested dict values at top level.
         keys = tuple(evaluation_results.keys())
         for k in keys:
             if isinstance(evaluation_results[k], dict):
@@ -1158,9 +1158,3 @@ class Game(nn.Module):
         logging.info(f"Loss for unseen message/information: {object_prediction_loss}")
 
         return object_prediction_loss
-
-    def __getstate__(self):
-        dict_copy = copy.deepcopy(self.__dict__)
-        dict_copy["target_function"] = None
-        dict_copy["context_generator"] = None
-        return dict_copy
