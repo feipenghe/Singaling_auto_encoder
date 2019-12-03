@@ -79,7 +79,24 @@
 
 \section{Introduction}
 
+In a signalling game, artificial agents communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action. If the action is appropriate, the whole communication stream, and in particular the choice of the message, is reinforced. For instance, in a referential game, sender and receiver see a set of objects, and the sender must send a message to the receiver, so that the receiver can pick up the right object, as determined in advance for the sender, but unbeknownst to the receiver. 
+
+
 \section{Function Games}
+
+We here introduce a general communication game setting, which we call Function Games.  Our games contain three basic components: (i) a set of contexts $C$, (i) a set of actions $A$, (ii) a family of functions $F$, from contexts to actions.  One play of a Function Game game runs as follows:
+\begin{enumerate}
+	\item Nature chooses $f \in F$ and a context $c \in C$.
+	\item Sender sees the context $c$ and $f(c)$. \nbSST{I like f(c) here, but f is a bit more appropriate.  What do you all think?}
+	\item Sender sends a message $m$ to Receiver.
+	\item Receiver sees \emph{a possibly different} context $c'$ and the message $m$ and chooses an action $a'$.
+	\item Both are `rewarded' iff $a' = f(c')$.
+\end{enumerate}
+Two concrete interpretations will be helpful in illustrating the various components.
+
+\noindent \textbf{Generalized referential games.}  A reference game is one in which Sender tries to get Receiver to pick the correct object out of a given set \citep{Skyrms2010, Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.  Here, contexts are sets of objects (i.e.\ an $m \times n$ matrix, with $m$ objects represented by $n$ features).  Normally (though we will drop this assumption later), $c' = \texttt{shuffled}(c)$: Sender and Receiver see the same objects, but in a different arrangement. Actions are the objects, and the functions $f \in F$ are \emph{choice functions}: $f(c) \in c$ for every context $c$.
+
+\noindent \textbf{Belief update games.}  Contexts can represent possible belief states for the agents.  Letting $A = C$, the functions will then be `belief update' functions, representing e.g.\ how to update an agent's beliefs in the light of learning a new piece of information. \nbSST{What should we cite here? Something from dynamic semantics?}
 
 \section{Experiment}
 

@@ -1,3 +1,54 @@
+@inproceedings{Lazaridou2018,
+annote = {* Symbolic input vs. pixel input: why is the latter "more realistic"? And not just a confound on the _linguistic_ part?
+
+* Reference game: sender _only sees target_, receiver has to choose target from a set of distractors
+- REINFORCE + entropy regularization
+
+* Symbolic experiment: 573-d binary feature vectors
+
+* Generalization: unseen concepts, unigram chimera, vs. uniform chimera
+
+* 
+
+* Lots more error analysis can be done: what is performance on same-object contexts? what about same-color in the vision case? do they learn to tell them apart, or fail miserably?
+
+* main take away: ability to "scale up traditional research from the language evolution literature"; but is scaling up always a good thing? analyzing what's happening becomes harder, figuring out how to imporve them, etc....},
+archivePrefix = {arXiv},
+arxivId = {1804.03984v1},
+author = {Lazaridou, Angeliki and Hermann, Karl Moritz and Tuyls, Karl and Clark, Stephen},
+booktitle = {International Conference of Learning Representations (ICLR 2018)},
+eprint = {1804.03984v1},
+file = {:Users/shanest/Documents/Library/Lazaridou et al/International Conference of Learning Representations (ICLR 2018)/Lazaridou et al. - 2018 - Emergence of Linguistic Communication from Referential Games with Symbolic and Pixel Input.pdf:pdf},
+mendeley-groups = {Philosophy/PhilLang/Semantics and Pragmatics,MachineLearning,Papers/universals,Papers/function-words-psa,Papers/siminf-quant,MachineLearning/emergent-communication,Papers/discrete-acl2020},
+title = {{Emergence of Linguistic Communication from Referential Games with Symbolic and Pixel Input}},
+year = {2018}
+}
+@inproceedings{Lazaridou2017,
+abstract = {The current mainstream approach to train natural language systems is to expose them to large amounts of text. This passive learning is problematic if we are interested in developing interactive machines, such as conversational agents. We propose a framework for language learning that relies on multi-agent communication. We study this learning in the context of referential games. In these games, a sender and a receiver see a pair of images. The sender is told one of them is the target and is allowed to send a message from a fixed, arbitrary vocabulary to the receiver. The receiver must rely on this message to identify the target. Thus, the agents develop their own language interactively out of the need to communicate. We show that two networks with simple configurations are able to learn to coordinate in the referential game. We further explore how to make changes to the game environment to cause the "word meanings" induced in the game to better reflect intuitive semantic properties of the images. In addition, we present a simple strategy for grounding the agents' code into natural language. Both of these are necessary steps towards developing machines that are able to communicate with humans productively.},
+annote = {MAIN SETUP: varied context of 2 images, guess which is intended, atomic symbols only.
+
+1. images i1, ... , iN: nature chooses 2, iL and iR, and one of them to be the target t
+
+2. Sender sees: thetaS(iL, iR, t)
+
+3. Sender sends one symbol s(thetaS(iL, iR, t)) from V
+
+4. Receiver tries to guess target: r(iL, iR, s(thetaS(iL, iR, t))) is L or R
+
+5. If r( ) = t, payoff of 1; payoff of 0 otherwise
+
+RESULTS: learn to communicate; can make results look more "human" by varying images S and R see but in same category},
+archivePrefix = {arXiv},
+arxivId = {1612.07182},
+author = {Lazaridou, Angeliki and Peysakhovich, Alexander and Baroni, Marco},
+booktitle = {International Conference of Learning Representations (ICLR2017)},
+eprint = {1612.07182},
+file = {:Users/shanest/Documents/Library/Lazaridou, Peysakhovich, Baroni/International Conference of Learning Representations (ICLR2017)/Lazaridou, Peysakhovich, Baroni - 2017 - Multi-Agent Cooperation and the Emergence of (Natural) Language.pdf:pdf},
+mendeley-groups = {Logic,MachineLearning,Logic/Games,Papers/universals,Papers/function-words-psa,Papers/siminf-quant,MachineLearning/emergent-communication,Papers/discrete-acl2020},
+title = {{Multi-Agent Cooperation and the Emergence of (Natural) Language}},
+url = {http://arxiv.org/abs/1612.07182},
+year = {2017}
+}
 @inproceedings{Steinert-Threlkeld2019,
 abstract = {All natural languages exhibit a distinction between content words (like nouns and adjectives) and function words (like determiners, auxiliaries, prepositions). Yet surprisingly little has been said about the emergence of this universal architectural feature of natural languages. Why have human languages evolved to exhibit this division of labor between content and function words? How could such a distinction have emerged in the first place? This paper takes steps towards answering these questions by showing how the distinction can emerge through reinforcement learning in agents playing a signaling game across contexts which contain multiple objects that possess multiple perceptually salient gradable properties.},
 archivePrefix = {arXiv},
@@ -10,4 +61,52 @@ mendeley-groups = {MachineLearning/emergent-communication,Papers/discrete-acl202
 title = {{Paying Attention to Function Words}},
 url = {http://arxiv.org/abs/1909.11060},
 year = {2019}
+}
+
+@inproceedings{Chaabouni2019a,
+archivePrefix = {arXiv},
+arxivId = {1905.12561v4},
+author = {Chaabouni, Rahma and Kharitonov, Eugene and Dupoux, Emmanuel and Baroni, Marco},
+booktitle = {Proceedings of the 33rd Conference on Neural Information Processing Systems (NeurIPS 2019)},
+eprint = {1905.12561v4},
+file = {:Users/shanest/Documents/Library/Chaabouni et al/Proceedings of the 33rd Conference on Neural Information Processing Systems (NeurIPS 2019)/Chaabouni et al. - 2019 - Anti-efficient encoding in emergent communication.pdf:pdf;:Users/shanest/Documents/Library/Chaabouni et al/Proceedings of the 33rd Conference on Neural Information Processing Systems (NeurIPS 2019)/Chaabouni et al. - 2019 - Anti-efficient encoding in emergent communication(2).pdf:pdf},
+mendeley-groups = {MachineLearning,_reading-list,MachineLearning/emergent-communication,Papers/discrete-acl2020},
+title = {{Anti-efficient encoding in emergent communication}},
+year = {2019}
+}
+
+@inproceedings{Havrylov2017,
+abstract = {Learning to communicate through interaction, rather than relying on explicit supervision, is often considered a prerequisite for developing a general AI. We study a setting where two agents engage in playing a referential game and, from scratch, develop a communication protocol necessary to succeed in this game. Unlike previous work, we require that messages they exchange, both at train and test time, are in the form of a language (i.e. sequences of discrete symbols). We compare a reinforcement learning approach and one using a differentiable relaxation (straight-through Gumbel-softmax estimator) and observe that the latter is much faster to converge and it results in more effective protocols. Interestingly, we also observe that the protocol we induce by optimizing the communication success exhibits a degree of compositionality and variability (i.e. the same information can be phrased in different ways), both properties characteristic of natural languages. As the ultimate goal is to ensure that communication is accomplished in natural language, we also perform experiments where we inject prior information about natural language into our model and study properties of the resulting protocol.},
+annote = {MAIN SETUP: context varies = subset of images and a target; sender only sees target, but sends _sequence_
+
+1. images i1, ..., iN; target t, distractors d1, ..., dk
+
+2. sender sends Sphi(t) is sequence of symbols from V of length up to L
+
+3. receiver: Rtheta(Sphi(t), d1, ..., dk) guesses t
+
+MAIN RESULT: sequences are "hierarchical": animal --> bear; food -> baked -> pizza
+
+Other contributions: relaxations using straight-through estimators better than reinforcement learning},
+archivePrefix = {arXiv},
+arxivId = {1705.11192},
+author = {Havrylov, Serhii and Titov, Ivan},
+booktitle = {Proceedings of the 31st Conference on Neural Information Processing Systems (NeurIPS 2017)},
+eprint = {1705.11192},
+file = {:Users/shanest/Documents/Library/Havrylov, Titov/Proceedings of the 31st Conference on Neural Information Processing Systems (NeurIPS 2017)/Havrylov, Titov - 2017 - Emergence of Language with Multi-agent Games Learning to Communicate with Sequences of Symbols.pdf:pdf},
+mendeley-groups = {MachineLearning,Logic/Games,Papers/universals,Papers/function-words-psa,Papers/siminf-quant,MachineLearning/emergent-communication,Papers/discrete-acl2020},
+title = {{Emergence of Language with Multi-agent Games: Learning to Communicate with Sequences of Symbols}},
+url = {http://arxiv.org/abs/1705.11192},
+year = {2017}
+}
+
+@book{Skyrms2010,
+author = {Skyrms, Brian},
+keywords = {Meaning},
+mendeley-groups = {Logic/Games,Papers/MonkeyCalls,Papers/JoLLI_IDAS,Papers/LING236,Zotero - Zotero Library,Dissertation,Papers/function-words-psa,Papers/siminf-quant,Papers/discrete-acl2020},
+mendeley-tags = {Meaning},
+publisher = {Oxford University Press},
+shorttitle = {Signals},
+title = {{Signals: Evolution, Learning, and Information}},
+year = {2010}
 }

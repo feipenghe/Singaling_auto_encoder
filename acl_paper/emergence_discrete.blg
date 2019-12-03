@@ -9,44 +9,44 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: anthology.bib
 Database file #2: acl2020.bib
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
-You've used 1 entry,
+You've used 6 entries,
             3571 wiz_defined-function locations,
-            701 strings with 5700 characters,
-and the built_in function-call counts, 567 in all, are:
-= -- 45
-> -- 12
-< -- 1
-+ -- 4
-- -- 3
-* -- 26
-:= -- 112
-add.period$ -- 4
-call.type$ -- 1
-change.case$ -- 8
-chr.to.int$ -- 1
-cite$ -- 1
-duplicate$ -- 39
-empty$ -- 50
-format.name$ -- 4
-if$ -- 121
+            735 strings with 6891 characters,
+and the built_in function-call counts, 3728 in all, are:
+= -- 300
+> -- 161
+< -- 3
++ -- 51
+- -- 45
+* -- 229
+:= -- 597
+add.period$ -- 24
+call.type$ -- 6
+change.case$ -- 54
+chr.to.int$ -- 6
+cite$ -- 6
+duplicate$ -- 260
+empty$ -- 300
+format.name$ -- 61
+if$ -- 819
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 8
-newline$ -- 9
-num.names$ -- 4
-pop$ -- 22
+missing$ -- 55
+newline$ -- 34
+num.names$ -- 24
+pop$ -- 150
 preamble$ -- 1
-purify$ -- 5
+purify$ -- 39
 quote$ -- 0
-skip$ -- 31
+skip$ -- 180
 stack$ -- 0
-substring$ -- 11
-swap$ -- 15
+substring$ -- 66
+swap$ -- 111
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 9
+type$ -- 51
 warning$ -- 0
-while$ -- 3
+while$ -- 18
 width$ -- 0
-write$ -- 15
+write$ -- 75
