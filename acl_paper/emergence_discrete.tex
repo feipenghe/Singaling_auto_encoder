@@ -53,6 +53,10 @@
 
 \date{}
 
+\usepackage{multicol}  % for big figures
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 
 \newcommand{\changeEC}[2]{{\leavevmode\color{gray}{\scriptsize{#1}}~\color{blue}#2}}
 \newcommand{\nbEC}[1]{{\leavevmode\color{blue}{\scriptsize#1}}}
@@ -100,19 +104,42 @@ Two concrete interpretations will be helpful in illustrating the various compone
 
 \section{Experiment}
 
+Because we are interested in the simultaneous emergence both of discrete signals and of compositional messages, we use a Function Game called the Extremity Game designed to incentivize compositionality \citep{Steinert-Threlkeld2019}.  This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
+% TODO(sst): cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be de-anonymizing
+
 \subsection{Model}
+
+Our model resembles an encoder-decoder architecture, with the Sender encoding the context/target pair into a message, and the Receiver decoding the message (together with its context $c'$) into an action.  Both the encoder and decoder are multi-layer perceptrons with two hidden layers of size 64 and rectified linear (ReLU) activation \citep{Nair2010, Glorot2011}. Figure~\ref{fig:model} depicts this architecture.
+\nbSST{I gleaned this from the code; please correct if I'm wrong.}
+
+\begin{figure*}[ht]
+	\centering
+	Here be a graphic of our model.
+	% \includegraphics{<+file+>}
+	\caption{Model architecture caption}
+	\label{fig:model}
+\end{figure*}
 
 \subsection{Game Parameters}
 
+In our experiments, we manipulated the following parameters of the Extremity Game:
 \begin{itemize}
-	\item strict vs. non-strict context
-		\begin{itemize}
-			\item num objects for non-strict
-		\end{itemize}
-	\item equal vs. not equal
-	\item object size (num properties)
-	\item latent space (msg) dimension [didn't vary this]
+	\item Context strictness. 
+		In \emph{strict} contexts, every object is the $\argmax$ or $\argmax$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019a}.}  In \emph{non-strict} contexts, no such restriction is imposed. 
+
+		We considered strict contexts with \nbSST{Nur: add number} 10 objects (5 dimensions) and non-strict contexts with \nbSST{Nur: add} objects.
+	\item Context identity. In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's.  This may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
+	\item Object size: in all experiments, objects had 5 dimensions. \nbSST{Verify that this is correct}
+	\item Latent space (message) dimension: in all experiments, the latent space had 2 dimension.
 \end{itemize}
+For each setting of the above parameters, we ran 20 trials with different random seeds.
+
+\subsection{Training Details}
+
+As mentioned earlier, by using a continuous latent space, the entire model, including the communication channel, is differentiable and so can be trained end-to-end using backpropagation to compute gradients.  We used the Adam optimizer \citep{Kingma2015} with learning rate 0.001, $\beta_1 = 0.9$, and $\beta_2 = 0.999$.
+\nbSST{I gleaned this from the code; please correct if I'm wrong.  Can move to an Appendix if need space.}
+
+Code and data will be made available once the paper can be de-anonymized.
 
 \section{Results}
 
@@ -134,8 +161,6 @@ Two concrete interpretations will be helpful in illustrating the various compone
 % The acknowledgments should go immediately before the references. Do not number the acknowledgments section.
 % Do not include this section when submitting your paper for review.
 
-% TODO(sst): cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be de-anonymizing
-\cite{Steinert-Threlkeld2019}
 
 \bibliographystyle{acl_natbib}
 \bibliography{anthology,acl2020}

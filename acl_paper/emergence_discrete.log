@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  3 DEC 2019 11:13
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  3 DEC 2019 13:39
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -235,30 +235,137 @@ Package microtype Info: Loading configuration file microtype.cfg.
 (/usr/local/texlive/2017/texmf-dist/tex/latex/microtype/microtype.cfg
 File: microtype.cfg 2016/05/14 v2.6a microtype main configuration file (RS)
 ))
+(/usr/local/texlive/2017/texmf-dist/tex/latex/tools/multicol.sty
+Package: multicol 2017/04/11 v1.8q multicolumn formatting (FMi)
+\c@tracingmulticols=\count108
+\mult@box=\box28
+\multicol@leftmargin=\dimen118
+\c@unbalance=\count109
+\c@collectmore=\count110
+\doublecol@number=\count111
+\multicoltolerance=\count112
+\multicolpretolerance=\count113
+\full@width=\dimen119
+\page@free=\dimen120
+\premulticols=\dimen121
+\postmulticols=\dimen122
+\multicolsep=\skip48
+\multicolbaselineskip=\skip49
+\partial@page=\box29
+\last@line=\box30
+\maxbalancingoverflow=\dimen123
+\mult@rightbox=\box31
+\mult@grightbox=\box32
+\mult@gfirstbox=\box33
+\mult@firstbox=\box34
+\@tempa=\box35
+\@tempa=\box36
+\@tempa=\box37
+\@tempa=\box38
+\@tempa=\box39
+\@tempa=\box40
+\@tempa=\box41
+\@tempa=\box42
+\@tempa=\box43
+\@tempa=\box44
+\@tempa=\box45
+\@tempa=\box46
+\@tempa=\box47
+\@tempa=\box48
+\@tempa=\box49
+\@tempa=\box50
+\@tempa=\box51
+\c@columnbadness=\count114
+\c@finalcolumnbadness=\count115
+\last@try=\dimen124
+\multicolovershoot=\dimen125
+\multicolundershoot=\dimen126
+\mult@nat@firstbox=\box52
+\colbreak@box=\box53
+\mc@col@check@num=\count116
+)
+(/usr/local/texlive/2017/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2016/11/05 v2.16a AMS math features
+\@mathmargin=\skip50
+
+For additional information on amsmath, use the `?' option.
+(/usr/local/texlive/2017/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2000/06/29 v2.01 AMS text
+
+(/usr/local/texlive/2017/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks16
+\ex@=\dimen127
+))
+(/usr/local/texlive/2017/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen128
+)
+(/usr/local/texlive/2017/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 2016/03/08 v2.02 operator names
+)
+\inf@bad=\count117
+LaTeX Info: Redefining \frac on input line 213.
+\uproot@=\count118
+\leftroot@=\count119
+LaTeX Info: Redefining \overline on input line 375.
+\classnum@=\count120
+\DOTSCASE@=\count121
+LaTeX Info: Redefining \ldots on input line 472.
+LaTeX Info: Redefining \dots on input line 475.
+LaTeX Info: Redefining \cdots on input line 596.
+\Mathstrutbox@=\box54
+\strutbox@=\box55
+\big@size=\dimen129
+LaTeX Font Info:    Redeclaring font encoding OML on input line 712.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 713.
+\macc@depth=\count122
+\c@MaxMatrixCols=\count123
+\dotsspace@=\muskip11
+\c@parentequation=\count124
+\dspbrk@lvl=\count125
+\tag@help=\toks17
+\row@=\count126
+\column@=\count127
+\maxfields@=\count128
+\andhelp@=\toks18
+\eqnshift@=\dimen130
+\alignsep@=\dimen131
+\tagshift@=\dimen132
+\tagwidth@=\dimen133
+\totwidth@=\dimen134
+\lineht@=\dimen135
+\@envbody=\toks19
+\multlinegap=\skip51
+\multlinetaggap=\skip52
+\mathdisplay@stack=\toks20
+LaTeX Info: Redefining \[ on input line 2817.
+LaTeX Info: Redefining \] on input line 2818.
+)
 (./emergence_discrete.aux)
 \openout1 = `emergence_discrete.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 70.
-LaTeX Font Info:    ... okay on input line 70.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 70.
-LaTeX Font Info:    ... okay on input line 70.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 70.
-LaTeX Font Info:    ... okay on input line 70.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 70.
-LaTeX Font Info:    ... okay on input line 70.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 70.
-LaTeX Font Info:    ... okay on input line 70.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 70.
-LaTeX Font Info:    ... okay on input line 70.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 70.
-LaTeX Font Info:    ... okay on input line 70.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 70.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 74.
+LaTeX Font Info:    ... okay on input line 74.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 74.
+LaTeX Font Info:    ... okay on input line 74.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 74.
+LaTeX Font Info:    ... okay on input line 74.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 74.
+LaTeX Font Info:    ... okay on input line 74.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 74.
+LaTeX Font Info:    ... okay on input line 74.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 74.
+LaTeX Font Info:    ... okay on input line 74.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 74.
+LaTeX Font Info:    ... okay on input line 74.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 74.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
-\AtBeginShipoutBox=\box28
-Package hyperref Info: Link coloring ON on input line 70.
+\AtBeginShipoutBox=\box56
+Package hyperref Info: Link coloring ON on input line 74.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
@@ -266,11 +373,11 @@ Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
 (/usr/local/texlive/2017/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
-\c@section@level=\count108
+\c@section@level=\count129
 )
-LaTeX Info: Redefining \ref on input line 70.
-LaTeX Info: Redefining \pageref on input line 70.
-LaTeX Info: Redefining \nameref on input line 70.
+LaTeX Info: Redefining \ref on input line 74.
+LaTeX Info: Redefining \pageref on input line 74.
+LaTeX Info: Redefining \nameref on input line 74.
 
 (./emergence_discrete.out) (./emergence_discrete.out)
 \@outlinefile=\write3
@@ -279,21 +386,21 @@ LaTeX Info: Redefining \nameref on input line 70.
 
 (/usr/local/texlive/2017/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count109
-\scratchdimen=\dimen118
-\scratchbox=\box29
-\nofMPsegments=\count110
-\nofMParguments=\count111
-\everyMPshowfont=\toks16
-\MPscratchCnt=\count112
-\MPscratchDim=\dimen119
-\MPnumerator=\count113
-\makeMPintoPDFobject=\count114
-\everyMPtoPDFconversion=\toks17
+\scratchcounter=\count130
+\scratchdimen=\dimen136
+\scratchbox=\box57
+\nofMPsegments=\count131
+\nofMParguments=\count132
+\everyMPshowfont=\toks21
+\MPscratchCnt=\count133
+\MPscratchDim=\dimen137
+\MPnumerator=\count134
+\makeMPintoPDFobject=\count135
+\everyMPtoPDFconversion=\toks22
 ) ABD: EveryShipout initializing macros
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Info: Redefining \microtypecontext on input line 70.
+LaTeX Info: Redefining \microtypecontext on input line 74.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -308,30 +415,23 @@ Package microtype Info: No adjustment of character kerning.
 File: mt-ptm.cfg 2006/04/20 v1.7 microtype config. file: Times (RS)
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14.4> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 72.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 76.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
 )
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 72.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 72.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 72.
-LaTeX Font Info:    Try loading font information for U+lasy on input line 72.
+LaTeX Font Info:    Try loading font information for U+lasy on input line 76.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/base/ulasy.fd
 File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 72.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 87.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 76.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 97.
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 97.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 101.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 101.
+
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
@@ -340,65 +440,70 @@ Package microtype Info: Loading generic settings for font family
 (microtype)             `pcr' (encoding: OT1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 108.
+ [1{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+
+
+
+]
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 127.
 
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 108.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 127.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 128.
+
+
+Package natbib Warning: Citation `Steinert-Threlkeld2019a' on page 2 undefined 
+on input line 128.
 
 (./emergence_discrete.bbl
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 11.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 11.
- [1{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
-
-
-
-]
-Underfull \hbox (badness 1694) in paragraph at lines 29--34
+Underfull \hbox (badness 1694) in paragraph at lines 42--47
 []\OT1/ptm/m/n/10 Angeliki Lazari-dou, Alexan-der Peysakhovich, and
  []
 
 )
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 144.
- [2
 
-]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 144.
+Package natbib Warning: There were undefined citations.
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 169.
+[2] [3]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 169.
  (./emergence_discrete.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 144.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 144.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 169.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 169.
 Package rerunfilecheck Info: File `emergence_discrete.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 144.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 169.
  )
 (\end occurred when \iffalse on line 352 was incomplete) 
 Here is how much of TeX's memory you used:
- 8805 strings out of 492995
- 135746 string characters out of 6132704
- 264048 words of memory out of 5000000
- 12213 multiletter control sequences out of 15000+600000
- 26277 words of font info for 86 fonts, out of 8000000 for 9000
+ 9601 strings out of 492995
+ 145250 string characters out of 6132704
+ 280586 words of memory out of 5000000
+ 12922 multiletter control sequences out of 15000+600000
+ 37232 words of font info for 136 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 43i,10n,40p,1021b,446s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 43i,10n,40p,1021b,341s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/201
 7/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2017/texmf-dist/fo
 nts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2017/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2017/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2017/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2017/texmf-dist/fonts/ty
-pe1/urw/courier/ucrr8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/
-helvetic/uhvb8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/times/u
-tmb8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
-</usr/local/texlive/2017/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on emergence_discrete.pdf (2 pages, 100564 bytes).
+ts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2017/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2017/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2017/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/u
+rw/courier/ucrr8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/helve
+tic/uhvb8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/times/utmb8a
+.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
+/local/texlive/2017/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on emergence_discrete.pdf (3 pages, 129222 bytes).
 PDF statistics:
- 106 PDF objects out of 1000 (max. 8388607)
- 92 compressed objects within 1 object stream
- 26 named destinations out of 1000 (max. 500000)
- 17921 words of extra memory for PDF output out of 20736 (max. 10000000)
+ 140 PDF objects out of 1000 (max. 8388607)
+ 122 compressed objects within 2 object streams
+ 33 named destinations out of 1000 (max. 500000)
+ 24065 words of extra memory for PDF output out of 24883 (max. 10000000)
 
