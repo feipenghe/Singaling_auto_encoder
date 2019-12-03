@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex emergence_discrete"] 1575345644 "emergence_discrete.aux" "emergence_discrete.bbl" "emergence_discrete" 1575345701
+["bibtex emergence_discrete"] 1575346304 "emergence_discrete.aux" "emergence_discrete.bbl" "emergence_discrete" 1575346314
   "./acl_natbib.bst" 1575343384 47585 c671f071a8f3957857acb307a7173505 ""
-  "acl2020.bib" 1575343384 1974 4d7084b2f3a55753e2f48da8052bb437 ""
+  "acl2020.bib" 1575346291 1315 86de705dfe5009c224aa5244a49f23ef ""
   "anthology.bib" 1575343384 35724382 7579d629f1885d6a7c7a5a6c9c2f402b ""
-  "emergence_discrete.aux" 1575345701 780 6b0de15d6c449cae4f1575337892b59b ""
+  "emergence_discrete.aux" 1575346311 816 d2db3d798375e9ac0d854ec27ced78cc ""
   (generated)
   "emergence_discrete.bbl"
   "emergence_discrete.blg"
-["pdflatex"] 1575345700 "emergence_discrete.tex" "emergence_discrete.pdf" "emergence_discrete" 1575345701
+["pdflatex"] 1575346311 "emergence_discrete.tex" "emergence_discrete.pdf" "emergence_discrete" 1575346314
   "/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/base/8r.enc" 1480098666 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2017/texmf-dist/fonts/map/fontname/texfonts.map" 1480098670 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/tfm/adobe/helvetic/phvb.tfm" 1480098688 2300 14616918391efa49ac8b481a75fbdc1a ""
@@ -80,12 +80,12 @@
   "/usr/local/texlive/2017/texmf-var/web2c/pdftex/pdflatex.fmt" 1495593487 4129592 0e6cfee100d68e6d96b92c0258f2ff73 ""
   "/usr/local/texlive/2017/texmf.cnf" 1495593465 577 2b71d4d888f9e5560b2e99985915a9fa ""
   "acl2020.sty" 1575343384 22038 b679fa0e35ec901f332e85fc8cf0a89c ""
-  "emergence_discrete.aux" 1575345701 780 6b0de15d6c449cae4f1575337892b59b ""
-  "emergence_discrete.bbl" 1575345651 330 8101dd7f7086ec4b1910234ce0eedfd0 "bibtex emergence_discrete"
-  "emergence_discrete.out" 1575345700 0 d41d8cd98f00b204e9800998ecf8427e ""
-  "emergence_discrete.tex" 1575345699 2967 d3f116cdf56e4adc691681b674f05398 ""
+  "emergence_discrete.aux" 1575346311 816 d2db3d798375e9ac0d854ec27ced78cc ""
+  "emergence_discrete.bbl" 1575346311 375 ab41593437740b2c94b4cbf7f506b8c3 "bibtex emergence_discrete"
+  "emergence_discrete.out" 1575346311 0 d41d8cd98f00b204e9800998ecf8427e ""
+  "emergence_discrete.tex" 1575346275 2983 4407edbe7bd9f1a78f6bda0b9fda7549 ""
   (generated)
-  "emergence_discrete.aux"
-  "emergence_discrete.pdf"
   "emergence_discrete.out"
+  "emergence_discrete.aux"
   "emergence_discrete.log"
+  "emergence_discrete.pdf"

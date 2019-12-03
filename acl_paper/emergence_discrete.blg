@@ -11,42 +11,42 @@ Database file #2: acl2020.bib
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 You've used 1 entry,
             3571 wiz_defined-function locations,
-            700 strings with 5636 characters,
-and the built_in function-call counts, 642 in all, are:
-= -- 50
-> -- 23
-< -- 2
-+ -- 9
-- -- 6
-* -- 39
-:= -- 117
+            701 strings with 5700 characters,
+and the built_in function-call counts, 567 in all, are:
+= -- 45
+> -- 12
+< -- 1
++ -- 4
+- -- 3
+* -- 26
+:= -- 112
 add.period$ -- 4
 call.type$ -- 1
-change.case$ -- 6
+change.case$ -- 8
 chr.to.int$ -- 1
 cite$ -- 1
-duplicate$ -- 41
+duplicate$ -- 39
 empty$ -- 50
-format.name$ -- 11
-if$ -- 134
+format.name$ -- 4
+if$ -- 121
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 10
+missing$ -- 8
 newline$ -- 9
 num.names$ -- 4
 pop$ -- 22
 preamble$ -- 1
-purify$ -- 6
+purify$ -- 5
 quote$ -- 0
-skip$ -- 34
+skip$ -- 31
 stack$ -- 0
-substring$ -- 13
-swap$ -- 20
-text.length$ -- 1
+substring$ -- 11
+swap$ -- 15
+text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 6
+type$ -- 9
 warning$ -- 0
 while$ -- 3
 width$ -- 0
-write$ -- 16
+write$ -- 15

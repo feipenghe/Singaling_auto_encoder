@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  2 DEC 2019 20:01
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  2 DEC 2019 20:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -358,7 +358,7 @@ Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 112.
 (\end occurred when \iffalse on line 352 was incomplete) 
 Here is how much of TeX's memory you used:
  8666 strings out of 492995
- 133780 string characters out of 6132704
+ 133844 string characters out of 6132704
  259048 words of memory out of 5000000
  12132 multiletter control sequences out of 15000+600000
  20520 words of font info for 53 fonts, out of 8000000 for 9000
@@ -371,10 +371,10 @@ ts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type
 1/urw/times/utmb8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/time
 s/utmr8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/times/utmri8a.
 pfb>
-Output written on emergence_discrete.pdf (1 page, 56719 bytes).
+Output written on emergence_discrete.pdf (1 page, 58621 bytes).
 PDF statistics:
- 52 PDF objects out of 1000 (max. 8388607)
- 43 compressed objects within 1 object stream
+ 54 PDF objects out of 1000 (max. 8388607)
+ 45 compressed objects within 1 object stream
  15 named destinations out of 1000 (max. 500000)
  11265 words of extra memory for PDF output out of 12000 (max. 10000000)
 
