@@ -1014,24 +1014,29 @@ class Game(nn.Module):
         if visualize:
             utils.plot_clusters(training_messages, training_labels, "Messages clusters")
 
-        # Aligning cluster ids with with function/message ids:
-        # Generate messages for each function, pair a function id
-        # with the most matched cluster id.
-        cluster_label_to_func_idx = {}
+        # Align cluster ids with with function/message ids:
+        # Generate messages for each function,
+        # pair a cluster id with the function most common in it.
         (
             alignment_func_selectors,
             _,
             _,
             alignment_messages,
         ) = self._generate_funcs_contexts_messages(self.num_exemplars)
+        alignment_func_idxs = alignment_func_selectors.argmax(dim=1)
         alignment_labels = k_means.predict(alignment_messages)
-        for func_idx in range(self.num_functions):
-            func_messages_mask = alignment_func_selectors.argmax(dim=1) == func_idx
-            cluster_labels_for_func = alignment_labels[func_messages_mask]
-            majority_label = collections.Counter(cluster_labels_for_func).most_common(
-                1
-            )[0][0]
-            cluster_label_to_func_idx[majority_label] = func_idx
+
+        func_counts_per_cluster = collections.defaultdict(collections.Counter)
+        for i, cluster_label in enumerate(alignment_labels):
+            function_idx = alignment_func_idxs[i]
+            func_counts_per_cluster[cluster_label][function_idx] += 1
+
+        cluster_label_to_func_idx = {
+            cluster_label: func_counts.most_common(1)[0][0]
+            for cluster_label, func_counts in func_counts_per_cluster.items()
+        }
+
+        assert len(cluster_label_to_func_idx) == num_clusters
 
         self.clustering_model = k_means
         self.cluster_label_to_func_idx = cluster_label_to_func_idx
