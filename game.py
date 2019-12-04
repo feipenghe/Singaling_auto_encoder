@@ -284,7 +284,7 @@ class Game(nn.Module):
         return evaluation_results
 
     def _detect_num_clusters(self):
-        _, _, _, messages = self._generate_funcs_contexts_messages(self.num_exemplars)
+        _, _, _, messages = self._generate_funcs_contexts_messages(1000)
         dbscan = cluster.DBSCAN(eps=0.5, min_samples=5)
         dbscan.fit(messages)
         num_predicted_clusters = len(set(dbscan.labels_))
