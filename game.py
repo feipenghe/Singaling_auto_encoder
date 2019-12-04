@@ -1147,7 +1147,7 @@ class Game(nn.Module):
             ]
         )
         inferred_func_selectors = torch.nn.functional.one_hot(
-            torch.tensor(inferred_func_idxs)
+            torch.tensor(inferred_func_idxs), num_classes=self.num_functions
         ).float()
 
         predictions_by_inferred_func = self._predict(
