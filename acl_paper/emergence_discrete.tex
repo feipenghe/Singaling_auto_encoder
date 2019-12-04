@@ -1,0 +1,169 @@
+%
+% File acl2020.tex
+%
+%% Based on the style files for ACL 2020, which were
+%% Based on the style files for ACL 2018, NAACL 2018/19, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{acl2020}
+\usepackage{times}
+\usepackage{latexsym}
+\renewcommand{\UrlFont}{\ttfamily\small}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% TODO(sst): enter aclpaperid here
+%\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\newcommand\BibTeX{B\textsc{ib}\TeX}
+
+\title{The spontaneous emergence of discrete and compositional messages}
+
+% TODO(sst): anonymous, so doesn't matter now, but: is this the right author order?
+\author{Nur Lan \\
+  Computational Linguistics Lab \\
+  Tel Aviv University \\
+  \texttt{nurlan@mail.tau.ac.il} \\\And
+  Shane Steinert-Threlkeld \\
+  Department of Linguistics \\
+  University of Washington \\
+  \texttt{shanest@uw.edu} \\\And
+  Emmanuel Chemla \\
+  Laboratoire de Sciences Cognitives et Psycholinguistique \\
+  Ecole Normale Sup\'erieure \\
+  \texttt{chemla@ens.fr}}
+
+\date{}
+
+\usepackage{multicol}  % for big figures
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\newcommand{\changeEC}[2]{{\leavevmode\color{gray}{\scriptsize{#1}}~\color{blue}#2}}
+\newcommand{\nbEC}[1]{{\leavevmode\color{blue}{\scriptsize#1}}}
+\newcommand{\addEC}[1]{{\leavevmode\color{blue}#1}}
+
+\newcommand{\changeNL}[2]{{\leavevmode\color{gray}{\scriptsize{#1}}~\color{red}#2}}
+\newcommand{\nbNL}[1]{{\leavevmode\color{red}{\scriptsize#1}}}
+\newcommand{\addNL}[1]{{\leavevmode\color{red}#1}}
+
+\newcommand{\changeSST}[2]{{\leavevmode\color{gray}{\scriptsize{#1}}~\color{violet}#2}}
+\newcommand{\nbSST}[1]{{\leavevmode\color{violet}{\scriptsize#1}}}
+\newcommand{\addSST}[1]{{\leavevmode\color{violet}#1}}
+
+
+\begin{document}
+
+\maketitle
+% TODO(sst): short [4] or long [8] paper?
+
+% TODO(sst): write abstract
+\begin{abstract}
+	blah blah blah
+\end{abstract}
+
+\section{Introduction}
+
+In a signalling game, artificial agents communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action. If the action is appropriate, the whole communication stream, and in particular the choice of the message, is reinforced. For instance, in a referential game, sender and receiver see a set of objects, and the sender must send a message to the receiver, so that the receiver can pick up the right object, as determined in advance for the sender, but unbeknownst to the receiver. 
+
+
+\section{Function Games}
+
+We here introduce a general communication game setting, which we call Function Games.  Our games contain three basic components: (i) a set of contexts $C$, (i) a set of actions $A$, (ii) a family of functions $F$, from contexts to actions.  One play of a Function Game game runs as follows:
+\begin{enumerate}
+	\item Nature chooses $f \in F$ and a context $c \in C$.
+	\item Sender sees the context $c$ and $f(c)$. \nbSST{I like f(c) here, but f is a bit more appropriate.  What do you all think?}
+	\item Sender sends a message $m$ to Receiver.
+	\item Receiver sees \emph{a possibly different} context $c'$ and the message $m$ and chooses an action $a'$.
+	\item Both are `rewarded' iff $a' = f(c')$.
+\end{enumerate}
+Two concrete interpretations will be helpful in illustrating the various components.
+
+\noindent \textbf{Generalized referential games.}  A reference game is one in which Sender tries to get Receiver to pick the correct object out of a given set \citep{Skyrms2010, Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.  Here, contexts are sets of objects (i.e.\ an $m \times n$ matrix, with $m$ objects represented by $n$ features).  Normally (though we will drop this assumption later), $c' = \texttt{shuffled}(c)$: Sender and Receiver see the same objects, but in a different arrangement. Actions are the objects, and the functions $f \in F$ are \emph{choice functions}: $f(c) \in c$ for every context $c$.
+
+\noindent \textbf{Belief update games.}  Contexts can represent possible belief states for the agents.  Letting $A = C$, the functions will then be `belief update' functions, representing e.g.\ how to update an agent's beliefs in the light of learning a new piece of information. \nbSST{What should we cite here? Something from dynamic semantics?}
+
+\section{Experiment}
+
+Because we are interested in the simultaneous emergence both of discrete signals and of compositional messages, we use a Function Game called the Extremity Game designed to incentivize compositionality \citep{Steinert-Threlkeld2019}.  This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
+% TODO(sst): cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be de-anonymizing
+
+\subsection{Model}
+
+Our model resembles an encoder-decoder architecture, with the Sender encoding the context/target pair into a message, and the Receiver decoding the message (together with its context $c'$) into an action.  Both the encoder and decoder are multi-layer perceptrons with two hidden layers of size 64 and rectified linear (ReLU) activation \citep{Nair2010, Glorot2011}. Figure~\ref{fig:model} depicts this architecture.
+\nbSST{I gleaned this from the code; please correct if I'm wrong.}
+
+\begin{figure*}[ht]
+	\centering
+	Here be a graphic of our model.
+	% \includegraphics{<+file+>}
+	\caption{Model architecture caption}
+	\label{fig:model}
+\end{figure*}
+
+\subsection{Game Parameters}
+
+In our experiments, we manipulated the following parameters of the Extremity Game:
+\begin{itemize}
+	\item Context strictness. 
+		In \emph{strict} contexts, every object is the $\argmax$ or $\argmax$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019a}.}  In \emph{non-strict} contexts, no such restriction is imposed. 
+
+		We considered strict contexts with \nbSST{Nur: add number} 10 objects (5 dimensions) and non-strict contexts with \nbSST{Nur: add} objects.
+	\item Context identity. In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's.  This may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
+	\item Object size: in all experiments, objects had 5 dimensions. \nbSST{Verify that this is correct}
+	\item Latent space (message) dimension: in all experiments, the latent space had 2 dimension.
+\end{itemize}
+For each setting of the above parameters, we ran 20 trials with different random seeds.
+
+\subsection{Training Details}
+
+As mentioned earlier, by using a continuous latent space, the entire model, including the communication channel, is differentiable and so can be trained end-to-end using backpropagation to compute gradients.  We used the Adam optimizer \citep{Kingma2015} with learning rate 0.001, $\beta_1 = 0.9$, and $\beta_2 = 0.999$.
+\nbSST{I gleaned this from the code; please correct if I'm wrong.  Can move to an Appendix if need space.}
+
+Code and data will be made available once the paper can be de-anonymized.
+
+\section{Results}
+
+\subsection{Communicative success}
+
+% TODO(sst): maybe this isn't a sub-section, just basic results, then subsections for the analyses
+
+\subsection{Discrete signals}
+
+\subsection{Compositionality}
+
+\section{Discussion}
+
+\section{Conclusion}
+
+% TODO(sst): add if accepted
+% \section*{Acknowledgments}
+
+% The acknowledgments should go immediately before the references. Do not number the acknowledgments section.
+% Do not include this section when submitting your paper for review.
+
+
+\bibliographystyle{acl_natbib}
+\bibliography{anthology,acl2020}
+
+
+\end{document}

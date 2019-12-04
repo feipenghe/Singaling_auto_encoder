@@ -1,0 +1,54 @@
+This is BibTeX, Version 0.99d (TeX Live 2017)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: emergence_discrete.aux
+The style file: acl_natbib.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=20001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: anthology.bib
+Database file #2: acl2020.bib
+Warning--I didn't find a database entry for "Steinert-Threlkeld2019a"
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+You've used 9 entries,
+            3571 wiz_defined-function locations,
+            758 strings with 7679 characters,
+and the built_in function-call counts, 5788 in all, are:
+= -- 482
+> -- 239
+< -- 6
++ -- 75
+- -- 66
+* -- 355
+:= -- 892
+add.period$ -- 36
+call.type$ -- 9
+change.case$ -- 82
+chr.to.int$ -- 9
+cite$ -- 9
+duplicate$ -- 407
+empty$ -- 464
+format.name$ -- 95
+if$ -- 1284
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 84
+newline$ -- 49
+num.names$ -- 36
+pop$ -- 229
+preamble$ -- 1
+purify$ -- 58
+quote$ -- 0
+skip$ -- 285
+stack$ -- 0
+substring$ -- 131
+swap$ -- 182
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 78
+warning$ -- 0
+while$ -- 30
+width$ -- 0
+write$ -- 112
+(There was 1 warning)

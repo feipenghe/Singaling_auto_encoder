@@ -1,0 +1,67 @@
+\begin{thebibliography}{9}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+
+\bibitem[{Chaabouni et~al.(2019)Chaabouni, Kharitonov, Dupoux, and
+  Baroni}]{Chaabouni2019a}
+Rahma Chaabouni, Eugene Kharitonov, Emmanuel Dupoux, and Marco Baroni. 2019.
+\newblock \href {http://arxiv.org/abs/1905.12561v4} {{Anti-efficient encoding
+  in emergent communication}}.
+\newblock In \emph{Proceedings of the 33rd Conference on Neural Information
+  Processing Systems (NeurIPS 2019)}.
+
+\bibitem[{Glorot et~al.(2011)Glorot, Bordes, and Bengio}]{Glorot2011}
+Xavier Glorot, Antoine Bordes, and Yoshua Bengio. 2011.
+\newblock {Deep Sparse Rectifier Neural Networks}.
+\newblock In \emph{14th International Conference on Artificial Intelligence and
+  Statistics (AISTATS)}, pages 315--323.
+
+\bibitem[{Havrylov and Titov(2017)}]{Havrylov2017}
+Serhii Havrylov and Ivan Titov. 2017.
+\newblock \href {http://arxiv.org/abs/1705.11192} {{Emergence of Language with
+  Multi-agent Games: Learning to Communicate with Sequences of Symbols}}.
+\newblock In \emph{Proceedings of the 31st Conference on Neural Information
+  Processing Systems (NeurIPS 2017)}.
+
+\bibitem[{Kingma and Ba(2015)}]{Kingma2015}
+Diederik~P. Kingma and Jimmy Ba. 2015.
+\newblock \href {http://arxiv.org/abs/1412.6980} {{Adam: A Method for
+  Stochastic Optimization}}.
+\newblock In \emph{International {Conference} of {Learning} {Representations}
+  ({ICLR})}.
+
+\bibitem[{Lazaridou et~al.(2018)Lazaridou, Hermann, Tuyls, and
+  Clark}]{Lazaridou2018}
+Angeliki Lazaridou, Karl~Moritz Hermann, Karl Tuyls, and Stephen Clark. 2018.
+\newblock \href {http://arxiv.org/abs/1804.03984v1} {{Emergence of Linguistic
+  Communication from Referential Games with Symbolic and Pixel Input}}.
+\newblock In \emph{International Conference of Learning Representations (ICLR
+  2018)}.
+
+\bibitem[{Lazaridou et~al.(2017)Lazaridou, Peysakhovich, and
+  Baroni}]{Lazaridou2017}
+Angeliki Lazaridou, Alexander Peysakhovich, and Marco Baroni. 2017.
+\newblock \href {http://arxiv.org/abs/1612.07182} {{Multi-Agent Cooperation and
+  the Emergence of (Natural) Language}}.
+\newblock In \emph{International Conference of Learning Representations
+  (ICLR2017)}.
+
+\bibitem[{Nair and Hinton(2010)}]{Nair2010}
+Vinod Nair and Geoffrey~E Hinton. 2010.
+\newblock \href
+  {https://www.semanticscholar.org/paper/Rectified-Linear-Units-Improve-Restricted-Boltzmann-Nair-Hinton/a538b05ebb01a40323997629e171c91aa28b8e2f}
+  {{Rectified Linear Units Improve Restricted Boltzmann Machines}}.
+\newblock In \emph{Proceedings of the 27th International Conference on Machine
+  Learning (ICML)}.
+
+\bibitem[{Skyrms(2010)}]{Skyrms2010}
+Brian Skyrms. 2010.
+\newblock \emph{{Signals: Evolution, Learning, and Information}}.
+\newblock Oxford University Press.
+
+\bibitem[{Steinert-Threlkeld(2019)}]{Steinert-Threlkeld2019}
+Shane Steinert-Threlkeld. 2019.
+\newblock \href {http://arxiv.org/abs/1909.11060} {{Paying Attention to
+  Function Words}}.
+\newblock In \emph{Emergent Communication Workshop @ NeurIPS 2018}.
+
+\end{thebibliography}
