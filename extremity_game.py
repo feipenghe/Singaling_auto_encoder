@@ -103,31 +103,3 @@ def make_extremity_game_simulation(
         target_function=_extremity_game_target_function,
         **kwargs,
     )
-
-
-if __name__ == "__main__":
-    # extremity_sim = make_extremity_game_simulation(
-    #     object_size=5,
-    #     num_objects=15,
-    #     message_sizes=(2,),
-    #     strict_context=True,
-    #     shared_context=True,
-    #     num_batches=10_000,
-    #     mini_batch_size=128,
-    #     num_trials=1,
-    # )
-    # games = simulations.run_simulation(extremity_sim, visualize=False)
-
-    simulations.run_simulation_grid(
-        "extremity_game_acl_1",
-        make_extremity_game_simulation,
-        message_sizes=(2,),
-        num_trials=20,
-        object_size=(3, 5,),
-        strict_context=(True, False),
-        shared_context=(True, False),
-        num_objects=(15,),
-        mini_batch_size=(128,),
-        num_batches=(5000,),
-        num_processes=12,
-    )

@@ -1,1 +1,3 @@
-*.swp
+./acl_paper/*.aux
+./acl_paper/*.log
+./acl_paper/*.out

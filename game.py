@@ -4,7 +4,7 @@ import logging
 import math
 import random
 from typing import Any, Callable, Dict, List, Optional, Text, Tuple
-import copy
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -258,7 +258,7 @@ class Game(nn.Module):
             eval_name: f() for eval_name, f in evaluation_funcs.items()
         }
 
-        # Ugly hack to collect nested dicts values at top level.
+        # Collect nested dict values at top level.
         keys = tuple(evaluation_results.keys())
         for k in keys:
             if isinstance(evaluation_results[k], dict):
@@ -284,7 +284,7 @@ class Game(nn.Module):
         return evaluation_results
 
     def _detect_num_clusters(self):
-        _, _, _, messages = self._generate_funcs_contexts_messages(self.num_exemplars)
+        _, _, _, messages = self._generate_funcs_contexts_messages(1000)
         dbscan = cluster.DBSCAN(eps=0.5, min_samples=5)
         dbscan.fit(messages)
         num_predicted_clusters = len(set(dbscan.labels_))
@@ -732,7 +732,7 @@ class Game(nn.Module):
                     [d1_argmin_messages, d1_argmax_messages, d2_argmin_messages], dim=1
                 )
             )
-            targets.append(d1_argmin_messages + d1_argmax_messages + d2_argmin_messages)
+            targets.append(d2_argmax_messages)
 
         train_input_messages = torch.cat(train_input_messages)
         train_target_messages = torch.cat(train_target_messages)
@@ -842,7 +842,6 @@ class Game(nn.Module):
 
         # Evaluate perception
 
-        # TODO(ask Emmanuel): do we want to test using the trained param context or the taken-out context? Does it matter?
         predicted_output_by_inferred_messages = self._predict_by_message(
             inferred_messages, decoder_contexts
         )
@@ -1014,24 +1013,29 @@ class Game(nn.Module):
         if visualize:
             utils.plot_clusters(training_messages, training_labels, "Messages clusters")
 
-        # Aligning cluster ids with with function/message ids:
-        # Generate messages for each function, pair a function id
-        # with the most matched cluster id.
-        cluster_label_to_func_idx = {}
+        # Align cluster ids with with function/message ids:
+        # Generate messages for each function,
+        # pair a cluster id with the function most common in it.
         (
             alignment_func_selectors,
             _,
             _,
             alignment_messages,
         ) = self._generate_funcs_contexts_messages(self.num_exemplars)
+        alignment_func_idxs = alignment_func_selectors.argmax(dim=1)
         alignment_labels = k_means.predict(alignment_messages)
-        for func_idx in range(self.num_functions):
-            func_messages_mask = alignment_func_selectors.argmax(dim=1) == func_idx
-            cluster_labels_for_func = alignment_labels[func_messages_mask]
-            majority_label = collections.Counter(cluster_labels_for_func).most_common(
-                1
-            )[0][0]
-            cluster_label_to_func_idx[majority_label] = func_idx
+
+        func_counts_per_cluster = collections.defaultdict(collections.Counter)
+        for i, cluster_label in enumerate(alignment_labels):
+            function_idx = alignment_func_idxs[i]
+            func_counts_per_cluster[cluster_label][function_idx] += 1
+
+        cluster_label_to_func_idx = {
+            cluster_label: func_counts.most_common(1)[0][0]
+            for cluster_label, func_counts in func_counts_per_cluster.items()
+        }
+
+        assert len(cluster_label_to_func_idx) == num_clusters
 
         self.clustering_model = k_means
         self.cluster_label_to_func_idx = cluster_label_to_func_idx
@@ -1142,7 +1146,7 @@ class Game(nn.Module):
             ]
         )
         inferred_func_selectors = torch.nn.functional.one_hot(
-            torch.tensor(inferred_func_idxs)
+            torch.tensor(inferred_func_idxs), num_classes=self.num_functions
         ).float()
 
         predictions_by_inferred_func = self._predict(
@@ -1158,9 +1162,3 @@ class Game(nn.Module):
         logging.info(f"Loss for unseen message/information: {object_prediction_loss}")
 
         return object_prediction_loss
-
-    def __getstate__(self):
-        dict_copy = copy.deepcopy(self.__dict__)
-        dict_copy["target_function"] = None
-        dict_copy["context_generator"] = None
-        return dict_copy
