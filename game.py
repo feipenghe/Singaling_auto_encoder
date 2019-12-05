@@ -842,7 +842,6 @@ class Game(nn.Module):
 
         # Evaluate perception
 
-        # TODO(ask Emmanuel): do we want to test using the trained param context or the taken-out context? Does it matter?
         predicted_output_by_inferred_messages = self._predict_by_message(
             inferred_messages, decoder_contexts
         )
