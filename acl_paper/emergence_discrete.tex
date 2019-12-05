@@ -33,8 +33,6 @@
 % smaller than 5cm (the original size); we will check this
 % in the camera-ready version and ask you to change it back.
 
-\newcommand\BibTeX{B\textsc{ib}\TeX}
-
 \title{The spontaneous emergence of discrete and compositional messages}
 
 % TODO(sst): anonymous, so doesn't matter now, but: is this the right author order?
@@ -55,6 +53,8 @@
 
 \usepackage{multicol}  % for big figures
 \usepackage{amsmath}
+\usepackage{graphicx}
+
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -112,13 +112,12 @@ Because we are interested in the simultaneous emergence both of discrete signals
 Our model resembles an encoder-decoder architecture, with the Sender encoding the context/target pair into a message, and the Receiver decoding the message (together with its context $c'$) into an action.  Both the encoder and decoder are multi-layer perceptrons with two hidden layers of size 64 and rectified linear (ReLU) activation \citep{Nair2010, Glorot2011}. Figure~\ref{fig:model} depicts this architecture.
 \nbSST{I gleaned this from the code; please correct if I'm wrong.}
 
-\begin{figure*}[ht]
+\begin{figure}[ht]
 	\centering
-	Here be a graphic of our model.
-	% \includegraphics{<+file+>}
-	\caption{Model architecture caption}
+	\includegraphics[width=\columnwidth]{model_figure.png}
+	\caption{Model architecture caption \nbSST{Do we really need this? It isn't super informative and might use too much space. I can also do something in TikZ if we think it's important and that this one is ugly.}}
 	\label{fig:model}
-\end{figure*}
+\end{figure}
 
 \subsection{Game Parameters}
 
