@@ -29,6 +29,7 @@ class Simulation:
     context_generator: Callable = None
     use_context: bool = True
     shared_context: bool = True
+    nature_includes_function: bool = True
     shuffle_decoder_context: bool = False
 
     num_trials: int = 20
@@ -92,6 +93,7 @@ def run_simulation(
                 use_context=simulation.use_context,
                 shared_context=simulation.shared_context,
                 shuffle_decoder_context=simulation.shuffle_decoder_context,
+                nature_includes_function=simulation.nature_includes_function,
                 target_function=simulation.target_function,
                 context_generator=simulation.context_generator,
                 seed=base_seed + trial,

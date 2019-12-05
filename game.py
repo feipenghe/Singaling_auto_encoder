@@ -1,5 +1,6 @@
 import collections
 import itertools
+import json
 import logging
 import math
 import random
@@ -23,9 +24,10 @@ class Game(nn.Module):
         message_size: int,
         num_functions: int,
         target_function: Callable,
-        use_context=True,
-        shared_context=True,
-        shuffle_decoder_context=False,
+        use_context: bool = True,
+        shared_context: bool = True,
+        shuffle_decoder_context: bool = False,
+        nature_includes_function: bool = True,
         context_generator: Optional[Callable] = None,
         loss_every: int = 1,
         num_exemplars: int = 100,
@@ -47,6 +49,7 @@ class Game(nn.Module):
         self.use_context = use_context
         self.shared_context = shared_context
         self.shuffle_decoder_context = shuffle_decoder_context
+        self.nature_includes_function = nature_includes_function
         self.context_generator = context_generator
         self.target_function = target_function
         self.loss_every = loss_every
@@ -67,11 +70,10 @@ class Game(nn.Module):
         else:
             raise ValueError(f"context_size must be either a tuple or int")
 
+        encoder_input_size = self._get_encoder_input_size()
         if self.use_context:
-            encoder_input_size = self.flat_context_size + self.num_functions
             decoder_input_size = self.message_size + self.flat_context_size
         else:
-            encoder_input_size = self.num_functions
             decoder_input_size = self.message_size
 
         encoder_layer_dimensions = [(encoder_input_size, self.encoder_hidden_sizes[0])]
@@ -132,12 +134,7 @@ class Game(nn.Module):
                 )
 
     def _encoder_forward_pass(self, context, function_selector):
-        if self.use_context:
-            context_flat = utils.batch_flatten(context)
-            encoder_input = torch.cat((context_flat, function_selector), dim=1)
-        else:
-            encoder_input = function_selector
-
+        encoder_input = self._get_input(context, function_selector)
         message = encoder_input
         for hidden_layer in self.encoder_hidden_layers[:-1]:
             message = F.relu(hidden_layer(message))
@@ -183,6 +180,28 @@ class Game(nn.Module):
         target = self._target(context, function_selectors)
         prediction = self._forward(context, function_selectors, decoder_context)
         return self.criterion(prediction, target)
+
+    def _get_encoder_input_size(self):
+        parts = []
+        if self.use_context:
+            parts.append(self.flat_context_size)
+        if self.nature_includes_function:
+            parts.append(self.num_functions)
+        else:
+            parts.append(self.object_size)
+        return sum(parts)
+
+    def _get_input(self, contexts: torch.Tensor, function_selectors: torch.Tensor):
+        parts = []
+        if self.use_context:
+            contexts_flat = utils.batch_flatten(contexts)
+            parts.append(contexts_flat)
+        if self.nature_includes_function:
+            parts.append(function_selectors)
+        else:
+            objects = self._target(contexts, function_selectors)
+            parts.append(objects)
+        return torch.cat(parts, dim=1)
 
     def _generate_contexts(self, batch_size):
         if isinstance(self.context_size, int):
@@ -280,6 +299,8 @@ class Game(nn.Module):
             evaluation_results[
                 f"{element}_from_messages"
             ] = self.predict_element_by_messages(element)
+
+        logging.info(f"Evaluations:\n{json.dumps(evaluation_results, indent=1)}")
 
         return evaluation_results
 
