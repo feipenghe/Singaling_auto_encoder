@@ -158,7 +158,11 @@ def run_simulation_grid(
         )
         simulations.append(simulation)
 
-    simulation_grid_name = f"{simulation_name}__" + utils.kwargs_to_str(kwargs)
+    simulation_grid_kwargs = {"m": message_sizes, "trials": num_trials}
+    simulation_grid_kwargs.update(kwargs)
+    simulation_grid_name = f"{simulation_name}__" + utils.kwargs_to_str(
+        simulation_grid_kwargs
+    )
 
     pathlib.Path(f"./simulations/{simulation_grid_name}.json").write_text(
         json.dumps(
