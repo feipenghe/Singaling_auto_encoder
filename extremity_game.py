@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Text, Tuple
 
 import numpy as np
 import torch
@@ -81,6 +81,7 @@ def make_extremity_game_simulation(
     shared_context: bool,
     strict_context: bool = True,
     num_objects: Optional[int] = None,
+    name: Optional[Text] = None,
     **kwargs,
 ) -> simulations.Simulation:
     if strict_context:
@@ -91,8 +92,20 @@ def make_extremity_game_simulation(
     context_size = (num_objects, object_size)
     num_functions = 2 * object_size
 
+    if name is None:
+        name_kwargs = {
+            "object_size": object_size,
+            "context_size": context_size,
+            "message_sizes": message_sizes,
+            "strict_context": strict_context,
+            "shared_context": shared_context,
+            "num_objects": num_objects,
+        }
+        name_kwargs.update(kwargs)
+        name = "extremity_game__" + utils.kwargs_to_str(name_kwargs)
+
     return simulations.Simulation(
-        name=f"extremity_game_simulation_o_{object_size}__c_{context_size}__m_{utils.join_vals(message_sizes)}__sharedcontext_{int(shared_context)}__strict_context_{int(strict_context)}",
+        name=name,
         object_size=object_size,
         num_functions=num_functions,
         context_size=context_size,

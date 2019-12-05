@@ -144,16 +144,21 @@ def run_simulation_grid(
 
     simulations = []
     for grid_values in simulations_grid:
-        kw = {k: v for k, v in zip(keys, grid_values)}
+        simulation_kwargs = {k: v for k, v in zip(keys, grid_values)}
+
+        current_simulation_name = f"{simulation_name}__" + utils.kwargs_to_str(
+            simulation_kwargs
+        )
 
         simulation = simulation_factory(
-            message_sizes=message_sizes, num_trials=num_trials, **kw
+            name=current_simulation_name,
+            message_sizes=message_sizes,
+            num_trials=num_trials,
+            **simulation_kwargs,
         )
         simulations.append(simulation)
 
-    simulation_grid_name = f"{simulation_name}_grid__" + "__".join(
-        f"{key}_{utils.str_val(val)}" for key, val in kwargs.items()
-    )
+    simulation_grid_name = f"{simulation_name}__" + utils.kwargs_to_str(kwargs)
 
     pathlib.Path(f"./simulations/{simulation_grid_name}.json").write_text(
         json.dumps(

@@ -172,3 +172,7 @@ def str_val(val) -> Text:
     elif isinstance(val, tuple) or isinstance(val, list):
         return join_vals(val)
     return str(val)
+
+
+def kwargs_to_str(kwargs) -> Text:
+    return "__".join(f"{key}_{str_val(val)}" for key, val in kwargs.items())
