@@ -354,7 +354,9 @@ class Game(nn.Module):
             encoder_contexts, predicted_objects, target_objects
         )
 
-    def _plot_messages_information(self, visualize_latent_space: bool = False):
+    def _plot_messages_information(
+        self, visualize_targets: bool = False, visualize_latent_space: bool = False
+    ):
         with torch.no_grad():
             (
                 func_selectors,
@@ -376,22 +378,21 @@ class Game(nn.Module):
 
             title_information_row = f"M={self.message_size}, O={self.object_size}, C={self.context_size}, F={self.num_functions}"
 
-            utils.plot_raw_and_pca(
+            utils.plot_raw(
                 messages.numpy(),
                 message_masks,
                 message_labels,
                 f"Messages\n{title_information_row}",
             )
 
-            # Plot targets
-
-            targets = self._target(encoder_contexts, func_selectors)
-            utils.plot_raw_and_pca(
-                targets.numpy(),
-                message_masks,
-                message_labels,
-                f"Targets\n{title_information_row}",
-            )
+            if visualize_targets:
+                targets = self._target(encoder_contexts, func_selectors)
+                utils.plot_raw(
+                    targets.numpy(),
+                    message_masks,
+                    message_labels,
+                    f"Targets\n{title_information_row}",
+                )
 
             if visualize_latent_space:
                 # Plot latent encoder space
@@ -406,14 +407,14 @@ class Game(nn.Module):
                     self.encoder_hidden_layers[1](latent_messages_level_1)
                 )
 
-                utils.plot_raw_and_pca(
+                utils.plot_raw(
                     latent_messages_level_1.numpy(),
                     message_masks,
                     message_labels,
                     f"Encoder latent level 1 -- ReLu(W_e1(input))",
                 )
 
-                utils.plot_raw_and_pca(
+                utils.plot_raw(
                     latent_messages_level_2.numpy(),
                     message_masks,
                     message_labels,
@@ -430,14 +431,14 @@ class Game(nn.Module):
                     self.decoder_hidden_layers[1](latent_decoder_level_1)
                 )
 
-                utils.plot_raw_and_pca(
+                utils.plot_raw(
                     latent_decoder_level_1.numpy(),
                     message_masks,
                     message_labels,
                     f"Decoder latent level 1 -- ReLu(W_d1(messages+context))",
                 )
 
-                utils.plot_raw_and_pca(
+                utils.plot_raw(
                     latent_decoder_level_2.numpy(),
                     message_masks,
                     message_labels,
@@ -802,7 +803,7 @@ class Game(nn.Module):
             num_test_messages = inferred_messages.shape[0]
             mask1 = np.array([True] * num_test_messages + [False] * num_test_messages)
             mask2 = mask1 ^ True
-            utils.plot_raw_and_pca(
+            utils.plot_raw(
                 data=torch.cat([test_target_messages, inferred_messages], dim=0),
                 masks=[mask1, mask2],
                 labels=["Target messages", "Inferred messages"],

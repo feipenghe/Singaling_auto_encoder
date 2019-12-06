@@ -44,11 +44,20 @@ class Simulation:
     )
 
 
-def load_simulation(simulation_name: Text) -> Simulation:
+def _get_simulation_path(simulation_name: Text, subdir: Text = "") -> pathlib.Path:
+    return (
+        pathlib.Path("./simulations/").joinpath(subdir).joinpath(f"{simulation_name}/")
+    )
+
+
+def load_simulation(simulation_name: Text, subdir: Text = "") -> Simulation:
+    name_split = simulation_name.split("/")
+    if len(name_split) == 2:
+        subdir, simulation_name = name_split
     return Simulation.from_json(
-        pathlib.Path(
-            f"./simulations/{simulation_name}/{simulation_name}.json"
-        ).read_text()
+        _get_simulation_path(simulation_name, subdir)
+        .joinpath(f"{simulation_name}.json")
+        .read_text()
     )
 
 
@@ -66,7 +75,13 @@ def _save_simulation(simulation: Simulation):
 
 def _save_games(simulation: Simulation, games: Dict[int, List[game.Game]]):
     pickle.dump(
-        games, pathlib.Path(f"./simulations/{simulation.name}/games.pickle").open("wb")
+        games, _get_simulation_path(simulation.name).joinpath("games.pickle").open("wb")
+    )
+
+
+def load_games(simulation_name: Text) -> Dict[int, List[game.Game]]:
+    return pickle.load(
+        _get_simulation_path(simulation_name).joinpath("games.pickle").open("rb")
     )
 
 

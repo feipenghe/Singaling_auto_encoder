@@ -11,7 +11,7 @@ import torch
 from sklearn.decomposition import PCA
 
 
-def plot_raw_and_pca(
+def plot_raw(
     data,
     masks: List[List[int]],
     labels: List[Text],
@@ -19,11 +19,15 @@ def plot_raw_and_pca(
     colors: Optional[torch.Tensor] = None,
     custom_labels: List[Text] = [],
 ):
-    if data.shape[1] > 1:
-        fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+    plot_pca = data.shape[1] > 2
 
-        pca_model = PCA(n_components=2, whiten=True)
-        data_pca = pca_model.fit_transform(data)
+    if data.shape[1] > 1:
+        num_plots = 2 if plot_pca else 1
+        fig, ax = plt.subplots(1, num_plots, figsize=(8, 4), squeeze=False)
+
+        if plot_pca:
+            pca_model = PCA(n_components=2, whiten=True)
+            data_pca = pca_model.fit_transform(data)
 
         for i, (mask, label) in enumerate(zip(masks, labels)):
             # plot first two coordinates
@@ -32,31 +36,33 @@ def plot_raw_and_pca(
             else:
                 color = f"C{i}"
 
-            ax[0].scatter(
-                data[mask, 0], data[mask, 1], alpha=0.2, label=label, color=color
+            ax[0, 0].scatter(
+                data[mask, 0], data[mask, 1], alpha=0.5, label=label, color=color
             )
-            ax[0].axis("equal")
-            ax[0].set(
-                xlabel="Coordinate 1", ylabel="Coordinate 2", title="First coordinates"
+            ax[0, 0].axis("equal")
+            ax[0, 0].set(
+                xlabel="Coordinate 1",
+                ylabel="Coordinate 2",
+                title="First coordinates" if plot_pca else "",
             )
 
-            # plot principal components from PCA
-            ax[1].scatter(
-                data_pca[mask, 0],
-                data_pca[mask, 1],
-                alpha=0.2,
-                label=label,
-                color=color,
-            )
-            ax[1].axis("equal")
-            ax[1].set(xlabel="Component 1", ylabel="Component 2", title="PCA")
+            if plot_pca:
+                ax[0, 1].scatter(
+                    data_pca[mask, 0],
+                    data_pca[mask, 1],
+                    alpha=0.5,
+                    label=label,
+                    color=color,
+                )
+                ax[0, 1].axis("equal")
+                ax[0, 1].set(xlabel="Component 1", ylabel="Component 2", title="PCA")
 
     else:
         fig, ax = plt.subplots(1, 1, figsize=(5, 2))
 
         for mask, label in zip(masks, labels):
             # plot first (only) coordinate
-            ax.scatter(data[mask, 0], [0] * len(mask), alpha=0.2, label=label)
+            ax.scatter(data[mask, 0], [0] * len(mask), alpha=0.5, label=label)
             ax.axis("equal")
             ax.set(xlabel="Coordinate 1", ylabel="Dummy", title="First coordinate")
 
@@ -84,22 +90,7 @@ def plot_clusters(data, labels, title="Clusters"):
         labels_to_idx[label].append(i)
 
     labels, masks = zip(*labels_to_idx.items())
-    plot_raw_and_pca(data, masks, labels, title)
-
-
-# def plot_information(game: Game, num_exemplars = 40):
-#     situations = torch.randn(num_exemplars * game.func_size, game.context_size)
-#     func_switches = torch.cat([torch.arange(game.func_size) for _ in range(num_exemplars)])
-#     targets = game.target(situations, func_switches)
-#     targets = targets.numpy()
-#
-#     masks = []
-#     labels = []
-#     for fc in range(game.object_size):
-#         masks.append([i * game.object_size + fc for i in range(num_exemplars)])
-#         labels.append(f"F{fc}")
-#
-#     plot_raw_and_pca(targets, masks, labels, "Targets")
+    plot_raw(data, masks, labels, title)
 
 
 def plot_bar_list(L, L_labels=None, transform=True):
