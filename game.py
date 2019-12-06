@@ -1025,9 +1025,7 @@ class Game(nn.Module):
     def _run_unsupervised_clustering(self, visualize: bool = False):
         num_clusters = self._detect_num_clusters()
 
-        (_, _, _, training_messages,) = self._generate_funcs_contexts_messages(
-            self.num_exemplars
-        )
+        (_, _, _, training_messages,) = self._generate_funcs_contexts_messages(1000)
 
         k_means = cluster.KMeans(n_clusters=num_clusters)
         training_labels = k_means.fit_predict(training_messages)
@@ -1043,7 +1041,7 @@ class Game(nn.Module):
             _,
             _,
             alignment_messages,
-        ) = self._generate_funcs_contexts_messages(self.num_exemplars)
+        ) = self._generate_funcs_contexts_messages(1000)
         alignment_func_idxs = alignment_func_selectors.argmax(dim=1)
         alignment_labels = k_means.predict(alignment_messages)
 

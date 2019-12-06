@@ -192,7 +192,7 @@ def run_simulation_grid(
     )
 
     if num_processes is not None:
-        pool = multiprocessing.Pool(processes=num_processes, maxtasksperchild=1)
+        pool = multiprocessing.Pool(processes=num_processes)
         pool.map(run_simulation, simulations)
     else:
         for simulation in simulations:
