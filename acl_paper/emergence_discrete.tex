@@ -15,6 +15,7 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[hyperref]{acl2020}
 \usepackage{times}
+\usepackage{subfigure}
 \usepackage{latexsym}
 \renewcommand{\UrlFont}{\ttfamily\small}
 
@@ -85,13 +86,12 @@
 
 In a signalling game, artificial agents communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action. If the action is appropriate, the whole communication stream, and in particular the choice of the message, is reinforced. For instance, in a referential game, sender and receiver see a set of objects, and the sender must send a message to the receiver, so that the receiver can pick up the right object, as determined in advance for the sender, but unbeknownst to the receiver. 
 
-
 \section{Function Games}
 
-We here introduce a general communication game setting, which we call Function Games.  Our games contain three basic components: (i) a set of contexts $C$, (i) a set of actions $A$, (ii) a family of functions $F$, from contexts to actions.  One play of a Function Game game runs as follows:
+We here introduce a general communication game setting, which we call Function Games.  Our games contain three basic components: (i) a set of contexts $C$, (ii) a set of actions $A$, (iii) a family of functions $F$, from contexts to actions.  One play of a Function Game game runs as follows:
 \begin{enumerate}
 	\item Nature chooses $f \in F$ and a context $c \in C$.
-	\item Sender sees the context $c$ and $f(c)$. \nbSST{I like f(c) here, but f is a bit more appropriate.  What do you all think?}
+	\item Sender sees the context $c$ and $f$. \nbSST{I like f(c) here, but f is a bit more appropriate.  What do you all think? Nur: Given the situation, f is the only choice, no?}
 	\item Sender sends a message $m$ to Receiver.
 	\item Receiver sees \emph{a possibly different} context $c'$ and the message $m$ and chooses an action $a'$.
 	\item Both are `rewarded' iff $a' = f(c')$.
@@ -109,12 +109,11 @@ Because we are interested in the simultaneous emergence both of discrete signals
 
 \subsection{Model}
 
-Our model resembles an encoder-decoder architecture, with the Sender encoding the context/target pair into a message, and the Receiver decoding the message (together with its context $c'$) into an action.  Both the encoder and decoder are multi-layer perceptrons with two hidden layers of size 64 and rectified linear (ReLU) activation \citep{Nair2010, Glorot2011}. Figure~\ref{fig:model} depicts this architecture.
-\nbSST{I gleaned this from the code; please correct if I'm wrong.}
+Our model resembles an encoder-decoder architecture, with the Sender encoding the context/target pair into a message, and the Receiver decoding the message (together with its context $c'$) into an action.  Both the encoder and decoder are multi-layer perceptrons with two hidden layers of size 64 and rectified linear activation (ReLU) \citep{Nair2010, Glorot2011}. A smaller, intermediate layer without an activation function bridges the encoder and decoder and represents the transformation of the input information to messages. Figure~\ref{fig:model} depicts this architecture.
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=\columnwidth]{model_figure.png}
+	\includegraphics[width=\columnwidth]{./figures/model_figure.png}
 	\caption{Model architecture caption \nbSST{Do we really need this? It isn't super informative and might use too much space. I can also do something in TikZ if we think it's important and that this one is ugly.}}
 	\label{fig:model}
 \end{figure}
@@ -124,31 +123,42 @@ Our model resembles an encoder-decoder architecture, with the Sender encoding th
 In our experiments, we manipulated the following parameters of the Extremity Game:
 \begin{itemize}
 	\item Context strictness. 
-		In \emph{strict} contexts, every object is the $\argmax$ or $\argmax$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019a}.}  In \emph{non-strict} contexts, no such restriction is imposed. 
+		In \emph{strict} contexts, every object is the $\argmax$ or $\argmax$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019a}.}  In \emph{non-strict} contexts, no such restriction is imposed.
 
-		We considered strict contexts with \nbSST{Nur: add number} 10 objects (5 dimensions) and non-strict contexts with \nbSST{Nur: add} objects.
+		We considered strict contexts with 10 objects (i.e. each object consists of 5 dimensions) and non-strict contexts with 5, 10, and 15 objects.
 	\item Context identity. In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's.  This may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
-	\item Object size: in all experiments, objects had 5 dimensions. \nbSST{Verify that this is correct}
-	\item Latent space (message) dimension: in all experiments, the latent space had 2 dimension.
+	\item Object size: in all experiments, objects had 5 dimensions.
+	\item Latent space (message) dimension: in all experiments, the latent space had 2 dimension\footnote{The model also performed well with messages of size 1, not reported here. Using messages of size 2 allows for interpretable 2-D visualization of the latent space.}.
 \end{itemize}
-For each setting of the above parameters, we ran 20 trials with different random seeds.
 
 \subsection{Training Details}
 
-As mentioned earlier, by using a continuous latent space, the entire model, including the communication channel, is differentiable and so can be trained end-to-end using backpropagation to compute gradients.  We used the Adam optimizer \citep{Kingma2015} with learning rate 0.001, $\beta_1 = 0.9$, and $\beta_2 = 0.999$.
-\nbSST{I gleaned this from the code; please correct if I'm wrong.  Can move to an Appendix if need space.}
+By using a continuous latent space, the entire model, including the communication channel, is differentiable and so can be trained end-to-end using backpropagation to compute gradients.  We used the Adam optimizer \citep{Kingma2015} with learning rate 0.001, $\beta_1 = 0.9$, and $\beta_2 = 0.999$. The model was trained for 5,000 epochs by feeding the network with mini-batches of 64 contexts concatenated with one-hot function selectors. The network's loss was the MSE between the target object $f(c')$ and the object generated by the Receiver. For each setting of the above parameters, we ran 20 trials with different random seeds.
 
-Code and data will be made available once the paper can be de-anonymized.
+Code and data will be made available once the paper can be de-anonymized. 
 
 \section{Results}
 
-\subsection{Communicative success}
-
-% TODO(sst): maybe this isn't a sub-section, just basic results, then subsections for the analyses
+We measure the communicative success of the network by calculating the accuracy of recovering the correct object from $c'$. The Receiver's prediction is considered correct if the output is closest to $f(c')$ than to all other objects in $c'$. The recovery accuracy of the different settings is reported in Table ???. Note that although accuracy is not $100\%$, it is still well above chance, since e.g. for a context of 10 objects random guessing will yield an expected accuracy of $10\%$. 
 
 \subsection{Discrete signals}
 
+\begin{figure*}[ht]
+  \centering
+  \subfigure[]{\includegraphics[scale=0.5]{./figures/messages_o5_shared_strict_trained.png}}\quad
+  \subfigure[]{\includegraphics[scale=0.5]{./figures/messages_o5_untrained.png}}
+  \caption{(a) Messages sampled from latent space of a trained network, for objects of size 5 and contexts of 10 objects. (b) Messages sampled from an untrained network. Colors represent the $f_i \in F$ input part of the Sender.}
+ \label{fig:messages}
+\end{figure*}
+
+The model's ability to discretizie the communication is measured by inspecting the information generated by the intermediate layer, at which point it represents the messages being transmitted. Figure~\ref{fig:messages} depicts message vectors sampled at this layer. The same is depicted for an untrained network, in which case the information is visibly not clustered. 
+
+We make the discretization measure concrete by calculating the F1 score between the cluster labels for transmitted messages and the target functions for which they were generated. For this, an unsupervized clustering algorithm is first applied to the message vectors, giving an expected number of clusters (DBSCAN, \citealp{ester_density-based_1996}, $epsilon = 0.5$). The cluster labels are then matched with the respective function labels by taking the most common function in each cluster. If message clusters are well separated from one another, the labeling will have less to no confusion and an F1 score closer to~$1$. The F1 scores for the different model settings are given in Figure ???. The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for strict and non-strict contexts. 
+
+Given the clusterization of the message space, we are able to sample unseen messages from each cluster, and test the Receiver's perception of `artificial' messages. 10 messages are sampled from each cluster, and their average value is fed to the Receiver. The output object accuracy for unseen messages is given in Figure~\ref{fig:average_message_accuracy}. The model achieves recovery accuracy similar to messages generated for true inputs. This can be paralleled with the phenomenon of Categorical Perception in humans, in which signals in continuous spaces, such as phonemes in an acoustic space, are perceived in a categorical way even when the signal is gradually shifted.
+
 \subsection{Compositionality}
+
 
 \section{Discussion}
 
