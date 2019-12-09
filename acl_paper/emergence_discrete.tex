@@ -97,12 +97,12 @@
 % TODO(sst): short [4] or long [8] paper?
 
 \begin{abstract}
-	We propose a general framework to study language emergence through signaling games with neural agents. Using a continuous latent space, we are able to (i)~train using back-propagation, (ii)~show that discrete messages nonetheless naturally emerge. We discuss various ways to test classic properties of the emergent language in production and perception.
+	We propose a general framework to study language emergence through signaling games with neural agents. Using a continuous latent space, we are able to (i)~train using backpropagation, (ii)~show that discrete messages nonetheless naturally emerge. We discuss various ways to test classic properties of the emergent language in production and perception.
 \end{abstract}
 
 \section{Introduction}
 
-In a signalling game, artificial agents learn to communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action \citep{Lewis1969, Skyrms2010}. If the action is coherent with the sender's initial piece of information, the whole communication stream ---the choice of the message and its interpretation--- is reinforced. 
+In a signaling game, artificial agents learn to communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action \citep{Lewis1969, Skyrms2010}. If the action is coherent with the sender's initial piece of information, the whole communication stream ---the choice of the message and its interpretation--- is reinforced. 
 For instance, in a referential game, sender and receiver see a set of objects, and the sender knows which of these the receiver must pick; the sender thus sends a message to the receiver, who must interpret it to pick up the right object \citep{Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.
 %For instance, in a referential game, sender and receiver see a set of objects, and the sender must send a message to the receiver, so that the receiver can pick up the right object, as determined in advance for the sender, but unbeknownst to the receiver \citep{Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.
 
@@ -111,12 +111,12 @@ In this paper, we add focus on two other so-called `design features' of natural 
 \emph{discreteness} (i.e.~words form clusters in acoustic space), 
 and \emph{displacement} (i.e.~efficient communication can occur about objects and facts beyond the immediate context of the conversation).
 
-From an implementation point of view, we follow the recent literature which has shown that a signalling game is essentially an autoencoder setting, with the encoder playing the role of the sender, and the decoder the role of the receiver (see Fig.~\ref{fig:model}). In this literature, however, the discreteness of the communication protocol is assumed, since the networks then traditionally use a (normally sequential and) discrete latent space \citep{Havrylov2017, Chaabouni2019a, Kharitonov2019}.  
+From an implementation point of view, we follow the recent literature which has shown that a signaling game is essentially an autoencoder setting, with the encoder playing the role of the sender, and the decoder the role of the receiver (see Fig.~\ref{fig:model}). In this literature, however, the discreteness of the communication protocol is assumed, since the networks then traditionally use a (normally sequential and) discrete latent space \citep{Havrylov2017, Chaabouni2019a, Kharitonov2019}.  
 
 
-Our main contribution is a generalization of the current implementation of signalling games as autoencoders.
+Our main contribution is a generalization of the current implementation of signaling games as autoencoders.
 %, called Function Games. 
-Our implementation covers a broader variety of signalling games, and it crucially incorporates the possibility of displacement and no \emph{a priori} assumption of discreteness. %In this setting we propose new analyses for the degree of emergent discreteness, compositionality and displacement. 
+Our implementation covers a broader variety of signaling games, and it crucially incorporates the possibility of displacement and no \emph{a priori} assumption of discreteness. %In this setting we propose new analyses for the degree of emergent discreteness, compositionality and displacement. 
 Our main result is that under appropriate conditions, discreteness emerges spontaneously, that is, if the latent space is thought about as a continuous acoustic space, then trained messages form coherent clusters, just like regular words do.
 
 In addition to contributing to our understanding of the emergence of communication protocols with features like natural language, these results have a technical significance: by using a fundamentally continuous communication protocol, with discreteness emerging, we can train end-to-end using standard backpropagation techniques, instead of reinforcement learning algorithms like REINFORCE and its refinements \citep{Williams1992, Schulman2015, Mnih2016}, which \nbEC{often have high variance and }are difficult to use in practice.
@@ -141,7 +141,7 @@ In addition to contributing to our understanding of the emergence of communicati
 
 A related line of work attempts to avoid the difficulties of reinforcement learning---which introduces stochastic nodes into a computation graph---by reparameterization and/or non-stochastic estimators \citep{Bengio2013, Schulman2015}.  In the emergent communication case, where the stochastic nodes are discrete (e.g.\ sampling a message from a sender distribution), the Gumbel-Softmax estimator has become increasingly popular \citep{Jang2017, Maddison2017}.  
 
-This work enables standard back-propagation to be used for training by optimizing approximations to the true reinforcement learning signal.  By contrast, using the auto-encoder analogy more literally, we do not approximate the discrete RL learning signal, but rather ask under what conditions discreteness will emerge. \nbSST{Probably can be worded better.}
+This work enables standard backpropagation to be used for training by optimizing approximations to the true reinforcement learning signal.  By contrast, using the auto-encoder analogy more literally, we do not approximate the discrete RL learning signal, but rather ask under what conditions discreteness will emerge. \nbSST{Probably can be worded better.}
 
 \section{Function Games}
 
@@ -232,7 +232,7 @@ Accordingly, the recovery accuracy for networks before training are at the expec
 %\caption{Mean object recovery accuracy and prediction loss before and after training, for objects of size 5 in a shared, strict context setting (10 objects per context).}\label{tab:prediction_trained_untrained}
 %\end{table}
 
-As mentioned, our setting can use traditional back-propagation, and it reaches higher accuracy levels than settings using \emph{a priori} discrete signals (\citealp{REF} did not perform well with more than 2 objects\nbEC{CHECK}).
+As mentioned, our setting can use traditional backpropagation, and it reaches higher accuracy levels than settings using \emph{a priori} discrete signals (\citealp{REF} did not perform well with more than 2 objects\nbEC{CHECK}).
 \nbEC{Move this paragraph to discussion section?}
 
 
@@ -417,7 +417,7 @@ Second, we note as others that the composition as addition assumption is however
 
 \section{Conclusion}
 
-Signalling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. Here we propose a general framework in which more games can be simulated, fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most\nbEC{all} studies involving neural signalling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-derivability issues). Likely due to this improvement, we find that at equivalent difficulty levels, our training regime leads to better communication than systems forcing discreteness \emph{a priori}, while, nonetheless, the resulting language spontaneously evolves effectively discrete signals. 
+Signaling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. Here we propose a general framework in which more games can be simulated, fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most\nbEC{all} studies involving neural signaling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-derivability issues). Likely due to this improvement, we find that at equivalent difficulty levels, our training regime leads to better communication than systems forcing discreteness \emph{a priori}, while, nonetheless, the resulting language spontaneously evolves effectively discrete signals. 
 %Further work will include studies about when compositionality may jointly emerge with discreteness, and whether one can find categorical perception, which is a finer-grained level of discreteness. Our setup makes all these issue testable.
 
 % TODO(sst): add if accepted
