@@ -251,15 +251,26 @@ Accordingly, the recovery accuracy for networks before training are at the expec
 \subsection{Discrete signals}
 
 \begin{figure}[]
-\begin{tabular}{c}
-(a)~Messages before training\\
-\includegraphics[width=\columnwidth]{./figures/messages_o5_untrained.png}\\
-(b)~Messages after training\\
-\includegraphics[width=\columnwidth]{./figures/messages_o5_shared_strict_trained.png}
+\begin{tabular}{ll}
+(a)~Before training &
+(b)~After training\\
+\includegraphics[scale=.3, trim=15 21 50 0, clip]{./figures/messages_o5_untrained.png} &
+\includegraphics[scale=.3, trim=15 21 0 0, clip]{./figures/messages_o5_shared_strict_trained.png}
 \end{tabular}
 \caption{Messages sampled from latent space for objects of size 5 and contexts of 10 objects for (a)~an untrained and (b)~a trained network. Colors represent the $f_i \in F$ input part of the Sender.}
  \label{fig:messages}
 \end{figure}
+
+%\begin{figure}[]
+%\begin{tabular}{c}
+%(a)~Messages before training\\
+%\includegraphics[width=\columnwidth]{./figures/messages_o5_untrained.png}\\
+%(b)~Messages after training\\
+%\includegraphics[width=\columnwidth]{./figures/messages_o5_shared_strict_trained.png}
+%\end{tabular}
+%\caption{Messages sampled from latent space for objects of size 5 and contexts of 10 objects for (a)~an untrained and (b)~a trained network. Colors represent the $f_i \in F$ input part of the Sender.}
+% \label{fig:messages}
+%\end{figure}
 
 %\begin{figure*}[ht]
 %  \centering
@@ -356,7 +367,7 @@ As a sampling procedure for artificial messages, we take the average of 10 messa
 %\end{table}
 
 In sum, we can identify discrete, abstract regions of the latent space corresponding to different functions in the input, just like words form clusters in acoustic space. This analysis in terms of production and perception can lead to more psycholinguistic-like queries about these emergent languages. For instance, one may ask whether classical `Categorical Perception' effects obtain, whereby messages shifting continuously in the latent space may be interpreted as if they crossed a sharp boundary for interpretation purposes (see \citealp{DamperHarnad-CP} for early discussions in the context of neural architectures).
-\nbEC{Improve that last part? Move it to the discussion?}
+\nbEC{Improve that last paragraph above? Move it to the discussion section?}
 
 
 
@@ -365,11 +376,19 @@ In sum, we can identify discrete, abstract regions of the latent space correspon
 
 \subsection{Compositionality}
 
-We trained a model to predict various features from the message, to see what they encode.  Results show that predicting min/max and param(f) are easy to do.  But this leaves open the question: are these features systematically / compositionally encoded in the message?
+How do the messages relate to the structure in the family of functions $F$? It is not usual to ask such compositionality questions for continuous messages, but it is possible and the emergence of discreteness here makes it a natural question. Initial inquiries show that a model can easily predict whether a message correspond to an $\argmin$ or an $\argmax$ function, or which dimension it targets. But this leaves open the question: are these features \emph{compositionally} encoded in the message?
 
-First test: analogy; include table
+\newcommand{\WE}[1]{\textsc{we}(#1)}
+\newcommand{\MESS}[1]{\textsc{m}(#1)}
 
-Could be limitation of that method, so try: compositionality network.  Include table here.
+First, we refer to \addEC{REF}, in which compositionality is looked for at the level of word embeddings through addition, most classically asking whether  
+\WE{queen}=\WE{king}-\WE{man}+\WE{woman}. In the current Game, the analogous question is whether the messages are related as follows, for any dimensions $i$ and $j$:
+\MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. 
+\nbEC{describe results here}
+
+Second, we note as others that the composition as addition assumption is however disputable, both in general and in the original application case \addEC{REF}. To abstract away from this issue, we train a network at predicting 
+\MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$} (therefore leaving out the assumption that this relation would be addition). Leaving out one dimension $i_0$ from training, we ask whether the network was able to recover the left-out \MESS{$\argmax_{i_0}$} messages from their corresponding \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}.
+\nbEC{describe results here}
 
 \section{Discussion}
 
