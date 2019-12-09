@@ -628,7 +628,7 @@ class Game(nn.Module):
                 predicted_output_by_inferred_messages, target_output
             ).item()
             prediction_accuracy = self._evaluate_object_prediction_accuracy(
-                encoder_contexts[target_messages_mask],
+                decoder_contexts[target_messages_mask],
                 predicted_output_by_inferred_messages,
                 target_output,
             )
@@ -878,7 +878,7 @@ class Game(nn.Module):
             predicted_output_by_inferred_messages, target_output
         ).item()
         prediction_accuracy = self._evaluate_object_prediction_accuracy(
-            encoder_contexts, predicted_output_by_inferred_messages, target_output,
+            decoder_contexts, predicted_output_by_inferred_messages, target_output,
         )
 
         return (
