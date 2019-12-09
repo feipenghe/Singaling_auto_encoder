@@ -408,14 +408,14 @@ First, in the pioneering \citealp{mikolov_efficient_2013}, compositionality is l
 \WE{queen}=\WE{king}-\WE{man}+\WE{woman}. In the current Game, the analogous question is whether the messages are related as follows, for any dimensions $i$ and $j$:
 \MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. We find that using the right-hand side of the equation above, that is the compositionally appropriate message, in principle, leads to important degradation of communicative success (a drop of at least 36 percentage points across parameter combinations, to around chance level).
 
-Second, we note as others that the composition as addition assumption is however disputable, both in general and in the original application case \addEC{REF}. To abstract away from this issue, we train a network at predicting 
+Second, we note as others that the composition as addition assumption is however disputable, both in general and in the original application case \citep{linzen-2016-issues, Chen2017}. To abstract away from this issue, we train a network at predicting 
 \MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$}, therefore letting it discover any function for mixing values, and not involving addition \emph{a priori}. We left out one dimension $i_0$ from training, and considered the message predicted by such a network from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$\argmax_{i_0}$}, but we found that, as in the case of addition, communication accuracy dropped dramatically (again, at least 36 percentage points drop).
 \nbEC{cite Baroni's (or others) similar tests?}
 
 
-\section{Discussion}
+% \section{Discussion}
 
-\nbEC{We can either drop the discussion section, or move there the last paragraph of the communicative success and discreteness sections, adding a note saying that compositionality failed (but that high level of compositionality where never reached?).}
+% \nbEC{We can either drop the discussion section, or move there the last paragraph of the communicative success and discreteness sections, adding a note saying that compositionality failed (but that high level of compositionality where never reached?).}
 
 \section{Conclusion}
 
