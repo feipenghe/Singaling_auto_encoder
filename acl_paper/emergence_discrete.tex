@@ -87,26 +87,39 @@
 
 \section{Introduction}
 
-In a signalling game, artificial agents communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action \citep{Lewis1969, Skyrms2010}. If the action is appropriate, the whole communication stream, and in particular the choice of the message, is reinforced. For instance, in a referential game, sender and receiver see a set of objects, and the sender must send a message to the receiver, so that the receiver can pick up the right object, as determined in advance for the sender, but unbeknownst to the receiver \citep{Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.
+In a signalling game, artificial agents learn to communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action \citep{Lewis1969, Skyrms2010}. If the action is coherent with the sender's initial piece of information, the whole communication stream ---the choice of the message and its interpretation--- is reinforced. 
+For instance, in a referential game, sender and receiver see a set of objects, and the sender knows which of these the receiver must pick; the sender thus sends a message to the receiver, who must interpret it to pick up the right object \citep{Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.
+%For instance, in a referential game, sender and receiver see a set of objects, and the sender must send a message to the receiver, so that the receiver can pick up the right object, as determined in advance for the sender, but unbeknownst to the receiver \citep{Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.
 
-This setting has been used to study the factors influencing the emergence of various fundamental properties of natural language, such as compositionality \citep{Kirby2015, Franke2016, SteinertThrelkeld2016, Mordatch2018, Lazaridou2018, Choi2018}.
+This setting has been used to study the factors influencing the emergence of various fundamental properties of natural language, such as \emph{compositionality} \citep{Kirby2015, Franke2016, SteinertThrelkeld2016, Mordatch2018, Lazaridou2018, Choi2018}.
+In this paper, we add focus on two other so-called `design features' of natural language \citep{Hockett1960}: 
+\emph{discreteness} (i.e.~words form clusters in acoustic space), 
+and \emph{displacement} (i.e.~efficient communication can occur about objects and facts beyond the immediate context of the conversation).
 
-In this paper, we focus on two other so-called `design features' of natural language \citep{Hockett1960}: discreteness and displacement.  In particular, we view signaling games as a kind of auto-encoder, with the continuous latent space being the communication protocol.  Under certain conditions, this space becomes discrete, with clusters that function in many ways like the symbols traditioanlly used in other studies.
+From an implementation point of view, we follow the recent literature which has shown that a signalling game is essentially an autoencoder setting, with the encoder playing the role of the sender, and the decoder the role of the receiver. In this literature, however, the discreteness of the communication protocol is assumed, since the autoencoders use a (normally sequential and) discrete latent space \citep{Havrylov2017, Chaabouni2019a, Kharitonov2019}.  
 
-Our main contributions are:
-\begin{itemize}
-	\item A generalization of reference games called Function Games, with a natural incorporation of displacement.
-	\item An analysis of clusters in continuous latent space as discrete symbols.
-	\item Probes for compositional structure in the new symbol space.
-\end{itemize}
+
+Our main contribution is a generalization of the current implementation of signalling games as autoencoders, called Function Games. Our implementation covers a broader variety of signalling games, and it crucially incorporates the possibility of displacement and no \emph{a priori} assumption of discreteness. In this setting we propose new analyses for the degree of emergent discreteness, compositionality and displacement. Our main result is that under appropriate conditions, discreteness emerges spontaneously, that is, if the latent space is thought about as a continuous acoustic space, then trained messages form coherent clusters, just like regular words do.
 
 In addition to contributing to our understanding of the emergence of communication protocols with features like natural language, these results have a technical significance: by using a fundamentally continuous communication protocol, with discreteness emerging, we can train end-to-end using standard backpropagation techniques, instead of reinforcement learning algorithms like REINFORCE and its refinements \citep{Williams1992, Schulman2015, Mnih2016}, which often have high variance and are difficult to use in practice.
 
-\nbSST{Notes on introduction: I'm not sure how much to play up the auto-encoder thing or not; and I added in a reference to Hockett as a hook. These lists of ``contributions'' are not my favorite stylistically, but they seem to be the norm in this literature.  It's also common to have a ``Related Work'' section; but we're tight on space.  What do people think?}
+
+%Our main contributions are:
+%\begin{itemize}
+%	\item A generalization of reference games called Function Games, with a natural incorporation of displacement.
+%	\item An analysis of clusters in continuous latent space as discrete symbols.
+%	\item Probes for compositional structure in the new symbol space.
+%\end{itemize}
+%
+%In particular, we view signaling games as a kind of auto-encoder, with the continuous latent space being the communication protocol.  Under certain conditions, this space becomes discrete, with clusters that function in many ways like the symbols traditionally used in other studies.
+%
+%In addition to contributing to our understanding of the emergence of communication protocols with features like natural language, these results have a technical significance: by using a fundamentally continuous communication protocol, with discreteness emerging, we can train end-to-end using standard backpropagation techniques, instead of reinforcement learning algorithms like REINFORCE and its refinements \citep{Williams1992, Schulman2015, Mnih2016}, which often have high variance and are difficult to use in practice.
+%
+%\nbSST{Notes on introduction: I'm not sure how much to play up the auto-encoder thing or not; and I added in a reference to Hockett as a hook. These lists of ``contributions'' are not my favorite stylistically, but they seem to be the norm in this literature.  It's also common to have a ``Related Work'' section; but we're tight on space.  What do people think?}
 
 \section{Related Work}
 
-Other papers have observed that reference games are analogous to autoencoders, albeit with a (normally sequential and) discrete latent space \citep{Havrylov2017, Chaabouni2019a, Kharitonov2019}.  All of these papers, however, assume the discreteness of the communication protocol.
+%Other papers have observed that reference games are analogous to autoencoders, albeit with a (normally sequential and) discrete latent space \citep{Havrylov2017, Chaabouni2019a, Kharitonov2019}.  All of these papers, however, assume the discreteness of the communication protocol.
 
 A related line of work attempts to avoid the difficulties of reinforcement learning---which introduces stochastic nodes into a computation graph---by reparameterization and/or non-stochastic estimators \citep{Bengio2013, Schulman2015}.  In the emergent communication case, where the stochastic nodes are discrete (e.g.\ sampling a message from a sender distribution), the Gumbel-Softmax estimator has become increasingly popular \citep{Jang2017, Maddison2017}.  
 
@@ -122,15 +135,19 @@ We here introduce a general communication game setting, which we call Function G
 	\item Receiver sees \emph{a possibly different} context $c'$ and the message $m$ and chooses an action $a'$.
 	\item Both are `rewarded' iff $a' = f(c')$.
 \end{enumerate}
-Two concrete interpretations will be helpful in illustrating the various components.
+Abstractly, the function $f$ represents some piece of knowledge available directly only to Sender, and which determines what action is appropriate in any given context. Two concrete interpretations will help illustrate the variety of communication protocols and goals that this framework encompasses.
+%Two concrete interpretations will be helpful in illustrating the various components.
 
 \noindent \textbf{Generalized referential games.}  A reference game is one in which Sender tries to get Receiver to pick the correct object out of a given set \citep{Skyrms2010, Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.  Here, contexts are sets of objects (i.e.\ an $m \times n$ matrix, with $m$ objects represented by $n$ features).  Normally (though we will drop this assumption later), $c' = \texttt{shuffled}(c)$: Sender and Receiver see the same objects, but in a different arrangement. Actions are the objects, and the functions $f \in F$ are \emph{choice functions}: $f(c) \in c$ for every context $c$.
 
-\noindent \textbf{Belief update games.}  Contexts can represent possible belief states for the agents.  Letting $A = C$, the functions will then be `belief update' functions, representing e.g.\ how to update an agent's beliefs in the light of learning a new piece of information. \nbSST{What should we cite here? Something from dynamic semantics?}
+\noindent \textbf{Belief update games.} Contexts can represent the (possibly different) belief states of the agents. `Actions' can represent updated belief states ($A = C$), the different functions in $F$ then representing how to update an agent's beliefs in the light of learning a particular piece of information (passed directly to Sender, and only through the message to Receiver). 
+\nbSST{What should we cite here? Something from dynamic semantics?}
+
+%\noindent \textbf{Belief update games.} Contexts can represent the (possibly different) belief states of the agents. Letting $A = C$, the functions can be seen as `belief update' functions, representing e.g.\ how to update an agent's beliefs in the light of learning a new piece of information (passed only through the message, as far as Receiver is concerned). 
 
 \section{Experiment}
 
-Because we are interested in the simultaneous emergence both of discrete signals and of compositional messages, we use a Function Game called the Extremity Game designed to incentivize compositionality \citep{Steinert-Threlkeld2019}.  This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
+Because we are interested in the simultaneous emergence both of discrete signals and of compositional messages, we use a Function Game called the Extremity Game designed to incentivize rich compositionality \citep{Steinert-Threlkeld2019}. This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
 
 \nbSST{cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be sort of de-anonymizing}
 
@@ -150,7 +167,7 @@ Our model resembles an encoder-decoder architecture, with the Sender encoding th
 In our experiments, we manipulated the following parameters of the Extremity Game:
 \begin{itemize}
 	\item Context strictness. 
-		In \emph{strict} contexts, every object is the $\argmax$ or $\argmax$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019}.}  In \emph{non-strict} contexts, no such restriction is imposed. 
+		In \emph{strict} contexts, every object is the $\argmax$ or $\argmin$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019}.}  In \emph{non-strict} contexts, no such restriction is imposed. 
 
 		We considered strict contexts with 10 objects (i.e. each object consists of 5 dimensions) and non-strict contexts with 5, 10, and 15 objects.
 	\item Context identity. In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's.  This may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
@@ -202,7 +219,7 @@ We measure the communicative success of the network by calculating the accuracy 
  \label{fig:messages}
 \end{figure*}
 
-The model's ability to discretizie the communication is measured by inspecting the information generated by the intermediate layer. Figure~\ref{fig:messages} depicts message vectors sampled from this layer. The same is depicted for an untrained network with randomized weights, where the messages are not yet clustered. 
+The model's ability to discretize the communication is measured by inspecting the information generated by the intermediate layer. Figure~\ref{fig:messages} depicts message vectors sampled from this layer. The same is depicted for an untrained network with randomized weights, where the messages are not yet clustered. 
 
 We make the discretization measure concrete by calculating the F1 score between the cluster labels for transmitted messages and the target functions for which they were generated. For this, an unsupervized clustering algorithm is first applied to the message vectors, giving an expected number of clusters (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). The cluster labels are then matched with the respective function labels by taking the most common function in each cluster. If message clusters are well separated from one another, the labeling will have less to no confusion and an F1 score closer to~$1$. The F1 scores for the different model settings are given in Table~\ref{tab:f1_scores}. The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
 
