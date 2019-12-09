@@ -252,3 +252,90 @@ volume = {25},
 year = {2016}
 }
 
+@article{Williams1992,
+author = {Williams, Ronald J},
+journal = {Machine Learning},
+mendeley-groups = {MachineLearning,Papers/function-words-psa,Papers/neural-most},
+number = {3-4},
+pages = {229--256},
+title = {{Simple statistical gradient-following algorithms for connectionist reinforcement learning}},
+volume = {8},
+year = {1992}
+}
+
+@inproceedings{Mnih2016,
+abstract = {We propose a conceptually simple and lightweight framework for deep reinforce- ment learning that uses asynchronous gradient descent for optimization of deep neural network controllers. We present asynchronous variants of four standard reinforcement learning algorithms and show that parallel actor-learners have a stabilizing effect on training allowing all four methods to successfully train neural network controllers. The best performing method, an asynchronous variant of actor-critic, surpasses the current state-of-the-art on the Atari domain while training for half the time on a single multi-core CPU instead of a GPU. Furthermore, we show that asynchronous actor-critic succeeds on a wide variety of continuous motor control problems as well as on a new task of navigating random 3D mazes using a visual input.},
+author = {Mnih, Volodymyr and {Puigdom{\`{e}}nech Badia}, Adri{\`{a}} and Mirza, Mehdi and Harley, Tim and Lillicrap, Timothy P and Silver, David and Kavukcuoglu, Koray},
+booktitle = {International Conference on Machine Learning (ICML)},
+file = {:Users/shanest/Documents/Library/Mnih et al/International Conference on Machine Learning (ICML)/Mnih et al. - 2016 - Asynchronous Methods for Deep Reinforcement Learning.pdf:pdf},
+mendeley-groups = {MachineLearning},
+title = {{Asynchronous Methods for Deep Reinforcement Learning}},
+url = {http://proceedings.mlr.press/v48/mniha16.html},
+year = {2016}
+}
+
+@inproceedings{Schulman2015,
+abstract = {In a variety of problems originating in supervised, unsupervised, and reinforcement learning, the loss function is defined by an expectation over a collection of random variables, which might be part of a probabilistic model or the external world. Estimating the gradient of this loss function, using samples, lies at the core of gradient-based learning algorithms for these problems. We introduce the formalism of stochastic computation graphs---directed acyclic graphs that include both deterministic functions and conditional probability distributions---and describe how to easily and automatically derive an unbiased estimator of the loss function's gradient. The resulting algorithm for computing the gradient estimator is a simple modification of the standard backpropagation algorithm. The generic scheme we propose unifies estimators derived in variety of prior work, along with variance-reduction techniques therein. It could assist researchers in developing intricate models involving a combination of stochastic and deterministic operations, enabling, for example, attention, memory, and control actions.},
+archivePrefix = {arXiv},
+arxivId = {1506.05254},
+author = {Schulman, John and Heess, Nicolas and Weber, Theophane and Abbeel, Pieter},
+booktitle = {Advances in Neural Information Processing Systems 28 (NIPS 2015)},
+eprint = {1506.05254},
+file = {:Users/shanest/Documents/Library/Schulman et al/Advances in Neural Information Processing Systems 28 (NIPS 2015)/Schulman et al. - 2015 - Gradient Estimation Using Stochastic Computation Graphs.pdf:pdf},
+mendeley-groups = {MachineLearning},
+title = {{Gradient Estimation Using Stochastic Computation Graphs}},
+url = {http://arxiv.org/abs/1506.05254},
+year = {2015}
+}
+
+@inproceedings{Kharitonov2019,
+abstract = {There is renewed interest in simulating language emergence among deep neural agents that communicate to jointly solve a task, spurred by the practical aim to develop language-enabled interactive AIs, as well as by theoretical questions about the evolution of human language. However, optimizing deep architectures connected by a discrete communication channel (such as that in which language emerges) is technically challenging. We introduce EGG, a toolkit that greatly simplifies the implementation of emergent-language communication games. EGG's modular design provides a set of building blocks that the user can combine to create new games, easily navigating the optimization and architecture space. We hope that the tool will lower the technical barrier, and encourage researchers from various backgrounds to do original work in this exciting area.},
+address = {Stroudsburg, PA, USA},
+archivePrefix = {arXiv},
+arxivId = {1907.00852},
+author = {Kharitonov, Eugene and Chaabouni, Rahma and Bouchacourt, Diane and Baroni, Marco},
+booktitle = {Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP): System Demonstrations},
+doi = {10.18653/v1/D19-3010},
+eprint = {1907.00852},
+file = {:Users/shanest/Documents/Library/Kharitonov et al/Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural./Kharitonov et al. - 2019 - EGG a toolkit for research on Emergence of lanGuage in Games.pdf:pdf},
+mendeley-groups = {MachineLearning/emergent-communication},
+pages = {55--60},
+publisher = {Association for Computational Linguistics},
+title = {{EGG: a toolkit for research on Emergence of lanGuage in Games}},
+url = {https://www.aclweb.org/anthology/D19-3010},
+year = {2019}
+}
+
+@inproceedings{Maddison2017,
+abstract = {The reparameterization trick enables optimizing large scale stochastic computation graphs via gradient descent. The essence of the trick is to refactor each stochastic node into a differentiable function of its parameters and a random variable with ﬁxed distribution. After refactoring, the gradients of the loss propagated by the chain rule through the graph are low variance unbiased estimators of the gradients of the expected loss. While many continuous random variables have such reparameterizations, discrete random variables lack useful reparameterizations due to the discontinuous nature of discrete states. In this work we introduce CONCRETE random variables—CONtinuous relaxations of disCRETE random variables. The Concrete distribution is a new family of distributions with closed form densities and a simple reparameterization. Whenever a discrete stochastic node of a computation graph can be refactored into a one-hot bit representation that is treated continuously, Concrete stochastic nodes can be used with automatic differentiation to produce low-variance biased gradients of objectives (including objectives that depend on the log-probability of latent stochastic nodes) on the corresponding discrete graph. We demonstrate the effectiveness of Concrete relaxations on density estimation and structured prediction tasks using neural networks.},
+author = {Maddison, Chris J and Mnih, Andriy and Teh, Yee Whye and Kingdom, United and Kingdom, United},
+booktitle = {International Conference of Learning Representations (ICLR)},
+file = {:Users/shanest/Documents/Library/Maddison et al/International Conference of Learning Representations (ICLR)/Maddison et al. - 2017 - The Concrete Distribution A Continuous Relaxation of Discrete Random Variables.pdf:pdf},
+mendeley-groups = {MachineLearning/emergent-communication},
+title = {{The Concrete Distribution: A Continuous Relaxation of Discrete Random Variables}},
+url = {https://arxiv.org/pdf/1611.00712.pdf},
+year = {2017}
+}
+
+@article{Bengio2013,
+abstract = {Stochastic neurons and hard non-linearities can be useful for a number of reasons in deep learning models, but in many cases they pose a challenging problem: how to estimate the gradient of a loss function with respect to the input of such stochastic or non-smooth neurons? I.e., can we "back-propagate" through these stochastic neurons? We examine this question, existing approaches, and compare four families of solutions, applicable in different settings. One of them is the minimum variance unbiased gradient estimator for stochatic binary neurons (a special case of the REINFORCE algorithm). A second approach, introduced here, decomposes the operation of a binary stochastic neuron into a stochastic binary part and a smooth differentiable part, which approximates the expected effect of the pure stochatic binary neuron to first order. A third approach involves the injection of additive or multiplicative noise in a computational graph that is otherwise differentiable. A fourth approach heuristically copies the gradient with respect to the stochastic output directly as an estimator of the gradient with respect to the sigmoid argument (we call this the straight-through estimator). To explore a context where these estimators are useful, we consider a small-scale version of {\em conditional computation}, where sparse stochastic units form a distributed representation of gaters that can turn off in combinatorially many ways large chunks of the computation performed in the rest of the neural network. In this case, it is important that the gating units produce an actual 0 most of the time. The resulting sparsity can be potentially be exploited to greatly reduce the computational cost of large deep networks for which conditional computation would be useful.},
+archivePrefix = {arXiv},
+arxivId = {1308.3432},
+author = {Bengio, Yoshua and L{\'{e}}onard, Nicholas and Courville, Aaron},
+eprint = {1308.3432},
+file = {:Users/shanest/Documents/Library/Bengio, L{\'{e}}onard, Courville/Unknown/Bengio, L{\'{e}}onard, Courville - 2013 - Estimating or Propagating Gradients Through Stochastic Neurons for Conditional Computation.pdf:pdf},
+mendeley-groups = {MachineLearning/emergent-communication},
+title = {{Estimating or Propagating Gradients Through Stochastic Neurons for Conditional Computation}},
+url = {http://arxiv.org/abs/1308.3432},
+year = {2013}
+}
+
+@inproceedings{Jang2017,
+author = {Jang, Eric and Gu, Shixiang and Poole, Ben},
+booktitle = {International Conference of Learning Representations (ICLR)},
+file = {:Users/shanest/Documents/Library/Jang, Gu, Poole/International Conference of Learning Representations (ICLR)/Jang, Gu, Poole - 2017 - Categorical Reparameterization with Gumbel-Softmax.pdf:pdf},
+mendeley-groups = {MachineLearning},
+title = {{Categorical Reparameterization with Gumbel-Softmax}},
+url = {http://arxiv.org/abs/1611.01144},
+year = {2017}
+}

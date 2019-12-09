@@ -19,6 +19,7 @@
 \usepackage{subfigure}
 \usepackage{latexsym}
 \renewcommand{\UrlFont}{\ttfamily\small}
+% \hypersetup{draft=true}
 
 % This is not strictly necessary, and may be commented out,
 % but it will improve the layout of the manuscript,
@@ -35,7 +36,9 @@
 % smaller than 5cm (the original size); we will check this
 % in the camera-ready version and ask you to change it back.
 
-\title{The spontaneous emergence of discrete and compositional messages}
+\title{The spontaneous emergence of discrete and compositional messages
+	\\ \nbSST{(1) Thoughts on the title? (2) It's hidden on submission, but we need to decide author order as well.}
+}
 
 % TODO(sst): anonymous, so doesn't matter now, but: is this the right author order?
 \author{Nur Lan \\
@@ -78,9 +81,8 @@
 \maketitle
 % TODO(sst): short [4] or long [8] paper?
 
-% TODO(sst): write abstract
 \begin{abstract}
-	blah blah blah
+	\nbSST{To be written.}
 \end{abstract}
 
 \section{Introduction}
@@ -89,14 +91,33 @@ In a signalling game, artificial agents communicate to achieve a common goal: a 
 
 This setting has been used to study the factors influencing the emergence of various fundamental properties of natural language, such as compositionality \citep{Kirby2015, Franke2016, SteinertThrelkeld2016, Mordatch2018, Lazaridou2018, Choi2018}.
 
-In this paper, we 
+In this paper, we focus on two other so-called `design features' of natural language \citep{Hockett1960}: discreteness and displacement.  In particular, we view signaling games as a kind of auto-encoder, with the continuous latent space being the communication protocol.  Under certain conditions, this space becomes discrete, with clusters that function in many ways like the symbols traditioanlly used in other studies.
+
+Our main contributions are:
+\begin{itemize}
+	\item A generalization of reference games called Function Games, with a natural incorporation of displacement.
+	\item An analysis of clusters in continuous latent space as discrete symbols.
+	\item Probes for compositional structure in the new symbol space.
+\end{itemize}
+
+In addition to contributing to our understanding of the emergence of communication protocols with features like natural language, these results have a technical significance: by using a fundamentally continuous communication protocol, with discreteness emerging, we can train end-to-end using standard backpropagation techniques, instead of reinforcement learning algorithms like REINFORCE and its refinements \citep{Williams1992, Schulman2015, Mnih2016}, which often have high variance and are difficult to use in practice.
+
+\nbSST{Notes on introduction: I'm not sure how much to play up the auto-encoder thing or not; and I added in a reference to Hockett as a hook. These lists of ``contributions'' are not my favorite stylistically, but they seem to be the norm in this literature.  It's also common to have a ``Related Work'' section; but we're tight on space.  What do people think?}
+
+\section{Related Work}
+
+Other papers have observed that reference games are analogous to autoencoders, albeit with a (normally sequential and) discrete latent space \citep{Havrylov2017, Chaabouni2019a, Kharitonov2019}.  All of these papers, however, assume the discreteness of the communication protocol.
+
+A related line of work attempts to avoid the difficulties of reinforcement learning---which introduces stochastic nodes into a computation graph---by reparameterization and/or non-stochastic estimators \citep{Bengio2013, Schulman2015}.  In the emergent communication case, where the stochastic nodes are discrete (e.g.\ sampling a message from a sender distribution), the Gumbel-Softmax estimator has become increasingly popular \citep{Jang2017, Maddison2017}.  
+
+This work enables standard back-propagation to be used for training by optimizing approximations to the true reinforcement learning signal.  By contrast, by taking the auto-encoder analogy seriously, we do not approximate the discrete RL learning signal, but rather ask under what conditions discreteness will emerge. \nbSST{Probably can be worded better.}
 
 \section{Function Games}
 
 We here introduce a general communication game setting, which we call Function Games.  Our games contain three basic components: (i) a set of contexts $C$, (ii) a set of actions $A$, (iii) a family of functions $F$, from contexts to actions.  One play of a Function Game game runs as follows:
 \begin{enumerate}
 	\item Nature chooses $f \in F$ and a context $c \in C$.
-	\item Sender sees the context $c$ and $f$. \nbSST{I like f(c) here, but f is a bit more appropriate.  What do you all think? Nur: Given the situation, f is the only choice, no?}
+	\item Sender sees the context $c$ and $f$.
 	\item Sender sends a message $m$ to Receiver.
 	\item Receiver sees \emph{a possibly different} context $c'$ and the message $m$ and chooses an action $a'$.
 	\item Both are `rewarded' iff $a' = f(c')$.
@@ -110,7 +131,8 @@ Two concrete interpretations will be helpful in illustrating the various compone
 \section{Experiment}
 
 Because we are interested in the simultaneous emergence both of discrete signals and of compositional messages, we use a Function Game called the Extremity Game designed to incentivize compositionality \citep{Steinert-Threlkeld2019}.  This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
-% TODO(sst): cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be de-anonymizing
+
+\nbSST{cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be sort of de-anonymizing}
 
 \subsection{Model}
 
@@ -132,9 +154,8 @@ In our experiments, we manipulated the following parameters of the Extremity Gam
 
 		We considered strict contexts with 10 objects (i.e. each object consists of 5 dimensions) and non-strict contexts with 5, 10, and 15 objects.
 	\item Context identity. In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's.  This may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
-	\item Object size: in all experiments, objects had 5 dimensions.
-	\item Latent space (message) dimension: in all experiments, the latent space had 2 dimension\footnote{The model also performs well with messages of size 1, not reported here. Using messages of size 2 makes it easier to inspect the latent space using 2-D visualization.}.
 \end{itemize}
+In all experiments, objects had 5 dimensions.  Similarly, the latent space (message) dimension was always 2.\footnote{The model also performs well with messages of size 1, not reported here. Using messages of size 2 makes it easier to inspect the latent space using 2-D visualization.}
 
 \subsection{Training Details}
 
@@ -199,6 +220,7 @@ We make the discretization measure concrete by calculating the F1 score between 
 \end{table}
 
 Given the clusterization of the message space, we are able to sample unseen messages from each cluster, and test the Receiver's perception of `artificial' messages. 10 messages are sampled from each cluster, and their average vector is fed to the Receiver. The output object accuracy for these unseen messages is given in Table~\ref{tab:average_message_accuracy}. The model achieves recovery accuracy similar to when messages are generated using actual inputs. This can be paralleled with the phenomenon of Categorical Perception, which describes how continuous signals, such as phonemes in an acoustic space, are perceived as stable and discrete, even when the signal is gradually shifted in the continuous space.
+\nbSST{canonical reference for Categorical Perception?}
 
 \begin{table}[]
 \begin{tabular}{l|c|c}
