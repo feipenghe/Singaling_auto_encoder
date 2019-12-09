@@ -38,23 +38,22 @@
 % smaller than 5cm (the original size); we will check this
 % in the camera-ready version and ask you to change it back.
 
-\title{The spontaneous emergence of discrete and compositional messages
-	\\ \nbSST{(1) Thoughts on the title? (2) It's hidden on submission, but we need to decide author order as well.}
-}
+\title{On the spontaneous emergence of discrete and compositional signals}
 
 % TODO(sst): anonymous, so doesn't matter now, but: is this the right author order?
 \author{Nur Lan \\
   Computational Linguistics Lab \\
   Tel Aviv University \\
   \texttt{nurlan@mail.tau.ac.il} \\\And
-  Shane Steinert-Threlkeld \\
-  Department of Linguistics \\
-  University of Washington \\
-  \texttt{shanest@uw.edu} \\\And
   Emmanuel Chemla \\
   Laboratoire de Sciences Cognitives et Psycholinguistique \\
   Ecole Normale Sup\'erieure \\
-  \texttt{chemla@ens.fr}}
+  \texttt{chemla@ens.fr} \\\And
+  Shane Steinert-Threlkeld \\
+  Department of Linguistics \\
+  University of Washington \\
+  \texttt{shanest@uw.edu}
+  }
 
 \date{}
 
@@ -176,7 +175,7 @@ Because we are interested in the simultaneous emergence both of discrete signals
 
 %This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
 
-\nbSST{cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be sort of de-anonymizing}
+% \nbSST{cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be sort of de-anonymizing}
 
 \subsection{Model}
 
@@ -234,9 +233,7 @@ Accordingly, the recovery accuracy for networks before training are at the expec
 %\caption{Mean object recovery accuracy and prediction loss before and after training, for objects of size 5 in a shared, strict context setting (10 objects per context).}\label{tab:prediction_trained_untrained}
 %\end{table}
 
-As mentioned, our setting can use traditional backpropagation, and it reaches higher accuracy levels than settings using \emph{a priori} discrete signals (\citep{Steinert-Threlkeld2019} did not perform well with more than 4 objects\nbEC{CHECK}).
-\nbEC{Move this paragraph to discussion section?}
-\nbSST{I think we should remove this little paragraph: 6 objects was the highest I did, and mean accuracy was either 73\% or 69\%.  It's plausible that it would not be as good at 10+ objects, but we can't do a direct comparison.}
+% As mentioned, our setting can use traditional backpropagation, and it reaches higher accuracy levels than settings using \emph{a priori} discrete signals (\citep{Steinert-Threlkeld2019} did not perform well with more than 4 objects\nbEC{CHECK}).  \nbEC{Move this paragraph to discussion section?} \nbSST{I think we should remove this little paragraph: 6 objects was the highest I did, and mean accuracy was either 73\% or 69\%.  It's plausible that it would not be as good at 10+ objects, but we can't do a direct comparison.}
 
 
 \begin{table}[]
@@ -414,7 +411,8 @@ Second, we note as others that the composition as addition assumption is however
 \nbEC{cite Baroni's (or others) similar tests?}
 \nbSST{Which did you have in mind?  The SCAN papers, or\dots?}
 
-Complete results for the compositionality tests may be found in Appendix~\ref{appendix-comp}.
+Complete results for the compositionality tests may be found in the Appendix.
+\nbSST{Nur: see appendix.tex}
 
 
 % \section{Discussion}
@@ -432,13 +430,6 @@ Signaling games have long been used to study which properties of languages are s
 
 % The acknowledgments should go immediately before the references. Do not number the acknowledgments section.
 % Do not include this section when submitting your paper for review.
-
-\appendix
-\section{Compositionality Test Results}
-\nbSST{Nur: fill in}
-
-\nbSST{Appendix needs to be a separate document at submit time.}
-
 
 \bibliographystyle{acl_natbib}
 \bibliography{anthology,acl2020}
