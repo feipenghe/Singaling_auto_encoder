@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2018.3.13)  9 DEC 2019 14:19
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2018.3.13)  9 DEC 2019 15:31
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -293,21 +293,29 @@ Package: latexsym 1998/08/17 v2.2e Standard LaTeX package (lasy symbols)
 LaTeX Font Info:    Overwriting symbol font `lasy' in version `bold'
 (Font)                  U/lasy/m/n --> U/lasy/b/n on input line 52.
 )
+(/usr/local/texlive/2017/texmf-dist/tex/latex/enumitem/enumitem.sty
+Package: enumitem 2011/09/28 v3.5.2 Customized lists
+\labelindent=\skip56
+\enit@outerparindent=\dimen128
+\enit@toks=\toks20
+\enit@inbox=\box30
+\enitdp@description=\count122
+)
 (/usr/local/texlive/2017/texmf-dist/tex/latex/microtype/microtype.sty
 Package: microtype 2016/05/14 v2.6a Micro-typographical refinements (RS)
-\MT@toks=\toks20
-\MT@count=\count122
+\MT@toks=\toks21
+\MT@count=\count123
 LaTeX Info: Redefining \textls on input line 774.
-\MT@outer@kern=\dimen128
+\MT@outer@kern=\dimen129
 LaTeX Info: Redefining \textmicrotypecontext on input line 1310.
-\MT@listname@count=\count123
+\MT@listname@count=\count124
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/microtype/microtype-pdftex.def
 File: microtype-pdftex.def 2016/05/14 v2.6a Definitions specific to pdftex (RS)
 
 LaTeX Info: Redefining \lsstyle on input line 916.
 LaTeX Info: Redefining \lslig on input line 916.
-\MT@outer@space=\skip56
+\MT@outer@space=\skip57
 )
 Package microtype Info: Loading configuration file microtype.cfg.
 
@@ -316,28 +324,27 @@ File: microtype.cfg 2016/05/14 v2.6a microtype main configuration file (RS)
 ))
 (/usr/local/texlive/2017/texmf-dist/tex/latex/tools/multicol.sty
 Package: multicol 2017/04/11 v1.8q multicolumn formatting (FMi)
-\c@tracingmulticols=\count124
-\mult@box=\box30
-\multicol@leftmargin=\dimen129
-\c@unbalance=\count125
-\c@collectmore=\count126
-\doublecol@number=\count127
-\multicoltolerance=\count128
-\multicolpretolerance=\count129
-\full@width=\dimen130
-\page@free=\dimen131
-\premulticols=\dimen132
-\postmulticols=\dimen133
-\multicolsep=\skip57
-\multicolbaselineskip=\skip58
-\partial@page=\box31
-\last@line=\box32
-\maxbalancingoverflow=\dimen134
-\mult@rightbox=\box33
-\mult@grightbox=\box34
-\mult@gfirstbox=\box35
-\mult@firstbox=\box36
-\@tempa=\box37
+\c@tracingmulticols=\count125
+\mult@box=\box31
+\multicol@leftmargin=\dimen130
+\c@unbalance=\count126
+\c@collectmore=\count127
+\doublecol@number=\count128
+\multicoltolerance=\count129
+\multicolpretolerance=\count130
+\full@width=\dimen131
+\page@free=\dimen132
+\premulticols=\dimen133
+\postmulticols=\dimen134
+\multicolsep=\skip58
+\multicolbaselineskip=\skip59
+\partial@page=\box32
+\last@line=\box33
+\maxbalancingoverflow=\dimen135
+\mult@rightbox=\box34
+\mult@grightbox=\box35
+\mult@gfirstbox=\box36
+\mult@firstbox=\box37
 \@tempa=\box38
 \@tempa=\box39
 \@tempa=\box40
@@ -354,14 +361,15 @@ Package: multicol 2017/04/11 v1.8q multicolumn formatting (FMi)
 \@tempa=\box51
 \@tempa=\box52
 \@tempa=\box53
-\c@columnbadness=\count130
-\c@finalcolumnbadness=\count131
-\last@try=\dimen135
-\multicolovershoot=\dimen136
-\multicolundershoot=\dimen137
-\mult@nat@firstbox=\box54
-\colbreak@box=\box55
-\mc@col@check@num=\count132
+\@tempa=\box54
+\c@columnbadness=\count131
+\c@finalcolumnbadness=\count132
+\last@try=\dimen136
+\multicolovershoot=\dimen137
+\multicolundershoot=\dimen138
+\mult@nat@firstbox=\box55
+\colbreak@box=\box56
+\mc@col@check@num=\count133
 )
 (/usr/local/texlive/2017/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2014/10/28 v1.0g Enhanced LaTeX Graphics (DPC,SPQR)
@@ -377,33 +385,33 @@ File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 99.
 )
-\Gin@req@height=\dimen138
-\Gin@req@width=\dimen139
+\Gin@req@height=\dimen139
+\Gin@req@width=\dimen140
 )
 (./emergence_discrete.aux)
 \openout1 = `emergence_discrete.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 79.
-LaTeX Font Info:    ... okay on input line 79.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 79.
-LaTeX Font Info:    ... okay on input line 79.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 79.
-LaTeX Font Info:    ... okay on input line 79.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 79.
-LaTeX Font Info:    ... okay on input line 79.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 79.
-LaTeX Font Info:    ... okay on input line 79.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 79.
-LaTeX Font Info:    ... okay on input line 79.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 79.
-LaTeX Font Info:    ... okay on input line 79.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 79.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 94.
+LaTeX Font Info:    ... okay on input line 94.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 94.
+LaTeX Font Info:    ... okay on input line 94.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 94.
+LaTeX Font Info:    ... okay on input line 94.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 94.
+LaTeX Font Info:    ... okay on input line 94.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 94.
+LaTeX Font Info:    ... okay on input line 94.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 94.
+LaTeX Font Info:    ... okay on input line 94.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 94.
+LaTeX Font Info:    ... okay on input line 94.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 94.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
-\AtBeginShipoutBox=\box56
-Package hyperref Info: Link coloring ON on input line 79.
+\AtBeginShipoutBox=\box57
+Package hyperref Info: Link coloring ON on input line 94.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
@@ -411,11 +419,11 @@ Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
 (/usr/local/texlive/2017/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
-\c@section@level=\count133
+\c@section@level=\count134
 )
-LaTeX Info: Redefining \ref on input line 79.
-LaTeX Info: Redefining \pageref on input line 79.
-LaTeX Info: Redefining \nameref on input line 79.
+LaTeX Info: Redefining \ref on input line 94.
+LaTeX Info: Redefining \pageref on input line 94.
+LaTeX Info: Redefining \nameref on input line 94.
 
 (./emergence_discrete.out) (./emergence_discrete.out)
 \@outlinefile=\write3
@@ -424,17 +432,17 @@ LaTeX Info: Redefining \nameref on input line 79.
 
 (/usr/local/texlive/2017/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count134
-\scratchdimen=\dimen140
-\scratchbox=\box57
-\nofMPsegments=\count135
-\nofMParguments=\count136
-\everyMPshowfont=\toks21
-\MPscratchCnt=\count137
-\MPscratchDim=\dimen141
-\MPnumerator=\count138
-\makeMPintoPDFobject=\count139
-\everyMPtoPDFconversion=\toks22
+\scratchcounter=\count135
+\scratchdimen=\dimen141
+\scratchbox=\box58
+\nofMPsegments=\count136
+\nofMParguments=\count137
+\everyMPshowfont=\toks22
+\MPscratchCnt=\count138
+\MPscratchDim=\dimen142
+\MPnumerator=\count139
+\makeMPintoPDFobject=\count140
+\everyMPtoPDFconversion=\toks23
 ) (/usr/local/texlive/2017/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
 
@@ -456,7 +464,7 @@ ABD: EveryShipout initializing macros
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: subfigure package is loaded.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Info: Redefining \microtypecontext on input line 79.
+LaTeX Info: Redefining \microtypecontext on input line 94.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -471,145 +479,142 @@ Package microtype Info: No adjustment of character kerning.
 File: mt-ptm.cfg 2006/04/20 v1.7 microtype config. file: Times (RS)
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14.4> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 81.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 96.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 81.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 96.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
 )
-LaTeX Font Info:    Try loading font information for U+lasy on input line 81.
+LaTeX Font Info:    Try loading font information for U+lasy on input line 96.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/base/ulasy.fd
 File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 81.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 96.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 90.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 105.
 
 
 Package natbib Warning: Citation `Lewis1969' on page 1 undefined on input line 
-90.
+105.
 
 
 Package natbib Warning: Citation `Skyrms2010' on page 1 undefined on input line
- 90.
+ 105.
 
 
 Package natbib Warning: Citation `Lazaridou2017' on page 1 undefined on input l
-ine 91.
+ine 106.
 
 
 Package natbib Warning: Citation `Lazaridou2018' on page 1 undefined on input l
-ine 91.
+ine 106.
 
 
 Package natbib Warning: Citation `Havrylov2017' on page 1 undefined on input li
-ne 91.
+ne 106.
 
 
 Package natbib Warning: Citation `Chaabouni2019a' on page 1 undefined on input 
-line 91.
+line 106.
 
 
 Package natbib Warning: Citation `Kirby2015' on page 1 undefined on input line 
-94.
+109.
 
 
 Package natbib Warning: Citation `Franke2016' on page 1 undefined on input line
- 94.
+ 109.
 
 
 Package natbib Warning: Citation `SteinertThrelkeld2016' on page 1 undefined on
- input line 94.
+ input line 109.
 
 
 Package natbib Warning: Citation `Mordatch2018' on page 1 undefined on input li
-ne 94.
+ne 109.
 
 
 Package natbib Warning: Citation `Lazaridou2018' on page 1 undefined on input l
-ine 94.
+ine 109.
 
 
-Package natbib Warning: Citation `Choi2018' on page 1 undefined on input line 9
-4.
+Package natbib Warning: Citation `Choi2018' on page 1 undefined on input line 1
+09.
 
 
 Package natbib Warning: Citation `Hockett1960' on page 1 undefined on input lin
-e 95.
+e 110.
 
 
 Package natbib Warning: Citation `Havrylov2017' on page 1 undefined on input li
-ne 99.
+ne 114.
 
 
 Package natbib Warning: Citation `Chaabouni2019a' on page 1 undefined on input 
-line 99.
+line 114.
 
 
 Package natbib Warning: Citation `Kharitonov2019' on page 1 undefined on input 
-line 99.
+line 114.
 
 
 Package natbib Warning: Citation `Williams1992' on page 1 undefined on input li
-ne 104.
+ne 122.
 
 
 Package natbib Warning: Citation `Schulman2015' on page 1 undefined on input li
-ne 104.
+ne 122.
 
 
 Package natbib Warning: Citation `Mnih2016' on page 1 undefined on input line 1
-04.
+22.
 
 
 Package natbib Warning: Citation `Bengio2013' on page 1 undefined on input line
- 124.
+ 142.
 
 
 Package natbib Warning: Citation `Schulman2015' on page 1 undefined on input li
-ne 124.
+ne 142.
 
 
 Package natbib Warning: Citation `Jang2017' on page 1 undefined on input line 1
-24.
+42.
 
 
 Package natbib Warning: Citation `Maddison2017' on page 1 undefined on input li
-ne 124.
+ne 142.
 
-
-Underfull \vbox (badness 2828) has occurred while \output is active []
-
- [1{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+[1{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 
 ]
 
 Package natbib Warning: Citation `Skyrms2010' on page 2 undefined on input line
- 141.
+ 160.
 
 
 Package natbib Warning: Citation `Lazaridou2017' on page 2 undefined on input l
-ine 141.
+ine 160.
 
 
 Package natbib Warning: Citation `Lazaridou2018' on page 2 undefined on input l
-ine 141.
+ine 160.
 
 
 Package natbib Warning: Citation `Havrylov2017' on page 2 undefined on input li
-ne 141.
+ne 160.
 
 
 Package natbib Warning: Citation `Chaabouni2019a' on page 2 undefined on input 
-line 141.
+line 160.
 
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 141.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 160.
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
@@ -621,87 +626,86 @@ Package microtype Info: Loading generic settings for font family
 
 
 Package natbib Warning: Citation `Steinert-Threlkeld2019' on page 2 undefined o
-n input line 150.
+n input line 169.
 
 
 Package natbib Warning: Citation `Nair2010' on page 2 undefined on input line 1
-61.
+80.
 
 
 Package natbib Warning: Citation `Glorot2011' on page 2 undefined on input line
- 161.
+ 180.
 
-<figures/model_figure.png, id=16, 963.6pt x 542.025pt>
-File: figures/model_figure.png Graphic file (type png)
+<figures/model_figure_v2.png, id=18, 963.6pt x 542.025pt>
+File: figures/model_figure_v2.png Graphic file (type png)
 
-<use figures/model_figure.png>
-Package pdftex.def Info: figures/model_figure.png used on input line 165.
-(pdftex.def)             Requested size: 219.08612pt x 123.2323pt.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 175.
+<use figures/model_figure_v2.png>
+Package pdftex.def Info: figures/model_figure_v2.png used on input line 184.
+(pdftex.def)             Requested size: 219.08612pt x 79.87268pt.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 195.
 
 
 (/usr/local/texlive/2017/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 175.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 195.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 180.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 200.
 
 
 Package natbib Warning: Citation `Steinert-Threlkeld2019' on page 2 undefined o
-n input line 180.
+n input line 200.
 
 
 Package natbib Warning: Citation `Steinert-Threlkeld2019' on page 2 undefined o
-n input line 180.
+n input line 200.
 
-[2 <./figures/model_figure.png (PNG copy)>]
+[2 <./figures/model_figure_v2.png (PNG copy)>]
 
 Package natbib Warning: Citation `Kingma2015' on page 3 undefined on input line
- 193.
+ 213.
+
+
+Package natbib Warning: Citation `REF' on page 3 undefined on input line 235.
 
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 219.
+               Default added (so using `tbp') on input line 239.
 
 Missing character: There is no Â in font ptmr7t!
 Missing character: There is no   in font ptmr7t!
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 253.
+               Default added (so using `tbp') on input line 273.
 
-<./figures/messages_o5_untrained.png, id=43, 381.425pt x 257.96375pt>
+<./figures/messages_o5_untrained.png, id=44, 381.425pt x 257.96375pt>
 File: ./figures/messages_o5_untrained.png Graphic file (type png)
 
 <use ./figures/messages_o5_untrained.png>
 Package pdftex.def Info: ./figures/messages_o5_untrained.png used on input line
- 257.
+ 277.
 (pdftex.def)             Requested size: 94.85506pt x 71.06602pt.
 
-<./figures/messages_o5_shared_strict_trained.png, id=46, 373.395pt x 257.96375p
+<./figures/messages_o5_shared_strict_trained.png, id=47, 373.395pt x 257.96375p
 t>
 File: ./figures/messages_o5_shared_strict_trained.png Graphic file (type png)
  <use ./figures/messages_o5_shared_strict_trained.png>
 Package pdftex.def Info: ./figures/messages_o5_shared_strict_trained.png used o
-n input line 258.
+n input line 278.
 (pdftex.def)             Requested size: 107.50244pt x 71.06602pt.
 
-Overfull \hbox (7.27141pt too wide) in paragraph at lines 254--260
+Overfull \hbox (7.27141pt too wide) in paragraph at lines 274--280
 [][] 
  []
 
 
-Underfull \vbox (badness 3525) has occurred while \output is active []
-
-
-
 Package natbib Warning: Citation `ester_density-based_1996' on page 3 undefined
- on input line 289.
+ on input line 309.
 
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 294.
+               Default added (so using `tbp') on input line 314.
 
 Missing character: There is no Â in font ptmr7t!
 Missing character: There is no   in font ptmr7t!
@@ -709,42 +713,48 @@ Missing character: There is no   in font ptmr7t!
 rained.png>]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 335.
+               Default added (so using `tbp') on input line 355.
 
 Missing character: There is no Â in font ptmr7t!
 Missing character: There is no   in font ptmr7t!
 
 Package natbib Warning: Citation `DamperHarnad-CP' on page 4 undefined on input
- line 369.
+ line 389.
 
 
-Underfull \hbox (badness 1226) in paragraph at lines 384--388
+Underfull \hbox (badness 1226) in paragraph at lines 404--408
 \OT1/ptm/m/n/10.95 (+20) the cur-rent Game, the anal-o-gous ques-tion is
  []
 
-(./emergence_discrete.bbl)
+[4] (./emergence_discrete.bbl)
 
 Package natbib Warning: There were undefined citations.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 408.
-[4]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 408.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 434.
+[5
+
+]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 434.
  (./emergence_discrete.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 408.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 408.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 434.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 434.
 Package rerunfilecheck Info: File `emergence_discrete.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 408.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 434.
  )
 (\end occurred when \iffalse on line 352 was incomplete) 
 Here is how much of TeX's memory you used:
- 10129 strings out of 492995
- 153093 string characters out of 6132704
- 291390 words of memory out of 5000000
- 13346 multiletter control sequences out of 15000+600000
- 42835 words of font info for 189 fonts, out of 8000000 for 9000
+ 10431 strings out of 492995
+ 158075 string characters out of 6132704
+ 297361 words of memory out of 5000000
+ 13623 multiletter control sequences out of 15000+600000
+ 43837 words of font info for 203 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 43i,14n,41p,920b,402s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 43i,14n,41p,1002b,355s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/201
 7/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2017/texmf-dist/fo
 nts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2017/texmf-dist/fon
@@ -760,10 +770,10 @@ er/ucrr8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/helvetic/uhvb
 8a.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></u
 sr/local/texlive/2017/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/t
 exlive/2017/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on emergence_discrete.pdf (4 pages, 241841 bytes).
+Output written on emergence_discrete.pdf (5 pages, 247778 bytes).
 PDF statistics:
- 130 PDF objects out of 1000 (max. 8388607)
- 101 compressed objects within 2 object streams
- 30 named destinations out of 1000 (max. 500000)
+ 136 PDF objects out of 1000 (max. 8388607)
+ 106 compressed objects within 2 object streams
+ 31 named destinations out of 1000 (max. 500000)
  29212 words of extra memory for PDF output out of 29859 (max. 10000000)
 

@@ -18,6 +18,7 @@
 \usepackage{times}
 \usepackage{subfigure}
 \usepackage{latexsym}
+\usepackage{enumitem}
 \renewcommand{\UrlFont}{\ttfamily\small}
 % \hypersetup{draft=true}
 
@@ -76,13 +77,27 @@
 \newcommand{\addSST}[1]{{\leavevmode\color{violet}#1}}
 
 
+%% Hide comments:
+%\renewcommand{\changeEC}[2]{#2}
+%\renewcommand{\nbEC}[1]{}
+%\renewcommand{\addEC}[1]{#1}
+%
+%\renewcommand{\changeNL}[2]{#2}
+%\renewcommand{\nbNL}[1]{}
+%\renewcommand{\addNL}[1]{#1}
+%
+%\renewcommand{\changeSST}[2]{#2}
+%\renewcommand{\nbSST}[1]{}
+%\renewcommand{\addSST}[1]{#1}
+
+
 \begin{document}
 
 \maketitle
 % TODO(sst): short [4] or long [8] paper?
 
 \begin{abstract}
-	\nbSST{To be written.}
+	We propose a general framework to study language emergence through signaling games with neural agents. Using a continuous latent space, we are able to (i)~train using back-propagation, (ii)~show that discrete messages nonetheless naturally emerge. We discuss various ways to test the emergent language (concerning categorical perception, displacement and compositionality).
 \end{abstract}
 
 \section{Introduction}
@@ -96,10 +111,13 @@ In this paper, we add focus on two other so-called `design features' of natural 
 \emph{discreteness} (i.e.~words form clusters in acoustic space), 
 and \emph{displacement} (i.e.~efficient communication can occur about objects and facts beyond the immediate context of the conversation).
 
-From an implementation point of view, we follow the recent literature which has shown that a signalling game is essentially an autoencoder setting, with the encoder playing the role of the sender, and the decoder the role of the receiver. In this literature, however, the discreteness of the communication protocol is assumed, since the autoencoders use a (normally sequential and) discrete latent space \citep{Havrylov2017, Chaabouni2019a, Kharitonov2019}.  
+From an implementation point of view, we follow the recent literature which has shown that a signalling game is essentially an autoencoder setting, with the encoder playing the role of the sender, and the decoder the role of the receiver (see Fig.~\ref{fig:model}). In this literature, however, the discreteness of the communication protocol is assumed, since the networks then traditionally use a (normally sequential and) discrete latent space \citep{Havrylov2017, Chaabouni2019a, Kharitonov2019}.  
 
 
-Our main contribution is a generalization of the current implementation of signalling games as autoencoders, called Function Games. Our implementation covers a broader variety of signalling games, and it crucially incorporates the possibility of displacement and no \emph{a priori} assumption of discreteness. In this setting we propose new analyses for the degree of emergent discreteness, compositionality and displacement. Our main result is that under appropriate conditions, discreteness emerges spontaneously, that is, if the latent space is thought about as a continuous acoustic space, then trained messages form coherent clusters, just like regular words do.
+Our main contribution is a generalization of the current implementation of signalling games as autoencoders.
+%, called Function Games. 
+Our implementation covers a broader variety of signalling games, and it crucially incorporates the possibility of displacement and no \emph{a priori} assumption of discreteness. %In this setting we propose new analyses for the degree of emergent discreteness, compositionality and displacement. 
+Our main result is that under appropriate conditions, discreteness emerges spontaneously, that is, if the latent space is thought about as a continuous acoustic space, then trained messages form coherent clusters, just like regular words do.
 
 In addition to contributing to our understanding of the emergence of communication protocols with features like natural language, these results have a technical significance: by using a fundamentally continuous communication protocol, with discreteness emerging, we can train end-to-end using standard backpropagation techniques, instead of reinforcement learning algorithms like REINFORCE and its refinements \citep{Williams1992, Schulman2015, Mnih2016}, which often have high variance and are difficult to use in practice.
 
@@ -123,19 +141,20 @@ In addition to contributing to our understanding of the emergence of communicati
 
 A related line of work attempts to avoid the difficulties of reinforcement learning---which introduces stochastic nodes into a computation graph---by reparameterization and/or non-stochastic estimators \citep{Bengio2013, Schulman2015}.  In the emergent communication case, where the stochastic nodes are discrete (e.g.\ sampling a message from a sender distribution), the Gumbel-Softmax estimator has become increasingly popular \citep{Jang2017, Maddison2017}.  
 
-This work enables standard back-propagation to be used for training by optimizing approximations to the true reinforcement learning signal.  By contrast, by taking the auto-encoder analogy seriously, we do not approximate the discrete RL learning signal, but rather ask under what conditions discreteness will emerge. \nbSST{Probably can be worded better.}
+This work enables standard back-propagation to be used for training by optimizing approximations to the true reinforcement learning signal.  By contrast, using the auto-encoder analogy more literally, we do not approximate the discrete RL learning signal, but rather ask under what conditions discreteness will emerge. \nbSST{Probably can be worded better.}
 
 \section{Function Games}
 
 We here introduce a general communication game setting, which we call Function Games.  Our games contain three basic components: (i) a set of contexts $C$, (ii) a set of actions $A$, (iii) a family of functions $F$, from contexts to actions.  One play of a Function Game game runs as follows:
-\begin{enumerate}
+%\setlist{nolistsep}
+\begin{enumerate}[noitemsep]
 	\item Nature chooses $f \in F$ and a context $c \in C$.
 	\item Sender sees the context $c$ and $f$.
 	\item Sender sends a message $m$ to Receiver.
 	\item Receiver sees \emph{a possibly different} context $c'$ and the message $m$ and chooses an action $a'$.
 	\item Both are `rewarded' iff $a' = f(c')$.
 \end{enumerate}
-Abstractly, the function $f$ represents some piece of knowledge available directly only to Sender, and which determines what action is appropriate in any given context. Two concrete interpretations will help illustrate the variety of communication protocols and goals that this framework encompasses.
+Abstractly, the function $f$ represents some piece of knowledge available primarily for Sender, and which determines what action is appropriate in any given context. Two concrete interpretations will help illustrate the variety of communication protocols and goals that this framework encompasses.
 %Two concrete interpretations will be helpful in illustrating the various components.
 
 \noindent \textbf{Generalized referential games.}  A reference game is one in which Sender tries to get Receiver to pick the correct object out of a given set \citep{Skyrms2010, Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.  Here, contexts are sets of objects (i.e.\ an $m \times n$ matrix, with $m$ objects represented by $n$ features).  Normally (though we will drop this assumption later), $c' = \texttt{shuffled}(c)$: Sender and Receiver see the same objects, but in a different arrangement. Actions are the objects, and the functions $f \in F$ are \emph{choice functions}: $f(c) \in c$ for every context $c$.
@@ -162,8 +181,8 @@ Our model resembles an encoder-decoder architecture, with the Sender encoding th
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=\columnwidth]{figures/model_figure.png}
-	\caption{Model architecture caption \nbSST{Do we really need this? It isn't super informative and might use too much space. I can also do something in TikZ if we think it's important and that this one is ugly.}}
+	\includegraphics[width=\columnwidth, trim=0 150 0 40]{figures/model_figure_v2.png}
+	\caption{Our model architecture, mixing terminology from the autoencoder and signaling game traditions.}
 	\label{fig:model}
 \end{figure}
 
@@ -171,13 +190,14 @@ Our model resembles an encoder-decoder architecture, with the Sender encoding th
 
 We manipulated the following parameters:
 %In our experiments, we manipulated the following parameters of the Extremity Game:
-\begin{itemize}
+\setlist{nolistsep}
+\begin{itemize}[noitemsep]
 	\item Context identity. 
 	In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's. This forces displacement and may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
 
 	\item Context strictness. 
 	In \emph{strict} contexts, there is a one-to-one (and onto) correspondence between $F$ and \changeEC{$A = C$}{$A$}.%
-\footnote{These are the contexts used in the original Extremity Game from \cite{Steinert-Threlkeld2019}. \nbEC{Drop if we need space? Or incorporate in text with 3 words, like `As in the original Extremity Game from \cite{Steinert-Threlkeld2019}'?}}
+\footnote{These are the contexts used in the original Extremity Game from \cite{Steinert-Threlkeld2019}. \nbEC{Drop if we need space? Or incorporate in text with a couple of words, like `As in the original Extremity Game from \cite{Steinert-Threlkeld2019}'?}}
 In \emph{non-strict} contexts, an object may be the $\argmax$ or $\argmin$ of several dimensions, or of no dimension.
 %	In \emph{strict} contexts, every object is the $\argmax$ or $\argmin$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and \changeEC{$A = C$}{$A$}.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019}.}  In \emph{non-strict} contexts, no such restriction is imposed.
 
@@ -192,7 +212,7 @@ By using a continuous latent space, the entire model, including the communicatio
 \nbEC{We can drop the previous sentence if we need space.}
 We used the Adam optimizer \citep{Kingma2015} with learning rate 0.001, $\beta_1 = 0.9$, and $\beta_2 = 0.999$. The model was trained for 5,000 epochs by feeding the network with mini-batches of 64 contexts concatenated with one-hot function selectors. The network's loss is taken as the MSE between the target object $f(c')$ and the object generated by the Receiver. For each setting of the above parameters, we ran 20 trials with different random seeds.
 
-Code and data will be made available once the paper can be de-anonymized. 
+Code and data will be made available once the paper can be de-anonymized. \nbEC{Save space by shortening this remark or integrating it better to a paragraph}
 
 \section{Results}
 
@@ -212,8 +232,8 @@ Accordingly, the recovery accuracy for networks before training are at the expec
 %\caption{Mean object recovery accuracy and prediction loss before and after training, for objects of size 5 in a shared, strict context setting (10 objects per context).}\label{tab:prediction_trained_untrained}
 %\end{table}
 
-
-\nbEC{Note here on in the discussion that we reach communicative success with a large number of objects, compared to previous work}
+As mentioned, our setting can use traditional back-propagation, and it reaches higher accuracy levels than settings using \emph{a priori} discrete signals (\citealp{REF} did not perform well with more than 2 objects\nbEC{CHECK}).
+\nbEC{Move this paragraph to discussion section?}
 
 
 \begin{table}[]
@@ -232,7 +252,7 @@ Accordingly, the recovery accuracy for networks before training are at the expec
 \emph{15 objects} &
 	$27.58\%\pm 1.30$  & $27.95\%\pm 1.24$      \\ \hline
 \end{tabular}
-\caption{Communicative success (object recovery accuracy) for the different model settings.}\label{tab:object_prediction_accuracy}
+\caption{Communicative success, as measured by object recovery accuracy.}\label{tab:object_prediction_accuracy}
 \end{table}
 
 %\begin{table}[]
@@ -286,7 +306,7 @@ Figure~\ref{fig:messages} depicts message vectors sampled from the latent space 
 
 %The first approach is a study of production, and measures whether messages produced by Sender are clustered.
 % we calculated the F1 score between the cluster labels for transmitted messages and the target functions for which they were generated. 
-First, we sampled \nbEC{XXX} contexts, and collected the output of the encoder for each of these contexts combined with each possible function $f$. We applied an unsupervized clustering algorithm to this set of produced messages (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). A label was assigned to each cluster using the ground truth: the label of a cluster is the function $f$ that was most often at the source of a point in this cluster. This allowed us to compute F1-scores, which results are reported in Table~\ref{tab:f1_scores}.
+First, we sampled \nbEC{XXX} contexts, and collected the output of the trained encoder for each of these contexts combined with each possible function $f$. We applied an unsupervized clustering algorithm to this set of produced messages (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). A label was assigned to each cluster using the ground truth: the label of a cluster is the function $f$ that was most often at the source of a point in this cluster. This allowed us to compute F1-scores, which results are reported in Table~\ref{tab:f1_scores}.
 %For each message, we (but not the unsupervised clustering algorithm) know which function led to that message,  cluster, we assigned the label of the function $f$ that it most commonly contains, and we computed an F1-score with respect to this labelling. Results are reported in Table~\ref{tab:f1_scores}. 
 The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
 %If message clusters are well separated from one another, the labeling will have less to no confusion and an F1 score closer to~$1$. The F1 scores for the different model settings are given in Table~\ref{tab:f1_scores}. The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
@@ -309,7 +329,7 @@ The model reached near-optimal clusterization measures for both shared and non-s
 \emph{15 objects} &
 	$1.00\pm 0.00$  & $1.00\pm 0.00$      \\ \hline
 \end{tabular}
-\caption{Discreteness in production (F1 scores for produced messages) for the different model settings.}
+\caption{Discreteness in production, as measured by F1 scores for automatically clusterized messages.}
 %\caption{Message clusterization F1 scores.}
 \label{tab:f1_scores}
 \end{table}
@@ -348,7 +368,7 @@ As a sampling procedure for artificial messages, we take the average of 10 messa
 \emph{15 objects} &
 	$28.24\%\pm 1.11$  & $27.94\%\pm 1.20$      \\ \hline
 \end{tabular}
-\caption{Discreteness in perception (object recovery accuracy from artificial messages) for the different model settings.}
+\caption{Discreteness in perception, as measured by object recovery accuracy from artificial messages.}
 %\caption{Message clusterization F1 scores.}
 \label{tab:average_message_accuracy}
 \end{table}
@@ -376,23 +396,29 @@ In sum, we can identify discrete, abstract regions of the latent space correspon
 
 \subsection{Compositionality}
 
-How do the messages relate to the structure in the family of functions $F$? It is not usual to ask such compositionality questions for continuous messages, but it is possible and the emergence of discreteness here makes it a natural question. Initial inquiries show that a model can easily predict whether a message correspond to an $\argmin$ or an $\argmax$ function, or which dimension it targets. But this leaves open the question: are these features \emph{compositionally} encoded in the message?
+Our agents are capable of communicating in abstract situations, namely some in which their contexts are different in the first place. This generalizability is already a sign of `compositionality', or at least of productivity. But how do the messages relate to the structure in the family of functions $F$? It is not usual to ask such compositionality questions for continuous messages, but it is possible and the emergence of discreteness here makes it a natural question. Initial inquiries show that a model can easily predict whether a message correspond to an $\argmin$ or an $\argmax$ function, or which dimension it targets. But this leaves open the question: are these features \emph{compositionally} encoded in the message?
 
 \newcommand{\WE}[1]{\textsc{we}(#1)}
 \newcommand{\MESS}[1]{\textsc{m}(#1)}
 
-First, we refer to \addEC{REF}, in which compositionality is looked for at the level of word embeddings through addition, most classically asking whether  
+First, in the pioneering \addEC{REF}, compositionality is looked for at the level of word embeddings through addition, most classically asking whether  
 \WE{queen}=\WE{king}-\WE{man}+\WE{woman}. In the current Game, the analogous question is whether the messages are related as follows, for any dimensions $i$ and $j$:
-\MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. 
-\nbEC{describe results here}
+\MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. We find that using the right-hand side of the equation above, that is the compositionally appropriate message in principle, leads to important degradation of communicative success \addEC{(at least XX\% drop across parameter combinations).}
+\nbEC{Can describe results that efficiently?}
 
 Second, we note as others that the composition as addition assumption is however disputable, both in general and in the original application case \addEC{REF}. To abstract away from this issue, we train a network at predicting 
-\MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$} (therefore leaving out the assumption that this relation would be addition). Leaving out one dimension $i_0$ from training, we ask whether the network was able to recover the left-out \MESS{$\argmax_{i_0}$} messages from their corresponding \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}.
-\nbEC{describe results here}
+\MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$}, therefore letting relation being any mixture of values, not and not necessarily involving addition. We left out one dimension $i_0$ from training, and considered the message predicted by such a network \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$\argmax_{i_0}$}, but we found that, as in the case of addition, communication accuracy dropped dramatically \addEC{(at least XX\% drop).}
+\nbEC{cite Baroni's (or others) similar tests?}
+
 
 \section{Discussion}
 
+\nbEC{We can either drop the discussion section, or move there the last paragraph of the communicative success and discreteness sections, adding a note saying that compositionality failed (but that high level of compositionality where never reached?).}
+
 \section{Conclusion}
+
+Signalling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. Here we propose a general framework in which more games can be simulated, fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most\nbEC{all} studies involving neural signalling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-derivability issues). Likely due to this improvement, we find that at equivalent difficulty levels, our training regime leads to better communication than systems forcing discreteness \emph{a priori}, while, nonetheless, the resulting language spontaneously evolves effectively discrete signals. 
+%Further work will include studies about when compositionality may jointly emerge with discreteness, and whether one can find categorical perception, which is a finer-grained level of discreteness. Our setup makes all these issue testable.
 
 % TODO(sst): add if accepted
 % \section*{Acknowledgments}
