@@ -32,9 +32,9 @@ class Simulation:
     nature_includes_function: bool = True
     shuffle_decoder_context: bool = False
 
-    num_trials: int = 20
+    num_trials: int = 1
     mini_batch_size: int = 64
-    num_batches: int = 10_000
+    num_batches: int = 5000
 
     epoch_nums: List[int] = dataclasses.field(default_factory=list)
 

@@ -177,7 +177,7 @@ class Game(nn.Module):
             return self._encoder_forward_pass(context, function_selector)
 
     def _loss(self, context, function_selectors, decoder_context):
-        target = self._target(context, function_selectors)
+        target = self._target(decoder_context, function_selectors)
         prediction = self._forward(context, function_selectors, decoder_context)
         return self.criterion(prediction, target)
 
@@ -349,9 +349,9 @@ class Game(nn.Module):
         predicted_objects = self._predict(
             encoder_contexts, function_selectors, decoder_contexts
         )
-        target_objects = self._target(encoder_contexts, function_selectors)
+        target_objects = self._target(decoder_contexts, function_selectors)
         return self._evaluate_object_prediction_accuracy(
-            encoder_contexts, predicted_objects, target_objects
+            decoder_contexts, predicted_objects, target_objects
         )
 
     def _plot_messages_information(
@@ -621,7 +621,7 @@ class Game(nn.Module):
                 inferred_messages, decoder_contexts[target_messages_mask]
             )
             target_output = self._target(
-                encoder_contexts[target_messages_mask],
+                decoder_contexts[target_messages_mask],
                 function_selectors[target_messages_mask],
             )
             prediction_loss = torch.nn.MSELoss()(
@@ -868,7 +868,7 @@ class Game(nn.Module):
             inferred_messages, decoder_contexts
         )
         target_output = self._target(
-            encoder_contexts,
+            decoder_contexts,
             torch.nn.functional.one_hot(
                 target_function_idxs, num_classes=self.num_functions
             ).float(),
@@ -1094,12 +1094,12 @@ class Game(nn.Module):
         encoder_context = self._generate_contexts(batch_size)
         decoder_context = self._get_decoder_context(batch_size, encoder_context)
 
-        target_objects = self._target(encoder_context, function_selectors)
+        target_objects = self._target(decoder_context, function_selectors)
         predictions_by_average_msg = self._predict_by_message(
             average_messages, decoder_context
         )
         predictions_by_average_msg_accuracy = self._evaluate_object_prediction_accuracy(
-            encoder_context, predictions_by_average_msg, target_objects
+            decoder_context, predictions_by_average_msg, target_objects
         )
 
         logging.info(

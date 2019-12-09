@@ -1,4 +1,4 @@
-This is BibTeX, Version 0.99d (TeX Live 2017)
+This is BibTeX, Version 0.99d (TeX Live 2019)
 Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: emergence_discrete.aux
 The style file: acl_natbib.bst
@@ -10,45 +10,45 @@ Database file #1: anthology.bib
 Database file #2: acl2020.bib
 Warning--I didn't find a database entry for "Steinert-Threlkeld2019a"
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
-You've used 9 entries,
+You've used 10 entries,
             3571 wiz_defined-function locations,
-            758 strings with 7679 characters,
-and the built_in function-call counts, 5788 in all, are:
-= -- 482
-> -- 239
-< -- 6
-+ -- 75
-- -- 66
-* -- 355
-:= -- 892
-add.period$ -- 36
-call.type$ -- 9
-change.case$ -- 82
-chr.to.int$ -- 9
-cite$ -- 9
-duplicate$ -- 407
-empty$ -- 464
-format.name$ -- 95
-if$ -- 1284
+            765 strings with 7880 characters,
+and the built_in function-call counts, 6719 in all, are:
+= -- 565
+> -- 280
+< -- 8
++ -- 90
+- -- 78
+* -- 415
+:= -- 1016
+add.period$ -- 40
+call.type$ -- 10
+change.case$ -- 93
+chr.to.int$ -- 10
+cite$ -- 10
+duplicate$ -- 473
+empty$ -- 530
+format.name$ -- 110
+if$ -- 1492
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 84
-newline$ -- 49
-num.names$ -- 36
-pop$ -- 229
+missing$ -- 98
+newline$ -- 54
+num.names$ -- 40
+pop$ -- 262
 preamble$ -- 1
-purify$ -- 58
+purify$ -- 66
 quote$ -- 0
-skip$ -- 285
+skip$ -- 329
 stack$ -- 0
-substring$ -- 131
-swap$ -- 182
-text.length$ -- 1
+substring$ -- 176
+swap$ -- 219
+text.length$ -- 3
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 78
+type$ -- 87
 warning$ -- 0
-while$ -- 30
+while$ -- 36
 width$ -- 0
-write$ -- 112
+write$ -- 126
 (There was 1 warning)
