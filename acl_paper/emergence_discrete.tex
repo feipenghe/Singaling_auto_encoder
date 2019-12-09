@@ -116,7 +116,7 @@ Our model resembles an encoder-decoder architecture, with the Sender encoding th
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=\columnwidth]{model_figure.png}
+	\includegraphics[width=\columnwidth]{figures/model_figure.png}
 	\caption{Model architecture caption \nbSST{Do we really need this? It isn't super informative and might use too much space. I can also do something in TikZ if we think it's important and that this one is ugly.}}
 	\label{fig:model}
 \end{figure}
@@ -173,8 +173,8 @@ We measure the communicative success of the network by calculating the accuracy 
 \begin{figure*}[ht]
   \centering
   Commented out the actual figures because I can't compile without them.
-  % \subfigure[]{\includegraphics[scale=0.55]{./figures/messages_o5_shared_strict_trained.png}}\hspace{1cm}
-  % \subfigure[]{\includegraphics[scale=0.55]{./figures/messages_o5_untrained.png}}
+  \subfigure[]{\includegraphics[scale=0.55]{./figures/messages_o5_shared_strict_trained.png}}\hspace{1cm}
+  \subfigure[]{\includegraphics[scale=0.55]{./figures/messages_o5_untrained.png}}
   \caption{(a) Messages sampled from latent space of a trained network, for objects of size 5 and contexts of 10 objects. (b) Messages sampled from an untrained network. Colors represent the $f_i \in F$ input part of the Sender.}
  \label{fig:messages}
 \end{figure*}
