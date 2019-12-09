@@ -196,30 +196,56 @@ Code and data will be made available once the paper can be de-anonymized.
 
 \section{Results}
 
-We measure the communicative success of the network by calculating the accuracy of recovering the correct object from $c'$. The Receiver's prediction is considered correct if its output is closest to $f(c')$ than to all other objects in $c'$. The recovery accuracy of the different settings is reported in Table~\ref{tab:object_prediction_accuracy}. While the network handles well the $c \neq c'$ setting (\textit{unshared context}), the model struggles with non-strict contexts. Note that although accuracy is not $100\%$, it is still well above chance, since e.g. for a context of 10 objects random guessing will yield an expected accuracy of $10\%$. Table~\ref{tab:prediction_trained_untrained} shows the mean loss and recovery accuracy for a network before and after training. The randomly-initialized network's accuracy is at the expected chance level for a 10-object setting.
+\subsection{Communicative success}
+
+We measure the communicative success of the network by calculating the accuracy of recovering the correct object from $c'$. Receiver's prediction is considered correct if its output is closest to $f(c')$ than to all other objects in $c'$. Accuracy of the different settings is reported in Table~\ref{tab:object_prediction_accuracy}. While the network handles well displacement (\textit{non-shared contexts}), the model struggles with non-strict contexts. Note that although accuracy is not $100\%$, it is still well above chance, since e.g. for a context of 10 objects random guessing yields an expected accuracy of $10\%$. 
+Accordingly, the recovery accuracy for networks before training are at the expected chance level (e.g., for a 10-object, shared, strict setting, accuracy is $9.92\%\pm 0.01$, with MSE 8 times larger before than after training).
+%Table~\ref{tab:prediction_trained_untrained} shows the mean loss and recovery accuracy for a network before and after training. The randomly-initialized network's accuracy is at the expected chance level for a 10-object setting.
+
+%\begin{table}[]
+%\begin{tabular}{l|c|c}
+%\hline
+%                       & \textbf{Trained} & \textbf{Untrained} \\ \hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Accuracy\end{tabular}}  & 63.78$\%\pm 0.02$  & 9.92$\%\pm 0.01$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Loss (MSE)\end{tabular}}    & $0.04\pm 0.00$  & $0.35\pm 0.03$      \\\hline
+%\end{tabular}
+%\caption{Mean object recovery accuracy and prediction loss before and after training, for objects of size 5 in a shared, strict context setting (10 objects per context).}\label{tab:prediction_trained_untrained}
+%\end{table}
+
+
+\nbEC{Note here on in the discussion that we reach communicative success with a large number of objects, compared to previous work}
+
 
 \begin{table}[]
-\begin{tabular}{l|c|c}
-\hline
-                       & \textbf{Trained} & \textbf{Untrained} \\ \hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Accuracy\end{tabular}}  & 63.78$\%\pm 0.02$  & 9.92$\%\pm 0.01$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Loss (MSE)\end{tabular}}    & $0.04\pm 0.00$  & $0.35\pm 0.03$      \\\hline
-\end{tabular}
-\caption{Mean object recovery accuracy and prediction loss before and after training, for objects of size 5 in a shared, strict context setting (10 objects per context).}\label{tab:prediction_trained_untrained}
-\end{table}
-
-
-\begin{table}[]
-\begin{tabular}{l|c|c}
+\begin{tabular}{lcc}
 \hline
                        & \textbf{Shared} & \textbf{Non-shared} \\ \hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Strict \\ context \end{tabular}}                 & $63.78\%\pm 1.63$  & $60.22\%\pm 1.56$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 5 objects\end{tabular}}  & $49.37\%\pm 1.67$  & $43.55\%\pm 1.69$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 10 objects\end{tabular}} & $33.06\%\pm 1.47$  & $31.89\%\pm 1.63$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 15 objects\end{tabular}} & $27.58\%\pm 1.30$  & $27.95\%\pm 1.24$      \\ \hline
+\textbf{Strict} & \\
+\emph{10 objects} & 
+	$63.78\%\pm 1.63$  & $60.22\%\pm 1.56$      \\\hline
+\textbf{Non-strict} & \\
+\emph{5 objects} &
+	$49.37\%\pm 1.67$  & $43.55\%\pm 1.69$      \\
+%\textbf{Non-strict} & \\
+\emph{10 objects} &
+	$33.06\%\pm 1.47$  & $31.89\%\pm 1.63$      \\
+\emph{15 objects} &
+	$27.58\%\pm 1.30$  & $27.95\%\pm 1.24$      \\ \hline
 \end{tabular}
-\caption{Object recovery accuracy for the different model settings.}\label{tab:object_prediction_accuracy}
+\caption{Communicative success (object recovery accuracy) for the different model settings.}\label{tab:object_prediction_accuracy}
 \end{table}
+
+%\begin{table}[]
+%\begin{tabular}{l|c|c}
+%\hline
+%                       & \textbf{Shared} & \textbf{Non-shared} \\ \hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Strict \\ context \end{tabular}}                 & $63.78\%\pm 1.63$  & $60.22\%\pm 1.56$      \\\hline\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 5 objects\end{tabular}}  & $49.37\%\pm 1.67$  & $43.55\%\pm 1.69$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 10 objects\end{tabular}} & $33.06\%\pm 1.47$  & $31.89\%\pm 1.63$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 15 objects\end{tabular}} & $27.58\%\pm 1.30$  & $27.95\%\pm 1.24$      \\ \hline
+%\end{tabular}
+%\caption{Object recovery accuracy for the different model settings.}\label{tab:object_prediction_accuracy}
+%\end{table}
 
 
 \subsection{Discrete signals}
@@ -233,37 +259,98 @@ We measure the communicative success of the network by calculating the accuracy 
  \label{fig:messages}
 \end{figure*}
 
-The model's ability to discretize the communication is measured by inspecting the information generated by the intermediate layer. Figure~\ref{fig:messages} depicts message vectors sampled from this layer. The same is depicted for an untrained network with randomized weights, where the messages are not yet clustered. 
+%The model's ability to discretize the communication is measured by inspecting the information generated by the intermediate layer. Figure~\ref{fig:messages} depicts message vectors sampled from this layer, before and after training. The same is depicted for an untrained network with randomized weights, where the messages are not yet clustered. 
 
-We make the discretization measure concrete by calculating the F1 score between the cluster labels for transmitted messages and the target functions for which they were generated. For this, an unsupervized clustering algorithm is first applied to the message vectors, giving an expected number of clusters (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). The cluster labels are then matched with the respective function labels by taking the most common function in each cluster. If message clusters are well separated from one another, the labeling will have less to no confusion and an F1 score closer to~$1$. The F1 scores for the different model settings are given in Table~\ref{tab:f1_scores}. The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
+Figure~\ref{fig:messages} depicts message vectors sampled from the latent space layer, before and after training. It is apparent that discrete messages emerge from the imposed learning regime. We measured cluster tendency more quantitatively through two measures, one considering Sender's \emph{production}, and the other Receiver's \emph{perception}. 
 
-
-\begin{table}[]
-\begin{tabular}{l|c|c}
-\hline
-                       & \textbf{Shared} & \textbf{Non-shared} \\ \hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Strict \\ context \end{tabular}}                 & $1.00\pm 0.00$  & $0.90\pm 0.09$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 5 objects\end{tabular}}  & $0.99\pm 0.02$  & $0.54\pm 0.15$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 10 objects\end{tabular}} & $1.00\pm 0.00$  & $0.99\pm 0.01$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 15 objects\end{tabular}} & $1.00\pm 0.00$  & $1.00\pm 0.00$      \\ \hline
-\end{tabular}
-\caption{Message clusterization F1 scores.}\label{tab:f1_scores}
-\end{table}
-
-Given the clusterization of the message space, we are able to sample unseen messages from each cluster, and test the Receiver's perception of `artificial' messages. 10 messages are sampled from each cluster, and their average vector is fed to the Receiver. The output object accuracy for these unseen messages is given in Table~\ref{tab:average_message_accuracy}. The model achieves recovery accuracy similar to when messages are generated using actual inputs. This can be paralleled with the phenomenon of Categorical Perception, which describes how continuous signals, such as phonemes in an acoustic space, are perceived as stable and discrete, even when the signal is gradually shifted in the continuous space.
-\nbSST{canonical reference for Categorical Perception?}
+%The first approach is a study of production, and measures whether messages produced by Sender are clustered.
+% we calculated the F1 score between the cluster labels for transmitted messages and the target functions for which they were generated. 
+First, we sampled \nbEC{XXX} contexts, and collected the output of the encoder for each of these contexts combined with each possible function $f$. We applied an unsupervized clustering algorithm to this set of produced messages (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). A label was assigned to each cluster using the ground truth: the label of a cluster is the function $f$ that was most often at the source of a point in this cluster. This allowed us to compute F1-scores, which results are reported in Table~\ref{tab:f1_scores}.
+%For each message, we (but not the unsupervised clustering algorithm) know which function led to that message,  cluster, we assigned the label of the function $f$ that it most commonly contains, and we computed an F1-score with respect to this labelling. Results are reported in Table~\ref{tab:f1_scores}. 
+The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
+%If message clusters are well separated from one another, the labeling will have less to no confusion and an F1 score closer to~$1$. The F1 scores for the different model settings are given in Table~\ref{tab:f1_scores}. The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
 
 \begin{table}[]
-\begin{tabular}{l|c|c}
+\begin{tabular}{lcc}
 \hline
                        & \textbf{Shared} & \textbf{Non-shared} \\ \hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Strict \\ context \end{tabular}}                 & $63.39\%\pm 1.45$  & $55.37\%\pm 3.43$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 5 objects\end{tabular}}  & $46.94\%\pm 1.70$  & $29.40\%\pm 5.59$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 10 objects\end{tabular}} & $32.63\%\pm 1.43$  & $31.51\%\pm 1.62$      \\\hline
-\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 15 objects\end{tabular}} & $28.24\%\pm 1.11$  & $27.94\%\pm 1.20$      \\ \hline
+\textbf{Strict} 
+% for space issue
+	& \phantom{$63.78\%\pm 1.63$}  & \phantom{$60.22\%\pm 1.56$}\\
+\emph{10 objects} & 
+	$1.00\pm 0.00$  & $0.90\pm 0.09$      \\\hline
+\textbf{Non-strict} & \\
+\emph{5 objects} &
+	$0.99\pm 0.02$  & $0.54\pm 0.15$      \\
+%\textbf{Non-strict} & \\
+\emph{10 objects} &
+	$1.00\pm 0.00$  & $0.99\pm 0.01$      \\
+\emph{15 objects} &
+	$1.00\pm 0.00$  & $1.00\pm 0.00$      \\ \hline
 \end{tabular}
-\caption{Object prediction accuracy using average message from each function cluster. }\label{tab:average_message_accuracy}
+\caption{Discreteness in perception (F1 scores for produced messages) for the different model settings.}
+%\caption{Message clusterization F1 scores.}
+\label{tab:f1_scores}
 \end{table}
+
+%\begin{table}[]
+%\begin{tabular}{l|c|c}
+%\hline
+%                       & \textbf{Shared} & \textbf{Non-shared} \\ \hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Strict \\ context \end{tabular}}                 & $1.00\pm 0.00$  & $0.90\pm 0.09$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 5 objects\end{tabular}}  & $0.99\pm 0.02$  & $0.54\pm 0.15$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 10 objects\end{tabular}} & $1.00\pm 0.00$  & $0.99\pm 0.01$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 15 objects\end{tabular}} & $1.00\pm 0.00$  & $1.00\pm 0.00$      \\ \hline
+%\end{tabular}
+%\caption{Message clusterization F1 scores.}\label{tab:f1_scores}
+%\end{table}
+
+The second approach is akin to studying perception. Given the clusterization of the message space, we are able to sample new messages from each cluster, and test Receiver's perception of these `artificial' messages, messages which have never been produced by Sender. 
+\nbEC{Optional:}
+In other words, we ask whether we can speak the language developed by the players, and be understood by Receiver. 
+As a sampling procedure for artificial messages, we take the average of 10 messages from a (now labelled) cluster. These artificial messages are fed to Receiver, the output object accuracy for these artificial messages is given in Table~\ref{tab:average_message_accuracy}. The model achieves recovery accuracy similar to when messages are generated using actual messages. %This can be paralleled with the phenomenon of Categorical Perception, which describes how continuous signals, such as phonemes in an acoustic space, are perceived as stable and discrete, even when the signal is gradually shifted in the continuous space.
+%\nbSST{canonical reference for Categorical Perception?}
+
+\begin{table}[]
+\begin{tabular}{lcc}
+\hline
+                       & \textbf{Shared} & \textbf{Non-shared} \\ \hline
+\textbf{Strict} & \\
+\emph{10 objects} & 
+	$63.39\%\pm 1.45$  & $55.37\%\pm 3.43$      \\\hline
+\textbf{Non-strict} & \\
+\emph{5 objects} &
+	$46.94\%\pm 1.70$  & $29.40\%\pm 5.59$      \\
+%\textbf{Non-strict} & \\
+\emph{10 objects} &
+	$32.63\%\pm 1.43$  & $31.51\%\pm 1.62$      \\
+\emph{15 objects} &
+	$28.24\%\pm 1.11$  & $27.94\%\pm 1.20$      \\ \hline
+\end{tabular}
+\caption{Discreteness in perception (object recovery accuracy from artificial messages) for the different model settings.}
+%\caption{Message clusterization F1 scores.}
+\label{tab:average_message_accuracy}
+\end{table}
+
+
+%\begin{table}[]
+%\begin{tabular}{l|c|c}
+%\hline
+%                       & \textbf{Shared} & \textbf{Non-shared} \\ \hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Strict \\ context \end{tabular}}                 & $63.39\%\pm 1.45$  & $55.37\%\pm 3.43$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 5 objects\end{tabular}}  & $46.94\%\pm 1.70$  & $29.40\%\pm 5.59$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 10 objects\end{tabular}} & $32.63\%\pm 1.43$  & $31.51\%\pm 1.62$      \\\hline
+%\textbf{\begin{tabular}[c]{@{}l@{}}Non-strict, \\ 15 objects\end{tabular}} & $28.24\%\pm 1.11$  & $27.94\%\pm 1.20$      \\ \hline
+%\end{tabular}
+%\caption{Object prediction accuracy using average message from each function cluster. }\label{tab:average_message_accuracy}
+%\end{table}
+
+In sum, we can identify discrete, abstract regions of the latent space corresponding to different functions in the input, just like words form clusters in acoustic space. This analysis in terms of production and perception can lead to more psycholinguistic-like queries about these emergent languages. For instance, one may ask whether classical `Categorical Perception' effects obtain, whereby messages shifting continuously in the latent space may be interpreted as if they crossed a sharp boundary for interpretation purposes (see \citealp{DamperHarnad-CP} for early discussions in the context of neural architectures).
+\nbEC{Improve that last part? Move it to the discussion?}
+
+
+
+
 
 
 \subsection{Compositionality}
