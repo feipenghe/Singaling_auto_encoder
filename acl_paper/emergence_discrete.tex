@@ -85,7 +85,9 @@
 
 \section{Introduction}
 
-In a signalling game, artificial agents communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action. If the action is appropriate, the whole communication stream, and in particular the choice of the message, is reinforced. For instance, in a referential game, sender and receiver see a set of objects, and the sender must send a message to the receiver, so that the receiver can pick up the right object, as determined in advance for the sender, but unbeknownst to the receiver. 
+In a signalling game, artificial agents communicate to achieve a common goal: a sender sees some piece of information and produces a message, this message is then sent to a receiver that must take some action \citep{Lewis1969, Skyrms2010}. If the action is appropriate, the whole communication stream, and in particular the choice of the message, is reinforced. For instance, in a referential game, sender and receiver see a set of objects, and the sender must send a message to the receiver, so that the receiver can pick up the right object, as determined in advance for the sender, but unbeknownst to the receiver \citep{Lazaridou2017, Lazaridou2018, Havrylov2017, Chaabouni2019a}.
+
+This setting has been used to study the factors influencing the emergence of various fundamental properties of natural language, such as compositionality \citep{Kirby2015, Franke2016, SteinertThrelkeld2016, Mordatch2018, Lazaridou2018, Choi2018}.
 
 \section{Function Games}
 
@@ -114,7 +116,7 @@ Our model resembles an encoder-decoder architecture, with the Sender encoding th
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=\columnwidth]{./figures/model_figure.png}
+	\includegraphics[width=\columnwidth]{model_figure.png}
 	\caption{Model architecture caption \nbSST{Do we really need this? It isn't super informative and might use too much space. I can also do something in TikZ if we think it's important and that this one is ugly.}}
 	\label{fig:model}
 \end{figure}
@@ -124,7 +126,7 @@ Our model resembles an encoder-decoder architecture, with the Sender encoding th
 In our experiments, we manipulated the following parameters of the Extremity Game:
 \begin{itemize}
 	\item Context strictness. 
-		In \emph{strict} contexts, every object is the $\argmax$ or $\argmax$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019a}.}  In \emph{non-strict} contexts, no such restriction is imposed. 
+		In \emph{strict} contexts, every object is the $\argmax$ or $\argmax$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019}.}  In \emph{non-strict} contexts, no such restriction is imposed. 
 
 		We considered strict contexts with 10 objects (i.e. each object consists of 5 dimensions) and non-strict contexts with 5, 10, and 15 objects.
 	\item Context identity. In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's.  This may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
@@ -170,8 +172,9 @@ We measure the communicative success of the network by calculating the accuracy 
 
 \begin{figure*}[ht]
   \centering
-  \subfigure[]{\includegraphics[scale=0.55]{./figures/messages_o5_shared_strict_trained.png}}\hspace{1cm}
-  \subfigure[]{\includegraphics[scale=0.55]{./figures/messages_o5_untrained.png}}
+  Commented out the actual figures because I can't compile without them.
+  % \subfigure[]{\includegraphics[scale=0.55]{./figures/messages_o5_shared_strict_trained.png}}\hspace{1cm}
+  % \subfigure[]{\includegraphics[scale=0.55]{./figures/messages_o5_untrained.png}}
   \caption{(a) Messages sampled from latent space of a trained network, for objects of size 5 and contexts of 10 objects. (b) Messages sampled from an untrained network. Colors represent the $f_i \in F$ input part of the Sender.}
  \label{fig:messages}
 \end{figure*}
