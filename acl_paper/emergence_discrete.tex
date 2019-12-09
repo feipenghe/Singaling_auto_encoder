@@ -18,6 +18,7 @@
 \usepackage{times}
 \usepackage{subfigure}
 \usepackage{latexsym}
+\usepackage{booktabs}
 \usepackage{enumitem}
 \renewcommand{\UrlFont}{\ttfamily\small}
 % \hypersetup{draft=true}
@@ -142,7 +143,8 @@ In addition to contributing to our understanding of the emergence of communicati
 
 A related line of work attempts to avoid the difficulties of reinforcement learning---which introduces stochastic nodes into a computation graph---by reparameterization and/or non-stochastic estimators \citep{Bengio2013, Schulman2015}.  In the emergent communication case, where the stochastic nodes are discrete (e.g.\ sampling a message from a sender distribution), the Gumbel-Softmax estimator has become increasingly popular \citep{Jang2017, Maddison2017}.  
 
-This work enables standard backpropagation to be used for training by optimizing approximations to the true reinforcement learning signal.  By contrast, using the auto-encoder analogy more literally, we do not approximate the discrete RL learning signal, but rather ask under what conditions discreteness will emerge. \nbSST{Probably can be worded better.}
+This work enables standard backpropagation to be used for training by optimizing approximations to the true reinforcement learning signal.  By contrast, using the auto-encoder analogy more literally, we do not approximate the discrete RL learning signal, but rather ask under what conditions discreteness will emerge. 
+% \nbSST{Probably can be worded better.}
 
 \section{Function Games}
 
@@ -197,8 +199,7 @@ We manipulated the following parameters:
 	In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's. This forces displacement and may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
 
 	\item Context strictness. 
-	In \emph{strict} contexts, there is a one-to-one (and onto) correspondence between $F$ and $A$.%
-\footnote{These are the contexts used in the original Extremity Game from \cite{Steinert-Threlkeld2019}. \nbEC{Drop if we need space? Or incorporate in text with a couple of words, like `As in the original Extremity Game from \cite{Steinert-Threlkeld2019}'?}}
+	In \emph{strict} contexts, there is a one-to-one (and onto) correspondence between $F$ and $A$ (as in the original Extremity Game from \citealp{Steinert-Threlkeld2019}). 
 In \emph{non-strict} contexts, an object may be the $\argmax$ or $\argmin$ of several dimensions, or of no dimension.
 %	In \emph{strict} contexts, every object is the $\argmax$ or $\argmin$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and \changeEC{$A = C$}{$A$}.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019}.}  In \emph{non-strict} contexts, no such restriction is imposed.
 
@@ -240,11 +241,11 @@ As mentioned, our setting can use traditional backpropagation, and it reaches hi
 
 \begin{table}[]
 \begin{tabular}{lcc}
-\hline
-                       & \textbf{Shared} & \textbf{Non-shared} \\ \hline
+\toprule
+                       & \textbf{Shared} & \textbf{Non-shared} \\ \midrule
 \textbf{Strict} & \\
 \emph{10 objects} & 
-	$63.78\%\pm 1.63$  & $60.22\%\pm 1.56$      \\\hline
+	$63.78\%\pm 1.63$  & $60.22\%\pm 1.56$      \\ % \midrule
 \textbf{Non-strict} & \\
 \emph{5 objects} &
 	$49.37\%\pm 1.67$  & $43.55\%\pm 1.69$      \\
@@ -252,7 +253,7 @@ As mentioned, our setting can use traditional backpropagation, and it reaches hi
 \emph{10 objects} &
 	$33.06\%\pm 1.47$  & $31.89\%\pm 1.63$      \\
 \emph{15 objects} &
-	$27.58\%\pm 1.30$  & $27.95\%\pm 1.24$      \\ \hline
+	$27.58\%\pm 1.30$  & $27.95\%\pm 1.24$      \\ \bottomrule
 \end{tabular}
 \caption{Communicative success, as measured by object recovery accuracy.}\label{tab:object_prediction_accuracy}
 \end{table}
@@ -315,13 +316,13 @@ The model reached near-optimal clusterization measures for both shared and non-s
 
 \begin{table}[]
 \begin{tabular}{lcc}
-\hline
-                       & \textbf{Shared} & \textbf{Non-shared} \\ \hline
+\toprule
+                       & \textbf{Shared} & \textbf{Non-shared} \\ \midrule
 \textbf{Strict} 
 % for space issue
 	& \phantom{$63.78\%\pm 1.63$}  & \phantom{$60.22\%\pm 1.56$}\\
 \emph{10 objects} & 
-	$1.00\pm 0.00$  & $0.90\pm 0.09$      \\\hline
+	$1.00\pm 0.00$  & $0.90\pm 0.09$      \\ % \hline
 \textbf{Non-strict} & \\
 \emph{5 objects} &
 	$0.99\pm 0.02$  & $0.54\pm 0.15$      \\
@@ -329,7 +330,7 @@ The model reached near-optimal clusterization measures for both shared and non-s
 \emph{10 objects} &
 	$1.00\pm 0.00$  & $0.99\pm 0.01$      \\
 \emph{15 objects} &
-	$1.00\pm 0.00$  & $1.00\pm 0.00$      \\ \hline
+	$1.00\pm 0.00$  & $1.00\pm 0.00$      \\ \bottomrule
 \end{tabular}
 \caption{Discreteness in production, as measured by F1 scores for automatically clusterized messages.}
 %\caption{Message clusterization F1 scores.}
@@ -356,11 +357,11 @@ As a sampling procedure for artificial messages, we take the average of 10 messa
 
 \begin{table}[]
 \begin{tabular}{lcc}
-\hline
-                       & \textbf{Shared} & \textbf{Non-shared} \\ \hline
+\toprule
+                       & \textbf{Shared} & \textbf{Non-shared} \\ \midrule
 \textbf{Strict} & \\
 \emph{10 objects} & 
-	$63.39\%\pm 1.45$  & $55.37\%\pm 3.43$      \\\hline
+	$63.39\%\pm 1.45$  & $55.37\%\pm 3.43$      \\ %\hline
 \textbf{Non-strict} & \\
 \emph{5 objects} &
 	$46.94\%\pm 1.70$  & $29.40\%\pm 5.59$      \\
@@ -368,7 +369,7 @@ As a sampling procedure for artificial messages, we take the average of 10 messa
 \emph{10 objects} &
 	$32.63\%\pm 1.43$  & $31.51\%\pm 1.62$      \\
 \emph{15 objects} &
-	$28.24\%\pm 1.11$  & $27.94\%\pm 1.20$      \\ \hline
+	$28.24\%\pm 1.11$  & $27.94\%\pm 1.20$      \\ \bottomrule
 \end{tabular}
 \caption{Discreteness in perception, as measured by object recovery accuracy from artificial messages.}
 %\caption{Message clusterization F1 scores.}
@@ -408,9 +409,10 @@ First, in the pioneering \citealp{mikolov_efficient_2013}, compositionality is l
 \WE{queen}=\WE{king}-\WE{man}+\WE{woman}. In the current Game, the analogous question is whether the messages are related as follows, for any dimensions $i$ and $j$:
 \MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. We find that using the right-hand side of the equation above, that is the compositionally appropriate message, in principle, leads to important degradation of communicative success (a drop of at least 36 percentage points across parameter combinations, to around chance level).
 
-Second, we note as others that the composition as addition assumption is however disputable, both in general and in the original application case \citep{linzen-2016-issues, Chen2017}. To abstract away from this issue, we train a network at predicting 
+Second, we note as others that the composition as addition assumption is however disputable, both in general and in the original application case \citep{linzen-2016-issues, Chen2017}. To abstract away from this issue, we train a `composition network' \nbSST{very quick details of network structure here (2 layers of XXX w/ XXX activation)} on the task of predicting 
 \MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$}, therefore letting it discover any function for mixing values, and not involving addition \emph{a priori}. We left out one dimension $i_0$ from training, and considered the message predicted by such a network from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$\argmax_{i_0}$}, but we found that, as in the case of addition, communication accuracy dropped dramatically (again, at least 36 percentage points drop).
 \nbEC{cite Baroni's (or others) similar tests?}
+\nbSST{Which did you have in mind?  The SCAN papers, or\dots?}
 
 
 % \section{Discussion}
@@ -419,8 +421,9 @@ Second, we note as others that the composition as addition assumption is however
 
 \section{Conclusion}
 
-Signaling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. Here we propose a general framework in which more games can be simulated, fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most\nbEC{all} studies involving neural signaling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-derivability issues). Likely due to this improvement, we find that at equivalent difficulty levels, our training regime leads to better communication than systems forcing discreteness \emph{a priori}, while, nonetheless, the resulting language spontaneously evolves effectively discrete signals. 
+Signaling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. Here we propose a general framework in which more games can be simulated, fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most studies involving neural signaling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-derivability issues). Likely due to this improvement, we find that at equivalent difficulty levels, our training regime leads to better communication than systems forcing discreteness \emph{a priori}, while, nonetheless, the resulting language spontaneously evolves effectively discrete signals. 
 %Further work will include studies about when compositionality may jointly emerge with discreteness, and whether one can find categorical perception, which is a finer-grained level of discreteness. Our setup makes all these issue testable.
+\nbSST{As mentioned above, we can't directly compare our results to my old ones, so I think we'll need to re-word this.  I'll take a stab in a bit.}
 
 % TODO(sst): add if accepted
 % \section*{Acknowledgments}
