@@ -147,7 +147,12 @@ Abstractly, the function $f$ represents some piece of knowledge available direct
 
 \section{Experiment}
 
-Because we are interested in the simultaneous emergence both of discrete signals and of compositional messages, we use a Function Game called the Extremity Game designed to incentivize rich compositionality \citep{Steinert-Threlkeld2019}. This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
+Because we are interested in the simultaneous emergence both of discrete signals and of compositional messages, we use a Function Game called the Extremity Game designed to incentivize and test rich compositionality \citep{Steinert-Threlkeld2019}. In this game, it is natural to think of the $n$ dimensions of the objects as gradable properties, e.g., size and darkness, so that a 2D object is determined by a given size and shade of gray. For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$ and, hopefully, the emerging language should contain messages like `(pick the) \textsc{most} + \textsc{big}', `\textsc{least} + \textsc{dark}', etc.
+
+
+%Because we are interested in the simultaneous emergence both of discrete signals and of compositional messages, we use a Function Game called the Extremity Game designed to incentivize and test compositionality \citep{Steinert-Threlkeld2019}. This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
+
+%This is a generalized referential game, where objects are represented as $n$-dimensional vectors, with each value corresponding to the degree to which it has a gradable property.  For instance, objects could be shaded circles, with two values, one for their diameter and one for their darkness.  For the functions, we set $F = \left\{ \argmin_i , \argmax_i : 0 \leq i < n \right\}$.  These may incentivize the emergence of communication protocols with messages like `small + EST' and `dark + EST'.
 
 \nbSST{cite my forthcoming philosophy of science paper instead? pre-print is only on my website, so URL would be sort of de-anonymizing}
 
@@ -164,19 +169,28 @@ Our model resembles an encoder-decoder architecture, with the Sender encoding th
 
 \subsection{Game Parameters}
 
-In our experiments, we manipulated the following parameters of the Extremity Game:
+We manipulated the following parameters:
+%In our experiments, we manipulated the following parameters of the Extremity Game:
 \begin{itemize}
-	\item Context strictness. 
-		In \emph{strict} contexts, every object is the $\argmax$ or $\argmin$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and $A = C$.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019}.}  In \emph{non-strict} contexts, no such restriction is imposed. 
+	\item Context identity. 
+	In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's. This forces displacement and may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
 
-		We considered strict contexts with 10 objects (i.e. each object consists of 5 dimensions) and non-strict contexts with 5, 10, and 15 objects.
-	\item Context identity. In the \emph{shared} setting, Receiver sees a shuffled version of Sender's context ($c' = \texttt{shuffled}(c)$). In the \emph{non-shared} setting, Receiver's context $c'$ is entirely distinct from Sender's.  This may incentivize compositional messages, since Sender cannot rely on the raw properties of the target object in communication.
+	\item Context strictness. 
+	In \emph{strict} contexts, there is a one-to-one (and onto) correspondence between $F$ and \changeEC{$A = C$}{$A$}.%
+\footnote{These are the contexts used in the original Extremity Game from \cite{Steinert-Threlkeld2019}. \nbEC{Drop if we need space? Or incorporate in text with 3 words, like `As in the original Extremity Game from \cite{Steinert-Threlkeld2019}'?}}
+In \emph{non-strict} contexts, an object may be the $\argmax$ or $\argmin$ of several dimensions, or of no dimension.
+%	In \emph{strict} contexts, every object is the $\argmax$ or $\argmin$ of exactly one dimension.  This means that there is a one-to-one (and onto) correspondence between $F$ and \changeEC{$A = C$}{$A$}.\footnote{These are the contexts used in \cite{Steinert-Threlkeld2019}.}  In \emph{non-strict} contexts, no such restriction is imposed.
+
 \end{itemize}
-In all experiments, objects had 5 dimensions.  Similarly, the latent space (message) dimension was always 2.\footnote{The model also performs well with messages of size 1, not reported here. Using messages of size 2 makes it easier to inspect the latent space using 2-D visualization.}
+In all experiments, the latent space (message) dimension was always 2,%
+\footnote{The model also performs well with messages of size 1, not reported here. Using messages of size 2 makes it easier to inspect the latent space using 2-D visualization.}
+and objects had 5 dimensions. Strict contexts therefore contained 10 objects, while non-strict contexts could contain 5, 10, or 15 objects.
 
 \subsection{Training Details}
 
-By using a continuous latent space, the entire model, including the communication channel, is differentiable and so can be trained end-to-end using backpropagation to compute gradients.  We used the Adam optimizer \citep{Kingma2015} with learning rate 0.001, $\beta_1 = 0.9$, and $\beta_2 = 0.999$. The model was trained for 5,000 epochs by feeding the network with mini-batches of 64 contexts concatenated with one-hot function selectors. The network's loss is taken as the MSE between the target object $f(c')$ and the object generated by the Receiver. For each setting of the above parameters, we ran 20 trials with different random seeds.
+By using a continuous latent space, the entire model, including the communication channel, is differentiable and so can be trained end-to-end using backpropagation to compute gradients.
+\nbEC{We can drop the previous sentence if we need space.}
+We used the Adam optimizer \citep{Kingma2015} with learning rate 0.001, $\beta_1 = 0.9$, and $\beta_2 = 0.999$. The model was trained for 5,000 epochs by feeding the network with mini-batches of 64 contexts concatenated with one-hot function selectors. The network's loss is taken as the MSE between the target object $f(c')$ and the object generated by the Receiver. For each setting of the above parameters, we ran 20 trials with different random seeds.
 
 Code and data will be made available once the paper can be de-anonymized. 
 
