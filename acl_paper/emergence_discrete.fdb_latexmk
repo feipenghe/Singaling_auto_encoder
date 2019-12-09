@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex emergence_discrete"] 1575583184 "emergence_discrete.aux" "emergence_discrete.bbl" "emergence_discrete" 1575583192
+["bibtex emergence_discrete"] 1575583184 "emergence_discrete.aux" "emergence_discrete.bbl" "emergence_discrete" 1575834720
   "./acl_natbib.bst" 1575343384 47585 c671f071a8f3957857acb307a7173505 ""
   "acl2020.bib" 1575408628 12545 a8fa78569a8a1ac1d15b2030f91a86ff ""
   "anthology.bib" 1575343384 35724382 7579d629f1885d6a7c7a5a6c9c2f402b ""
   "emergence_discrete.aux" 1575583191 1887 291a1c23b0c52a44f48927bcc29f1e5b ""
   (generated)
-  "emergence_discrete.blg"
   "emergence_discrete.bbl"
-["pdflatex"] 1575583191 "emergence_discrete.tex" "emergence_discrete.pdf" "emergence_discrete" 1575583192
+  "emergence_discrete.blg"
+["pdflatex"] 1575583191 "emergence_discrete.tex" "emergence_discrete.pdf" "emergence_discrete" 1575834720
   "/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/base/8r.enc" 1480098666 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2017/texmf-dist/fonts/map/fontname/texfonts.map" 1480098670 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/tfm/adobe/courier/pcrr7t.tfm" 1480098688 960 379cc0019370a9e0208a0a3f949f847a ""
@@ -119,7 +119,7 @@
   "emergence_discrete.tex" 1575583183 9321 cd0e9b392a2b71214f8d2f85b55ccdb3 ""
   "model_figure.png" 1575582923 29467 62d1683c0c8de6e1250cb512fde91f68 ""
   (generated)
-  "emergence_discrete.pdf"
-  "emergence_discrete.out"
   "emergence_discrete.log"
   "emergence_discrete.aux"
+  "emergence_discrete.pdf"
+  "emergence_discrete.out"
