@@ -97,7 +97,7 @@
 % TODO(sst): short [4] or long [8] paper?
 
 \begin{abstract}
-	We propose a general framework to study language emergence through signaling games with neural agents. Using a continuous latent space, we are able to (i)~train using back-propagation, (ii)~show that discrete messages nonetheless naturally emerge. We discuss various ways to test the emergent language (concerning categorical perception, displacement and compositionality).
+	We propose a general framework to study language emergence through signaling games with neural agents. Using a continuous latent space, we are able to (i)~train using back-propagation, (ii)~show that discrete messages nonetheless naturally emerge. We discuss various ways to test classic properties of the emergent language in production and perception.
 \end{abstract}
 
 \section{Introduction}
@@ -119,7 +119,7 @@ Our main contribution is a generalization of the current implementation of signa
 Our implementation covers a broader variety of signalling games, and it crucially incorporates the possibility of displacement and no \emph{a priori} assumption of discreteness. %In this setting we propose new analyses for the degree of emergent discreteness, compositionality and displacement. 
 Our main result is that under appropriate conditions, discreteness emerges spontaneously, that is, if the latent space is thought about as a continuous acoustic space, then trained messages form coherent clusters, just like regular words do.
 
-In addition to contributing to our understanding of the emergence of communication protocols with features like natural language, these results have a technical significance: by using a fundamentally continuous communication protocol, with discreteness emerging, we can train end-to-end using standard backpropagation techniques, instead of reinforcement learning algorithms like REINFORCE and its refinements \citep{Williams1992, Schulman2015, Mnih2016}, which often have high variance and are difficult to use in practice.
+In addition to contributing to our understanding of the emergence of communication protocols with features like natural language, these results have a technical significance: by using a fundamentally continuous communication protocol, with discreteness emerging, we can train end-to-end using standard backpropagation techniques, instead of reinforcement learning algorithms like REINFORCE and its refinements \citep{Williams1992, Schulman2015, Mnih2016}, which \nbEC{often have high variance and }are difficult to use in practice.
 
 
 %Our main contributions are:
@@ -306,7 +306,7 @@ Figure~\ref{fig:messages} depicts message vectors sampled from the latent space 
 
 %The first approach is a study of production, and measures whether messages produced by Sender are clustered.
 % we calculated the F1 score between the cluster labels for transmitted messages and the target functions for which they were generated. 
-First, we sampled \nbEC{XXX} contexts, and collected the output of the trained encoder for each of these contexts combined with each possible function $f$. We applied an unsupervized clustering algorithm to this set of produced messages (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). A label was assigned to each cluster using the ground truth: the label of a cluster is the function $f$ that was most often at the source of a point in this cluster. This allowed us to compute F1-scores, which results are reported in Table~\ref{tab:f1_scores}.
+First, we sampled \addEC{XXX} contexts, and collected the output of the trained encoder for each of these contexts combined with each possible function $f$. We applied an unsupervized clustering algorithm to this set of produced messages (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). A label was assigned to each cluster using the ground truth: the label of a cluster is the function $f$ that was most often at the source of a point in this cluster. This allowed us to compute F1-scores, which results are reported in Table~\ref{tab:f1_scores}.
 %For each message, we (but not the unsupervised clustering algorithm) know which function led to that message,  cluster, we assigned the label of the function $f$ that it most commonly contains, and we computed an F1-score with respect to this labelling. Results are reported in Table~\ref{tab:f1_scores}. 
 The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
 %If message clusters are well separated from one another, the labeling will have less to no confusion and an F1 score closer to~$1$. The F1 scores for the different model settings are given in Table~\ref{tab:f1_scores}. The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
@@ -396,18 +396,19 @@ In sum, we can identify discrete, abstract regions of the latent space correspon
 
 \subsection{Compositionality}
 
-Our agents are capable of communicating in abstract situations, namely some in which their contexts are different in the first place. This generalizability is already a sign of `compositionality', or at least of productivity. But how do the messages relate to the structure in the family of functions $F$? It is not usual to ask such compositionality questions for continuous messages, but it is possible and the emergence of discreteness here makes it a natural question. Initial inquiries show that a model can easily predict whether a message correspond to an $\argmin$ or an $\argmax$ function, or which dimension it targets. But this leaves open the question: are these features \emph{compositionally} encoded in the message?
+Our agents are capable of communicating in abstract situations, namely some in which their contexts are different in the first place. This generalizability is already a sign of `compositionality', or at least of productivity. But how do the messages relate to the structure in the family of functions $F$? 
+%It is not usual to ask such compositionality questions for continuous messages, but it is possible and the emergence of discreteness here makes it a natural question. Initial inquiries show that a model can easily predict whether a message correspond to an $\argmin$ or an $\argmax$ function, or which dimension it targets. But this leaves open the question: are these features \emph{compositionally} encoded in the message?
 
 \newcommand{\WE}[1]{\textsc{we}(#1)}
 \newcommand{\MESS}[1]{\textsc{m}(#1)}
 
 First, in the pioneering \addEC{REF}, compositionality is looked for at the level of word embeddings through addition, most classically asking whether  
 \WE{queen}=\WE{king}-\WE{man}+\WE{woman}. In the current Game, the analogous question is whether the messages are related as follows, for any dimensions $i$ and $j$:
-\MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. We find that using the right-hand side of the equation above, that is the compositionally appropriate message in principle, leads to important degradation of communicative success \addEC{(at least XX\% drop across parameter combinations).}
+\MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. We find that using the right-hand side of the equation above, that is the compositionally appropriate message, in principle, leads to important degradation of communicative success \addEC{(at least XX\% drop across parameter combinations).}
 \nbEC{Can describe results that efficiently?}
 
 Second, we note as others that the composition as addition assumption is however disputable, both in general and in the original application case \addEC{REF}. To abstract away from this issue, we train a network at predicting 
-\MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$}, therefore letting relation being any mixture of values, not and not necessarily involving addition. We left out one dimension $i_0$ from training, and considered the message predicted by such a network \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$\argmax_{i_0}$}, but we found that, as in the case of addition, communication accuracy dropped dramatically \addEC{(at least XX\% drop).}
+\MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$}, therefore letting it discover any function for mixing values, and not involving addition \emph{a priori}. We left out one dimension $i_0$ from training, and considered the message predicted by such a network from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$\argmax_{i_0}$}, but we found that, as in the case of addition, communication accuracy dropped dramatically \addEC{(at least XX\% drop).}
 \nbEC{cite Baroni's (or others) similar tests?}
 
 

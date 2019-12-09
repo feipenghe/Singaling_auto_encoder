@@ -1,0 +1,55 @@
+This is BibTeX, Version 0.99d (TeX Live 2017)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: emergence_discrete.aux
+The style file: acl_natbib.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=20001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: anthology.bib
+Database file #2: acl2020.bib
+Warning--I didn't find a database entry for "REF"
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Warning--empty journal in Bengio2013
+You've used 25 entries,
+            3571 wiz_defined-function locations,
+            874 strings with 11038 characters,
+and the built_in function-call counts, 16655 in all, are:
+= -- 1407
+> -- 729
+< -- 17
++ -- 231
+- -- 204
+* -- 1060
+:= -- 2532
+add.period$ -- 99
+call.type$ -- 25
+change.case$ -- 223
+chr.to.int$ -- 25
+cite$ -- 26
+duplicate$ -- 1143
+empty$ -- 1296
+format.name$ -- 275
+if$ -- 3684
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 237
+newline$ -- 127
+num.names$ -- 100
+pop$ -- 588
+preamble$ -- 1
+purify$ -- 168
+quote$ -- 0
+skip$ -- 812
+stack$ -- 0
+substring$ -- 478
+swap$ -- 536
+text.length$ -- 5
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 219
+warning$ -- 1
+while$ -- 95
+width$ -- 0
+write$ -- 310
+(There were 2 warnings)

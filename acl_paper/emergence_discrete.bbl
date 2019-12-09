@@ -1,0 +1,174 @@
+\begin{thebibliography}{25}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+
+\bibitem[{Bengio et~al.(2013)Bengio, L{\'{e}}onard, and Courville}]{Bengio2013}
+Yoshua Bengio, Nicholas L{\'{e}}onard, and Aaron Courville. 2013.
+\newblock \href {http://arxiv.org/abs/1308.3432} {{Estimating or Propagating
+  Gradients Through Stochastic Neurons for Conditional Computation}}.
+
+\bibitem[{Chaabouni et~al.(2019)Chaabouni, Kharitonov, Dupoux, and
+  Baroni}]{Chaabouni2019a}
+Rahma Chaabouni, Eugene Kharitonov, Emmanuel Dupoux, and Marco Baroni. 2019.
+\newblock \href {http://arxiv.org/abs/1905.12561v4} {{Anti-efficient encoding
+  in emergent communication}}.
+\newblock In \emph{Proceedings of the 33rd Conference on Neural Information
+  Processing Systems (NeurIPS 2019)}.
+
+\bibitem[{Choi et~al.(2018)Choi, Lazaridou, and de~Freitas}]{Choi2018}
+Edward Choi, Angeliki Lazaridou, and Nando de~Freitas. 2018.
+\newblock \href {http://arxiv.org/abs/1804.02341v1} {{Compositional Obverter
+  Communication Learning from Raw Visual Input}}.
+\newblock In \emph{International Conference of Learning Representations (ICLR
+  2018)}, pages 1--18.
+
+\bibitem[{Damper and Harnad(2000)}]{DamperHarnad-CP}
+R.I. Damper and S.R. Harnad. 2000.
+\newblock \href {http://cogprints.org/1620/} {Neural network models of
+  categorical perception}.
+
+\bibitem[{Ester et~al.(1996)Ester, Kriegel, Sander, and
+  Xu}]{ester_density-based_1996}
+Martin Ester, Hans-Peter Kriegel, J{\"o}rg Sander, and Xiaowei Xu. 1996.
+\newblock A density-based algorithm for discovering clusters in large spatial
+  databases with noise.
+\newblock In \emph{Kdd}, volume~96, pages 226--231.
+
+\bibitem[{Franke(2016)}]{Franke2016}
+Michael Franke. 2016.
+\newblock \href {https://doi.org/10.1007/s10849-015-9232-5} {{The Evolution of
+  Compositionality in Signaling Games}}.
+\newblock \emph{Journal of Logic, Language and Information}.
+
+\bibitem[{Glorot et~al.(2011)Glorot, Bordes, and Bengio}]{Glorot2011}
+Xavier Glorot, Antoine Bordes, and Yoshua Bengio. 2011.
+\newblock {Deep Sparse Rectifier Neural Networks}.
+\newblock In \emph{14th International Conference on Artificial Intelligence and
+  Statistics (AISTATS)}, pages 315--323.
+
+\bibitem[{Havrylov and Titov(2017)}]{Havrylov2017}
+Serhii Havrylov and Ivan Titov. 2017.
+\newblock \href {http://arxiv.org/abs/1705.11192} {{Emergence of Language with
+  Multi-agent Games: Learning to Communicate with Sequences of Symbols}}.
+\newblock In \emph{Proceedings of the 31st Conference on Neural Information
+  Processing Systems (NeurIPS 2017)}.
+
+\bibitem[{Hockett(1960)}]{Hockett1960}
+Charles~F Hockett. 1960.
+\newblock {The Origin of Speech}.
+\newblock \emph{Scienctific American}, 203:88--111.
+
+\bibitem[{Jang et~al.(2017)Jang, Gu, and Poole}]{Jang2017}
+Eric Jang, Shixiang Gu, and Ben Poole. 2017.
+\newblock \href {http://arxiv.org/abs/1611.01144} {{Categorical
+  Reparameterization with Gumbel-Softmax}}.
+\newblock In \emph{International Conference of Learning Representations
+  (ICLR)}.
+
+\bibitem[{Kharitonov et~al.(2019)Kharitonov, Chaabouni, Bouchacourt, and
+  Baroni}]{Kharitonov2019}
+Eugene Kharitonov, Rahma Chaabouni, Diane Bouchacourt, and Marco Baroni. 2019.
+\newblock \href {https://doi.org/10.18653/v1/D19-3010} {{EGG: a toolkit for
+  research on Emergence of lanGuage in Games}}.
+\newblock In \emph{Proceedings of the 2019 Conference on Empirical Methods in
+  Natural Language Processing and the 9th International Joint Conference on
+  Natural Language Processing (EMNLP-IJCNLP): System Demonstrations}, pages
+  55--60, Stroudsburg, PA, USA. Association for Computational Linguistics.
+
+\bibitem[{Kingma and Ba(2015)}]{Kingma2015}
+Diederik~P. Kingma and Jimmy Ba. 2015.
+\newblock \href {http://arxiv.org/abs/1412.6980} {{Adam: A Method for
+  Stochastic Optimization}}.
+\newblock In \emph{International {Conference} of {Learning} {Representations}
+  ({ICLR})}.
+
+\bibitem[{Kirby et~al.(2015)Kirby, Tamariz, Cornish, and Smith}]{Kirby2015}
+Simon Kirby, Monica Tamariz, Hannah Cornish, and Kenny Smith. 2015.
+\newblock \href {https://doi.org/10.1016/j.cognition.2015.03.016} {{Compression
+  and communication in the cultural evolution of linguistic structure}}.
+\newblock \emph{Cognition}, 141:87--102.
+
+\bibitem[{Lazaridou et~al.(2018)Lazaridou, Hermann, Tuyls, and
+  Clark}]{Lazaridou2018}
+Angeliki Lazaridou, Karl~Moritz Hermann, Karl Tuyls, and Stephen Clark. 2018.
+\newblock \href {http://arxiv.org/abs/1804.03984v1} {{Emergence of Linguistic
+  Communication from Referential Games with Symbolic and Pixel Input}}.
+\newblock In \emph{International Conference of Learning Representations (ICLR
+  2018)}.
+
+\bibitem[{Lazaridou et~al.(2017)Lazaridou, Peysakhovich, and
+  Baroni}]{Lazaridou2017}
+Angeliki Lazaridou, Alexander Peysakhovich, and Marco Baroni. 2017.
+\newblock \href {http://arxiv.org/abs/1612.07182} {{Multi-Agent Cooperation and
+  the Emergence of (Natural) Language}}.
+\newblock In \emph{International Conference of Learning Representations
+  (ICLR2017)}.
+
+\bibitem[{Lewis(1969)}]{Lewis1969}
+David Lewis. 1969.
+\newblock \emph{{Convention}}.
+\newblock Blackwell.
+
+\bibitem[{Maddison et~al.(2017)Maddison, Mnih, Teh, Kingdom, and
+  Kingdom}]{Maddison2017}
+Chris~J Maddison, Andriy Mnih, Yee~Whye Teh, United Kingdom, and United
+  Kingdom. 2017.
+\newblock \href {https://arxiv.org/pdf/1611.00712.pdf} {{The Concrete
+  Distribution: A Continuous Relaxation of Discrete Random Variables}}.
+\newblock In \emph{International Conference of Learning Representations
+  (ICLR)}.
+
+\bibitem[{Mnih et~al.(2016)Mnih, {Puigdom{\`{e}}nech Badia}, Mirza, Harley,
+  Lillicrap, Silver, and Kavukcuoglu}]{Mnih2016}
+Volodymyr Mnih, Adri{\`{a}} {Puigdom{\`{e}}nech Badia}, Mehdi Mirza, Tim
+  Harley, Timothy~P Lillicrap, David Silver, and Koray Kavukcuoglu. 2016.
+\newblock \href {http://proceedings.mlr.press/v48/mniha16.html} {{Asynchronous
+  Methods for Deep Reinforcement Learning}}.
+\newblock In \emph{International Conference on Machine Learning (ICML)}.
+
+\bibitem[{Mordatch and Abbeel(2018)}]{Mordatch2018}
+Igor Mordatch and Pieter Abbeel. 2018.
+\newblock \href {http://arxiv.org/abs/1703.04908} {{Emergence of Grounded
+  Compositional Language in Multi-Agent Populations}}.
+\newblock In \emph{The Thirty-Second AAAI Conference on Artificial Intelligence
+  (AAAI 2018)}.
+
+\bibitem[{Nair and Hinton(2010)}]{Nair2010}
+Vinod Nair and Geoffrey~E Hinton. 2010.
+\newblock \href
+  {https://www.semanticscholar.org/paper/Rectified-Linear-Units-Improve-Restricted-Boltzmann-Nair-Hinton/a538b05ebb01a40323997629e171c91aa28b8e2f}
+  {{Rectified Linear Units Improve Restricted Boltzmann Machines}}.
+\newblock In \emph{Proceedings of the 27th International Conference on Machine
+  Learning (ICML)}.
+
+\bibitem[{Schulman et~al.(2015)Schulman, Heess, Weber, and
+  Abbeel}]{Schulman2015}
+John Schulman, Nicolas Heess, Theophane Weber, and Pieter Abbeel. 2015.
+\newblock \href {http://arxiv.org/abs/1506.05254} {{Gradient Estimation Using
+  Stochastic Computation Graphs}}.
+\newblock In \emph{Advances in Neural Information Processing Systems 28 (NIPS
+  2015)}.
+
+\bibitem[{Skyrms(2010)}]{Skyrms2010}
+Brian Skyrms. 2010.
+\newblock \emph{{Signals: Evolution, Learning, and Information}}.
+\newblock Oxford University Press.
+
+\bibitem[{Steinert-Threlkeld(2016)}]{SteinertThrelkeld2016}
+Shane Steinert-Threlkeld. 2016.
+\newblock \href {https://doi.org/10.1007/s10849-016-9236-9} {{Compositional
+  Signaling in a Complex World}}.
+\newblock \emph{Journal of Logic, Language and Information}, 25(3):379--397.
+
+\bibitem[{Steinert-Threlkeld(2019)}]{Steinert-Threlkeld2019}
+Shane Steinert-Threlkeld. 2019.
+\newblock \href {http://arxiv.org/abs/1909.11060} {{Paying Attention to
+  Function Words}}.
+\newblock In \emph{Emergent Communication Workshop @ NeurIPS 2018}.
+
+\bibitem[{Williams(1992)}]{Williams1992}
+Ronald~J Williams. 1992.
+\newblock {Simple statistical gradient-following algorithms for connectionist
+  reinforcement learning}.
+\newblock \emph{Machine Learning}, 8(3-4):229--256.
+
+\end{thebibliography}
