@@ -243,10 +243,10 @@ As mentioned, our setting can use traditional back-propagation, and it reaches h
 \textbf{Strict} & \\
 \emph{10 objects} & 
 	$63.78\%\pm 1.63$  & $60.22\%\pm 1.56$      \\\hline
-\textbf{Non-strict} & \\
+\textbf{Non-strict} & \\
 \emph{5 objects} &
 	$49.37\%\pm 1.67$  & $43.55\%\pm 1.69$      \\
-%\textbf{Non-strict} & \\
+%\textbf{Non-strict} & \\
 \emph{10 objects} &
 	$33.06\%\pm 1.47$  & $31.89\%\pm 1.63$      \\
 \emph{15 objects} &
@@ -306,7 +306,7 @@ Figure~\ref{fig:messages} depicts message vectors sampled from the latent space 
 
 %The first approach is a study of production, and measures whether messages produced by Sender are clustered.
 % we calculated the F1 score between the cluster labels for transmitted messages and the target functions for which they were generated. 
-First, we sampled \addEC{XXX} contexts, and collected the output of the trained encoder for each of these contexts combined with each possible function $f$. We applied an unsupervized clustering algorithm to this set of produced messages (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). A label was assigned to each cluster using the ground truth: the label of a cluster is the function $f$ that was most often at the source of a point in this cluster. This allowed us to compute F1-scores, which results are reported in Table~\ref{tab:f1_scores}.
+First, we sampled 100 contexts, and collected the output of the trained encoder for each of these contexts combined with each possible function $f$. We applied an unsupervized clustering algorithm to this set of produced messages (DBSCAN, \citealp{ester_density-based_1996}, with $\epsilon = 0.5$). A label was assigned to each cluster using the ground truth: the label of a cluster is the function $f$ that was most often at the source of a point in this cluster. This allowed us to compute F1-scores, which results are reported in Table~\ref{tab:f1_scores}.
 %For each message, we (but not the unsupervised clustering algorithm) know which function led to that message,  cluster, we assigned the label of the function $f$ that it most commonly contains, and we computed an F1-score with respect to this labelling. Results are reported in Table~\ref{tab:f1_scores}. 
 The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
 %If message clusters are well separated from one another, the labeling will have less to no confusion and an F1 score closer to~$1$. The F1 scores for the different model settings are given in Table~\ref{tab:f1_scores}. The model reached near-optimal clusterization measures for both shared and non-shared contexts, and for both strict and non-strict contexts. 
@@ -320,10 +320,10 @@ The model reached near-optimal clusterization measures for both shared and non-s
 	& \phantom{$63.78\%\pm 1.63$}  & \phantom{$60.22\%\pm 1.56$}\\
 \emph{10 objects} & 
 	$1.00\pm 0.00$  & $0.90\pm 0.09$      \\\hline
-\textbf{Non-strict} & \\
+\textbf{Non-strict} & \\
 \emph{5 objects} &
 	$0.99\pm 0.02$  & $0.54\pm 0.15$      \\
-%\textbf{Non-strict} & \\
+%\textbf{Non-strict} & \\
 \emph{10 objects} &
 	$1.00\pm 0.00$  & $0.99\pm 0.01$      \\
 \emph{15 objects} &
@@ -359,10 +359,10 @@ As a sampling procedure for artificial messages, we take the average of 10 messa
 \textbf{Strict} & \\
 \emph{10 objects} & 
 	$63.39\%\pm 1.45$  & $55.37\%\pm 3.43$      \\\hline
-\textbf{Non-strict} & \\
+\textbf{Non-strict} & \\
 \emph{5 objects} &
 	$46.94\%\pm 1.70$  & $29.40\%\pm 5.59$      \\
-%\textbf{Non-strict} & \\
+%\textbf{Non-strict} & \\
 \emph{10 objects} &
 	$32.63\%\pm 1.43$  & $31.51\%\pm 1.62$      \\
 \emph{15 objects} &
@@ -402,13 +402,12 @@ Our agents are capable of communicating in abstract situations, namely some in w
 \newcommand{\WE}[1]{\textsc{we}(#1)}
 \newcommand{\MESS}[1]{\textsc{m}(#1)}
 
-First, in the pioneering \addEC{REF}, compositionality is looked for at the level of word embeddings through addition, most classically asking whether  
+First, in the pioneering \citealp{mikolov_efficient_2013}, compositionality is looked for at the level of word embeddings (WE) through addition, most classically asking whether  
 \WE{queen}=\WE{king}-\WE{man}+\WE{woman}. In the current Game, the analogous question is whether the messages are related as follows, for any dimensions $i$ and $j$:
-\MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. We find that using the right-hand side of the equation above, that is the compositionally appropriate message, in principle, leads to important degradation of communicative success \addEC{(at least XX\% drop across parameter combinations).}
-\nbEC{Can describe results that efficiently?}
+\MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}. We find that using the right-hand side of the equation above, that is the compositionally appropriate message, in principle, leads to important degradation of communicative success (a drop of at least 36 percentage points across parameter combinations, to around chance level).
 
 Second, we note as others that the composition as addition assumption is however disputable, both in general and in the original application case \addEC{REF}. To abstract away from this issue, we train a network at predicting 
-\MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$}, therefore letting it discover any function for mixing values, and not involving addition \emph{a priori}. We left out one dimension $i_0$ from training, and considered the message predicted by such a network from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$\argmax_{i_0}$}, but we found that, as in the case of addition, communication accuracy dropped dramatically \addEC{(at least XX\% drop).}
+\MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$}, therefore letting it discover any function for mixing values, and not involving addition \emph{a priori}. We left out one dimension $i_0$ from training, and considered the message predicted by such a network from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$\argmax_{i_0}$}, but we found that, as in the case of addition, communication accuracy dropped dramatically (again, at least 36 percentage points drop).
 \nbEC{cite Baroni's (or others) similar tests?}
 
 
