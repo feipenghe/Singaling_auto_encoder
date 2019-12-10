@@ -400,7 +400,7 @@ In sum, we can identify discrete, abstract regions of the latent space correspon
 
 \subsection{Compositionality}
 
-Our agents are capable of communicating in abstract situations, namely some in which their contexts are different in the first place. This generalizability suggests that the messages may be `compositional'. We here probe for a candidate compositional structure to the latent space, by asking how the messages relate to the structure of the family of functions $F$? 
+Our agents are capable of communicating in abstract situations, namely some in which their contexts are different in the first place. This generalizability suggests that the messages may be `compositional'. We here probe for a candidate compositional structure to the latent space, by asking how the messages relate to the structure of the family of functions $F$.
 %It is not usual to ask such compositionality questions for continuous messages, but it is possible and the emergence of discreteness here makes it a natural question. Initial inquiries show that a model can easily predict whether a message correspond to an $\argmin$ or an $\argmax$ function, or which dimension it targets. But this leaves open the question: are these features \emph{compositionally} encoded in the message?
 
 \newcommand{\WE}[1]{\textsc{we}(#1)}
@@ -425,7 +425,8 @@ Complete results for the compositionality tests may be found in the Appendix.
 
 \section{Conclusion}
 
-Signaling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. Here we propose a general framework in which more games can be simulated as fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most studies involving neural signaling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-derivability issues).
+% Signaling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. 
+We proposed a general signaling game framework in which fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most studies involving neural signaling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-differentiability issues).We probed for compositional structure using vector analogies and a generlization thereof, but did not find any evidence of such structure in the emergent language.
 
 Our analysis of discreteness in production and perception can lead to more psycholinguistic-like queries about these emergent languages. For instance, one may ask whether classical `Categorical Perception' effects obtain, whereby messages shifting continuously in the latent space may be interpreted as if they crossed a sharp boundary for interpretation purposes (see \citealp{DamperHarnad-CP} for early discussions in the context of neural architectures).  Future work will similarly explore other measures and alternative game settings for the emergence of compositionality.
 
