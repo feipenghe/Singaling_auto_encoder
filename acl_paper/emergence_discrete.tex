@@ -353,8 +353,7 @@ The model reached near-optimal clusterization measures for all game parameter se
 The second approach is akin to studying perception. Given the clusterization of the message space, we are able to sample new messages from each cluster, and test Receiver's perception of these `artificial' messages, which have never been produced by Sender. 
 % \nbEC{Optional:}
 % In other words, we ask whether we can speak the language developed by the players, and be understood by Receiver. 
-As a sampling procedure for artificial messages, we take the average of 10 messages from a (now labelled) cluster. These artificial messages are fed to Receiver.
-We repeat this process \nbSST{Nur: XXX times}. The output object accuracy for these artificial messages is given in Table~\ref{tab:average_message_accuracy}. The model achieves recovery accuracy similar to when interpreting actual messages. %This can be paralleled with the phenomenon of Categorical Perception, which describes how continuous signals, such as phonemes in an acoustic space, are perceived as stable and discrete, even when the signal is gradually shifted in the continuous space.
+As a sampling procedure for artificial messages, we take the average of 10 messages from a (now labelled) cluster. These artificial messages are fed to Receiver for 100 different contexts. The output object accuracy for these artificial messages is given in Table~\ref{tab:average_message_accuracy}. The model achieves recovery accuracy similar to when interpreting actual messages. %This can be paralleled with the phenomenon of Categorical Perception, which describes how continuous signals, such as phonemes in an acoustic space, are perceived as stable and discrete, even when the signal is gradually shifted in the continuous space.
 %\nbSST{canonical reference for Categorical Perception?}
 
 \begin{table}[]
@@ -409,19 +408,16 @@ Our agents are capable of communicating in abstract situations, namely some in w
 
 First, in the pioneering \citealp{mikolov_efficient_2013}, compositionality is looked for at the level of word embeddings (WE) through addition, most classically asking whether  
 \WE{queen}=\WE{king}-\WE{man}+\WE{woman}. In the current Game, we can ask whether the messages are related as follows, for any dimensions $i$ and $j$:
-\MESS{$\argmax_i$}=\MESS{$\argmax_j$}-\MESS{$\argmin_j$}+\MESS{$\argmin_i$}.
-We find that passing the right-hand side of the equation above (that is the compositionally appropriate message, in principle) to the Receiver in place of the left-hand side leads to important degradation of communicative success (a drop of at least 36 percentage points across parameter combinations, to around chance level).
-\nbSST{Nur: is there a way of being as succinct but slightly more precise with the experimental set up here?  E.g. ``For XXX contexts, and every $f$, we compared passing \MESS{$\argmax_i$} to \dots to the Receiver, and found\dots.
+\MESS{$c, \argmax_i$}=\MESS{$c, \argmax_j$}-\MESS{$c, \argmin_j$}+\MESS{$c, \argmin_i$}.
+For each such pair of object dimensions we calculate the right-hand side of the equation above for 100 contexts, feed it to Receiver expecting the output for $\argmax_i$, and average the communicative success across all parameters. This leads to important degradation of communicative success (a drop of at least 24 percentage points across parameter combinations, to around chance level). 
 
-I'm not 100\% sure of the setup, so the reader might not as well.  Should it be \MESS{$c, \argmax_i$ as well, or am I missing something?}}
+%We find that passing the right-hand side of the equation above (that is the compositionally appropriate message, in principle) to the Receiver in place of the left-hand side 
 
 Second, we note as others that the composition-as-addition assumption is disputable, both in general and in the original application case \citep{linzen-2016-issues, Chen2017}. To abstract away from this issue, we train a `composition network' (an MLP with 2 hidden layers of 64 ReLU units) on the task of predicting 
-\MESS{$\argmax_i$} from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_i$}, therefore letting it discover any function for mixing values, and not involving addition \emph{a priori}. We left out one dimension $i_0$ from training, and considered the message predicted by such a network from \MESS{$\argmax_j$}, \MESS{$\argmin_j$} and \MESS{$\argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$\argmax_{i_0}$}, but we found that, as in the case of addition, communication accuracy dropped dramatically (again, at least 36 percentage points drop).
+\MESS{$c, \argmax_i$} from \MESS{$c, \argmax_j$}, \MESS{$c, \argmin_j$} and \MESS{$c, \argmin_i$}, therefore letting it discover any function for mixing values, and not involving addition \emph{a priori}. We leave out one dimension $i_0$ from training, and feed Receiver with the message predicted by the `composition network' from \MESS{$c, \argmax_j$}, \MESS{$c, \argmin_j$} and \MESS{$c, \argmin_{i_0}$}. If the language was compositional, this predicted message should behave like \MESS{$c, \argmax_{i_0}$}, but we found that, as in the case of addition, the average communication accuracy for all taken-out parameters dropped dramatically (again, at least 24 percentage points drop).
 % \nbEC{cite Baroni's (or others) similar tests?} \nbSST{Which did you have in mind?  The SCAN papers, or\dots?}
 
 Complete results for the compositionality tests may be found in the Appendix.
-\nbSST{Nur: see appendix.tex}
-
 
 % \section{Discussion}
 
@@ -429,7 +425,7 @@ Complete results for the compositionality tests may be found in the Appendix.
 
 \section{Conclusion}
 
-Signaling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. Here we propose a general framework in which more games can be simulated as fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most studies involving neural signaling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-derivability issues). 
+Signaling games have long been used to study which properties of languages are shaped by communicative pressures. This tradition has recently been merged with the machine learning literature, by using neural agents for the relevant simulations. Here we propose a general framework in which more games can be simulated as fewer \emph{a priori} assumptions are imposed on the conversational situations. We find in particular that under appropriate conditions, which are met by most studies involving neural signaling games, messages become discrete without the analyst having to force this property into the language (and having to deal with non-derivability issues).
 
 Our analysis of discreteness in production and perception can lead to more psycholinguistic-like queries about these emergent languages. For instance, one may ask whether classical `Categorical Perception' effects obtain, whereby messages shifting continuously in the latent space may be interpreted as if they crossed a sharp boundary for interpretation purposes (see \citealp{DamperHarnad-CP} for early discussions in the context of neural architectures).  Future work will similarly explore other measures and alternative game settings for the emergence of compositionality.
 
