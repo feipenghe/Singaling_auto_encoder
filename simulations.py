@@ -20,7 +20,8 @@ ContextSizeType = Union[int, Tuple[int, int]]
 @dataclasses_json.dataclass_json
 @dataclasses.dataclass
 class Simulation:
-    name: Text
+    name1: Text
+    name2: Text
     context_size: ContextSizeType
     object_size: int
     num_functions: int
@@ -98,7 +99,7 @@ def run_simulation(
     for message_size in simulation.message_sizes:
         evaluations_per_trial: List[Dict[Text, Any]] = []
         game_per_trial: List[game.Game] = []
-
+        print(simulation.num_trials)
         for trial in range(simulation.num_trials):
             current_game: game.Game = game.Game(
                 context_size=simulation.context_size,
@@ -128,7 +129,7 @@ def run_simulation(
                 game_per_trial.append(current_game)
             except Exception as e:
                 logging.error(
-                    f"Simulation {simulation.name} crashed:\n{traceback.format_exc()}"
+                    f"Simulation {simulation.name1} crashed:\n{traceback.format_exc()}"
                 )
                 raise e
 
@@ -164,9 +165,9 @@ def run_simulation_grid(
         current_simulation_name = f"{simulation_name}__" + utils.kwargs_to_str(
             simulation_kwargs
         )
-
+        print("simulation name: ", simulation_name)
         simulation = simulation_factory(
-            name=current_simulation_name,
+            name2=current_simulation_name,
             message_sizes=message_sizes,
             num_trials=num_trials,
             **simulation_kwargs,
@@ -175,10 +176,10 @@ def run_simulation_grid(
 
     simulation_grid_kwargs = {"m": message_sizes, "trials": num_trials}
     simulation_grid_kwargs.update(kwargs)
+
     simulation_grid_name = f"{simulation_name}__" + utils.kwargs_to_str(
         simulation_grid_kwargs
     )
-
     pathlib.Path(f"./simulations/{simulation_grid_name}.json").write_text(
         json.dumps(
             [

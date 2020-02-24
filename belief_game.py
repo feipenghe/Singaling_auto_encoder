@@ -81,8 +81,14 @@ def make_belief_update_simulation(
     use_context: bool,
     **kwargs,
 ) -> simulations.Simulation:
+
+
+
+
+
+
     return simulations.Simulation(
-        name=f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_vals(message_sizes)}_sharedcontext{int(shared_context)}",
+        name1=f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_vals(message_sizes)}_sharedcontext{int(shared_context)}",
         context_size=context_size,
         target_function=_make_update_network_function(
             context_size, object_size, num_functions, (64,), use_context
@@ -114,6 +120,6 @@ if __name__ == "__main__":
         num_functions=(2, 4, 6),
         shared_context=(True,),
         use_context=(True,),
-        num_trials=(3,),
+        num_trials=3,
         num_processes=None,
     )

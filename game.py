@@ -575,11 +575,17 @@ class Game(nn.Module):
             ) = self._generate_funcs_contexts_messages(self.num_exemplars)
 
             function_idxs = function_selectors.argmax(dim=1)
+            print("function_idexs: ", function_idxs)
+            print("size: ", len(function_idxs))
+
+
+            # what are those masks for?
             argmin_mask = function_idxs % 2 == 0
             argmax_mask = function_idxs % 2 == 1
             d1_mask = function_idxs // 2 == d1
             d2_mask = function_idxs // 2 == d2
-
+            print("d1 mask: ", d1_mask)
+            print("d2 mask: ", d2_mask)
             d1_argmin_messages = messages[d1_mask * argmin_mask]
             d1_argmax_messages = messages[d1_mask * argmax_mask]
             d2_argmin_messages = messages[d2_mask * argmin_mask]
@@ -588,9 +594,23 @@ class Game(nn.Module):
             target_messages = messages[target_messages_mask]
             target_function_idxs = function_idxs[target_messages_mask]
 
+            print("d1_argmax_messages: ", d1_argmax_messages)
+            print("d1_argmin_messages: ", d1_argmin_messages)
+            print("d2_argmin_messages: ", d2_argmin_messages)
+            # setting:
+            # 100 contexts like below
+            #                  obj1     obj2
+            #  shape(i)        max       min      (either max or min, left setting is just assumption)
+            #  color(j)        min       max      (either max or min, left setting is just assumption)
+
+
+            # both agents see the whole context, and try identify the obj1 (2x1 vector) by the message
+            # message: [    ]
+            # message size is one
+            # expected output:
             inferred_messages = (
                 d1_argmax_messages - d1_argmin_messages + d2_argmin_messages
-            )
+            )  # "message embedding" for argmax i which is shape -> obj1
 
             (
                 messages_loss,
