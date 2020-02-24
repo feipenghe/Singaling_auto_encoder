@@ -579,11 +579,21 @@ class Game(nn.Module):
             print("size: ", len(function_idxs))
 
 
-            # what are those masks for?
-            argmin_mask = function_idxs % 2 == 0
+            # what are those masks for?   Hide information
+
+
+
+            #   [min max min max .... ]
+            argmin_mask = function_idxs % 2 == 0  # 1 False 0 True      0 is the argmin and could cancel other values
             argmax_mask = function_idxs % 2 == 1
-            d1_mask = function_idxs // 2 == d1
-            d2_mask = function_idxs // 2 == d2
+            print("d1: ", d1) # 0
+            print("d2: ", d2) # 1
+            d1_mask = function_idxs // 2 == d1  # 0, 1  first dim
+            d2_mask = function_idxs // 2 == d2  # 2, 3  second dim
+
+
+
+            # d1_mask = d2_mask
             print("d1 mask: ", d1_mask)
             print("d2 mask: ", d2_mask)
             d1_argmin_messages = messages[d1_mask * argmin_mask]
@@ -602,6 +612,8 @@ class Game(nn.Module):
             #                  obj1     obj2
             #  shape(i)        max       min      (either max or min, left setting is just assumption)
             #  color(j)        min       max      (either max or min, left setting is just assumption)
+
+
 
 
             # both agents see the whole context, and try identify the obj1 (2x1 vector) by the message
