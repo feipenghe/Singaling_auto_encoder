@@ -20,8 +20,8 @@ ContextSizeType = Union[int, Tuple[int, int]]
 @dataclasses_json.dataclass_json
 @dataclasses.dataclass
 class Simulation:
-    name1: Text
-    name2: Text
+    experiment_grid_name: Text    # name for saving
+    experiment_name: Text  # game name
     context_size: ContextSizeType
     object_size: int
     num_functions: int
@@ -36,7 +36,7 @@ class Simulation:
     num_trials: int = 1
     mini_batch_size: int = 64
     num_batches: int = 5000
-
+    loss_type: str = "mse"
     epoch_nums: List[int] = dataclasses.field(default_factory=list)
 
     # {Message size -> [Trial x {Evaluation name -> values}]}
@@ -67,17 +67,22 @@ def _save_simulation(simulation: Simulation):
     simulation_copy = dataclasses.replace(
         simulation, target_function=None, context_generator=None
     )
-    simulation_path = pathlib.Path(f"./simulations/{simulation_copy.name}/")
+    simulation_path = pathlib.Path(f"./simulations/{simulation_copy.experiment_name}/")
     simulation_path.mkdir(parents=True, exist_ok=True)
-    simulation_path.joinpath(f"{simulation_copy.name}.json").write_text(
+    simulation_path.joinpath(f"{simulation_copy.experiment_name}.json").write_text(
         simulation_copy.to_json(indent=2)
     )
 
 
 def _save_games(simulation: Simulation, games: Dict[int, List[game.Game]]):
-    pickle.dump(
-        games, _get_simulation_path(simulation.name).joinpath("games.pickle").open("wb")
-    )
+
+
+    print("pretend it has saved the file in simulations.py")
+    # print("bug name: ", simulation.folder_name)
+    # print("bug type: ", type(simulation.folder_name))
+    # pickle.dump(
+    #     games, _get_simulation_path(simulation.folder_name).joinpath("games.pickle").open("wb")
+    # )
 
 
 def load_games(simulation_name: Text) -> Dict[int, List[game.Game]]:
@@ -99,7 +104,8 @@ def run_simulation(
     for message_size in simulation.message_sizes:
         evaluations_per_trial: List[Dict[Text, Any]] = []
         game_per_trial: List[game.Game] = []
-        print(simulation.num_trials)
+        print(simulation.target_function)
+        # exit()
         for trial in range(simulation.num_trials):
             current_game: game.Game = game.Game(
                 context_size=simulation.context_size,
@@ -113,9 +119,13 @@ def run_simulation(
                 target_function=simulation.target_function,
                 context_generator=simulation.context_generator,
                 seed=base_seed + trial,
+                loss_type = simulation.loss_type
             )
-
+            print("simulations: ", simulation)
+            # exit()
             try:
+                # print(simulation.num_batches)
+                # exit()
                 current_game.play(
                     num_batches=simulation.num_batches,
                     mini_batch_size=simulation.mini_batch_size,
@@ -129,7 +139,7 @@ def run_simulation(
                 game_per_trial.append(current_game)
             except Exception as e:
                 logging.error(
-                    f"Simulation {simulation.name1} crashed:\n{traceback.format_exc()}"
+                    f"Simulation {simulation.experiment_grid_name} crashed:\n{traceback.format_exc()}"
                 )
                 raise e
 
@@ -148,6 +158,7 @@ def run_simulation_grid(
     message_sizes: Tuple[int, ...],
     num_trials: int,
     num_processes: Optional[int] = None,
+    num_batches: int = 1,
     **kwargs,
 ):
     keys, values = zip(*kwargs.items())
@@ -161,15 +172,22 @@ def run_simulation_grid(
     simulations = []
     for grid_values in simulations_grid:
         simulation_kwargs = {k: v for k, v in zip(keys, grid_values)}
-
+        simulation_kwargs_for_saving = {k[0]: v for k, v in zip(keys, grid_values)}
         current_simulation_name = f"{simulation_name}__" + utils.kwargs_to_str(
-            simulation_kwargs
+            simulation_kwargs_for_saving
         )
+        # current_simulation_name = f"{simulation_name}_o{object_size}_m{utils.join_vals(message_sizes)}_sharedcontext{int(shared_context)}"
+        # f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_vals(message_sizes)}_sharedcontext{int(shared_context)}
         print("simulation name: ", simulation_name)
+        print("current_simulation_name: ", current_simulation_name)
+        print("simulation_kwargs: ", simulation_kwargs)
+        print("loss type:  ", simulation_kwargs["loss_type"])
+
         simulation = simulation_factory(
-            name2=current_simulation_name,
+            experiment_name=current_simulation_name,
             message_sizes=message_sizes,
             num_trials=num_trials,
+            num_batches = num_batches,
             **simulation_kwargs,
         )
         simulations.append(simulation)

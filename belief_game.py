@@ -66,6 +66,9 @@ def _make_update_network_function(
     )
 
     def func(contexts, function_selectors):
+        # print(func)
+        # print(function_selectors)
+        # exit()
         with torch.no_grad():
             return update_network.forward(contexts, function_selectors)
 
@@ -79,13 +82,9 @@ def make_belief_update_simulation(
     message_sizes: Tuple[int, ...],
     shared_context: bool,
     use_context: bool,
+    num_batches: int,
     **kwargs,
 ) -> simulations.Simulation:
-
-
-
-
-
 
     return simulations.Simulation(
         name1=f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_vals(message_sizes)}_sharedcontext{int(shared_context)}",
@@ -97,6 +96,7 @@ def make_belief_update_simulation(
         num_functions=num_functions,
         shared_context=shared_context,
         message_sizes=message_sizes,
+        num_batches = num_batches,
         **kwargs,
     )
 
@@ -111,15 +111,31 @@ if __name__ == "__main__":
     #     use_context=True,
     # )
 
+    num_trials_test = 1
+
+    # simulations.run_simulation_grid(
+    #     "belief_update",
+    #     make_belief_update_simulation,
+    #     message_sizes=(1, 2, 4, 6, 8, 10, 12),
+    #     context_size=(3, 6, 10),  # number of objects
+    #     object_size=(3, 6, 10),  # number of properties for an object
+    #     num_functions=(2, 4, 6),
+    #     shared_context=(True,),
+    #     use_context=(True,),
+    #     num_trials=num_trials_test,
+    #
+    #     num_processes=None,
+    # )
     simulations.run_simulation_grid(
         "belief_update",
         make_belief_update_simulation,
-        message_sizes=(1, 2, 4, 6, 8, 10, 12),
-        context_size=(2, 6, 10),
-        object_size=(2, 6, 10),
-        num_functions=(2, 4, 6),
+        message_sizes=(6,), # as msg size 1 will causes issue in evaluation
+        context_size=(3,),  # number of objects
+        object_size=(2,),  # number of properties for an object
+        num_functions=(2,),
         shared_context=(True,),
         use_context=(True,),
-        num_trials=3,
+        num_trials=num_trials_test,
+
         num_processes=None,
     )

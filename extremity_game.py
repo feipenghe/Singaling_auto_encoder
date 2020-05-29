@@ -57,23 +57,56 @@ def _strict_context_generator(
 
 
 def _extremity_game_target_function(
-    context: torch.Tensor, function_selectors: torch.Tensor
+    context: torch.Tensor, function_selectors: torch.Tensor, target_type
 ) -> torch.Tensor:
+
+
     func_idxs = function_selectors.argmax(dim=1)
     func_min_or_max = func_idxs % 2
     param_idxs = func_idxs // 2
 
-    min_obj_per_param = context.argmin(dim=1)
+    min_obj_per_param = context.argmin(dim=1)  # index of min property along the row (index of the object)
     max_obj_per_param = context.argmax(dim=1)
 
     targets = []
+    targets2 = []  # previous targets
     for batch in range(context.shape[0]):
+        num_object = context.size()[1]
         if func_min_or_max[batch] == 0:
-            targets.append(context[batch, min_obj_per_param[batch][param_idxs[batch]]])
-        else:
-            targets.append(context[batch, max_obj_per_param[batch][param_idxs[batch]]])
-    return torch.stack(targets)
+            # batch = batch id
+            # min_obj_per_param[batch][param_idxs[batch]]: index of min
+            targets2.append(context[batch, min_obj_per_param[batch][param_idxs[batch]]])
 
+            # MY CODE
+            t_id = torch.zeros(num_object).long()
+            o_id =min_obj_per_param[batch][param_idxs[batch]]  # object id
+            t_id[o_id] = 1  # one-hot tensor
+            targets.append(o_id)
+            # print("min_obj_per_param[batch][param_idxs[batch]]: ", min_obj_per_param[batch][param_idxs[batch]])
+        else:
+            targets2.append(context[batch, max_obj_per_param[batch][param_idxs[batch]]])
+            # MY CODE
+            t_id = torch.zeros(num_object).long()
+            o_id = max_obj_per_param[batch][param_idxs[batch]]  # object id
+
+            t_id[o_id] = 1  # one-hot tensor
+            targets.append(o_id)
+            # print(" max_obj_per_param[batch][param_idxs[batch]]: ", max_obj_per_param[batch][param_idxs[batch]])
+    print("context: ", context)
+    print("targets: ", targets)
+    print("targets2: ", targets2)
+    print(" torch.stack(targets)", torch.stack(targets))
+    print("torch.stack(targets2) : ", torch.stack(targets2) )
+
+    # print("context[batch, max_obj_per_param[batch]: ", context[batch, max_obj_per_param[batch]])
+    # exit()
+    if target_type == "target_properties":
+        return torch.stack(targets2)   #
+    elif target_type == "target_id":  # target_id
+        return torch.stack(targets)
+    else:
+        print("invalid target type")
+        exit()
 
 def make_extremity_game_simulation(
     object_size: int,
@@ -105,7 +138,7 @@ def make_extremity_game_simulation(
         name = "extremity_game__" + utils.kwargs_to_str(name_kwargs)
 
     return simulations.Simulation(
-        name=name,
+        experiment_grid_name=name,
         object_size=object_size,
         num_functions=num_functions,
         context_size=context_size,
