@@ -618,6 +618,8 @@ class Game(nn.Module):
 
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         num_epochs = 1000
+        # TODO
+        # num_epochs = 10
         for epoch in range(num_epochs):
             y_pred = model(train_messages)
             if element_to_predict in ACCURACY_PREDICTIONS:
@@ -904,6 +906,8 @@ class Game(nn.Module):
 
         hidden_size = 64
         num_epochs = 1000
+        # TODO
+        # num_epochs = 10
         mini_batch_size = 64
 
         layers = [
@@ -1104,6 +1108,8 @@ class Game(nn.Module):
 
         hidden_size = 64
         num_epochs = 1000
+        # TODO
+        # num_epochs = 10
         mini_batch_size = 64
 
         layers = [
