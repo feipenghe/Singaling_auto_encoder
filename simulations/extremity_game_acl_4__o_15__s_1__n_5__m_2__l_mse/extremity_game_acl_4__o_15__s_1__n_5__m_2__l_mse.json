@@ -1,0 +1,78 @@
+{
+  "experiment_grid_name": "extremity_game__object_size_15__context_size_30,15__message_sizes_2__strict_context_1__shared_context_1__num_objects_30__experiment_name_extremity_game_acl_4__o_15__s_1__n_5__m_2__l_mse__num_trials_1__num_batches_10__mini_batch_size_2__loss_type_mse",
+  "experiment_name": "extremity_game_acl_4__o_15__s_1__n_5__m_2__l_mse",
+  "context_size": [
+    30,
+    15
+  ],
+  "object_size": 15,
+  "num_functions": 30,
+  "message_sizes": [
+    2
+  ],
+  "target_function": null,
+  "context_generator": null,
+  "use_context": true,
+  "shared_context": true,
+  "nature_includes_function": true,
+  "shuffle_decoder_context": true,
+  "num_trials": 1,
+  "mini_batch_size": 2,
+  "num_batches": 10,
+  "loss_type": "mse",
+  "epoch_nums": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "evaluations": {
+    "2": [
+      {
+        "training_losses": [
+          0.3504101037979126,
+          0.27058154344558716,
+          0.37639907002449036,
+          0.3110409080982208,
+          0.2385951429605484,
+          0.14283712208271027,
+          0.1704481691122055,
+          0.12218038737773895,
+          0.09294532984495163,
+          0.1259639412164688
+        ],
+        "object_prediction_accuracy": 0.031,
+        "detected_num_clusters": 1,
+        "object_prediction_by_cluster_loss": 3.530722381128726e-10,
+        "predictions_by_average_msg_loss": 1.4938249748297494e-08,
+        "predictions_by_average_msg_accuracy": 0.01,
+        "addition_compositionality_mean_message_loss": 0.0014351453199716552,
+        "addition_compositionality_mean_message_cluster_accuracy": 0.0,
+        "addition_compositionality_mean_prediction_loss": 0.10712263786367007,
+        "addition_compositionality_mean_prediction_accuracy": 0.03471428571428572,
+        "analogy_compositionality_net_message_mean_loss": 0.0004364949457036952,
+        "analogy_compositionality_net_message_cluster_mean_accuracy": 0.0,
+        "analogy_compositionality_net_prediction_mean_loss": 0.10689548502365748,
+        "analogy_compositionality_net_prediction_mean_accuracy": 0.03204761904761905,
+        "compositionality_net_message_mean_loss": 0.00038138925835179784,
+        "compositionality_net_message_cluster_mean_accuracy": 0.06666666666666667,
+        "compositionality_net_prediction_mean_loss": 0.10585594326257705,
+        "compositionality_net_prediction_mean_accuracy": 0.032,
+        "functions_from_messages": 0.03333333333333333,
+        "min_max_from_messages": 0.5166666666666667,
+        "dimension_from_messages": 0.06666666666666667,
+        "sanity_from_messages": 0.5133333333333333,
+        "object_by_context_from_messages": 0.27887672185897827,
+        "object_by_decoder_context_from_messages": 0.0,
+        "context_from_messages": 0.31778576970100403,
+        "decoder_context_from_messages": 0.0
+      }
+    ]
+  }
+}
