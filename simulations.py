@@ -77,12 +77,12 @@ def _save_simulation(simulation: Simulation):
 def _save_games(simulation: Simulation, games: Dict[int, List[game.Game]]):
 
 
-    print("pretend it has saved the file in simulations.py")
-    # print("bug name: ", simulation.folder_name)
-    # print("bug type: ", type(simulation.folder_name))
-    # pickle.dump(
-    #     games, _get_simulation_path(simulation.folder_name).joinpath("games.pickle").open("wb")
-    # )
+    # print("pretend it has saved the file in simulations.py")
+    print("bug name: ", simulation.folder_name)
+    print("bug type: ", type(simulation.folder_name))
+    pickle.dump(
+        games, _get_simulation_path(simulation.folder_name).joinpath("games.pickle").open("wb")
+    )
 
 
 def load_games(simulation_name: Text) -> Dict[int, List[game.Game]]:
@@ -104,7 +104,7 @@ def run_simulation(
     for message_size in simulation.message_sizes:
         evaluations_per_trial: List[Dict[Text, Any]] = []
         game_per_trial: List[game.Game] = []
-        print(simulation.target_function)
+        # print(simulation.target_function)
         # exit()
         for trial in range(simulation.num_trials):
             current_game: game.Game = game.Game(
@@ -121,7 +121,7 @@ def run_simulation(
                 seed=base_seed + trial,
                 loss_type = simulation.loss_type
             )
-            print("simulations: ", simulation)
+            # print("simulations: ", simulation)
             # exit()
             try:
                 # print(simulation.num_batches)
@@ -178,10 +178,10 @@ def run_simulation_grid(
         )
         # current_simulation_name = f"{simulation_name}_o{object_size}_m{utils.join_vals(message_sizes)}_sharedcontext{int(shared_context)}"
         # f"belief_update_game_c{context_size}_o{object_size}_f{num_functions}_m{utils.join_vals(message_sizes)}_sharedcontext{int(shared_context)}
-        print("simulation name: ", simulation_name)
-        print("current_simulation_name: ", current_simulation_name)
-        print("simulation_kwargs: ", simulation_kwargs)
-        print("loss type:  ", simulation_kwargs["loss_type"])
+        # print("simulation name: ", simulation_name)
+        # print("current_simulation_name: ", current_simulation_name)
+        # print("simulation_kwargs: ", simulation_kwargs)
+        # print("loss type:  ", simulation_kwargs["loss_type"])
 
         simulation = simulation_factory(
             experiment_name=current_simulation_name,

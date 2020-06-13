@@ -97,7 +97,7 @@ class Game(nn.Module):
         for i, hidden_size in enumerate(self.decoder_hidden_sizes[1:]):
             hidden_shape = (self.decoder_hidden_sizes[i], hidden_size)
             decoder_layer_dimensions.append(hidden_shape)
-        print("decoder_layer_dimension1 ", decoder_layer_dimensions)
+        # print("decoder_layer_dimension1 ", decoder_layer_dimensions)
         # last layer output
 
         if loss_type == "mse":
@@ -208,26 +208,26 @@ class Game(nn.Module):
         target = self._target(decoder_context, function_selectors)
         prediction = self._forward(context, function_selectors, decoder_context)
 
-        print("target function in loss ", self._target)
-        print("target in loss ", target)
-        print("prediction in loss", prediction)
-        print(self.target_function)
+        # print("target function in loss ", self._target)
+        # print("target in loss ", target)
+        # print("prediction in loss", prediction)
+        # print(self.target_function)
 
-        loss = 0
-        try:
-            loss = self.criterion(prediction, target)
-            print("prediction: ", prediction)
-            print("target: ", target)
-            print("loss: ", loss)
-            # exit()
-        except:
-            print("target function in loss ", self._target)
-            print("target in loss ", target)
-            print("prediction in loss", prediction)
-            exit()
-        if loss == 0:
-            print("loss is not defined")
-            exit()
+        loss = self.criterion(prediction, target)
+        # try:
+        #
+        #     print("prediction: ", prediction)
+        #     print("target: ", target)
+        #     print("loss: ", loss)
+        #     # exit()
+        # except:
+        #     print("target function in loss ", self._target)
+        #     print("target in loss ", target)
+        #     print("prediction in loss", prediction)
+        #     exit()
+        # if loss == 0:
+        #     print("loss is not defined")
+        #     exit()
         return loss
 
     def _get_encoder_input_size(self):
@@ -262,8 +262,10 @@ class Game(nn.Module):
             context =  torch.randn(batch_size, *context_shape)
         else:
             context = self.context_generator(batch_size, context_shape)
-        print("context: ", context)
+        # print("context: ", context)
         return context
+
+
 
     def _get_decoder_context(self, batch_size, encoder_context):
         if self.shared_context:
@@ -320,8 +322,8 @@ class Game(nn.Module):
             "average_cluster_message_perception": self._evaluate_average_cluster_message_perception,
             # Compositionality
             "addition_compositionality_loss": self._evaluate_addition_compositionality,
-            # "analogy_compositionality_loss": self._evaluate_analogy_compositionality_network,
-            # "compositionality_loss": self._evaluate_compositionality_network,
+            "analogy_compositionality_loss": self._evaluate_analogy_compositionality_network,
+            "compositionality_loss": self._evaluate_compositionality_network,
         }
 
         evaluation_results = {
@@ -380,8 +382,8 @@ class Game(nn.Module):
         batch_size = contexts.shape[0]
         correct = 0
 
-        print("predicted_objects: ", predicted_objects[0] )
-        print("argmax: ", torch.argmax(predicted_objects[0]) )
+        # print("predicted_objects: ", predicted_objects[0] )
+        # print("argmax: ", torch.argmax(predicted_objects[0]) )
         # exit()
         for b in range(batch_size):
             context = contexts[b]
@@ -401,8 +403,6 @@ class Game(nn.Module):
             else:
                 print("invalid loss type")
                 exit()
-
-            # TODO: target is 1-D singleton, prediction should be a one-hot tensor, change predicted_obj to one-hot
 
 
 
@@ -534,9 +534,10 @@ class Game(nn.Module):
         num_train_samples = math.ceil(batch_size * train_test_ratio)
 
         ACCURACY_PREDICTIONS = ("functions", "min_max", "dimension", "sanity")
+        OBJECT_PREDICTIONS = ("object_by_context", "object_by_decoder_context")
+        if self.loss_type == "cross_entropy":
+            ACCURACY_PREDICTIONS += OBJECT_PREDICTIONS
 
-        # TODO
-        # loss_func = torch.nn.CrossEntropyLoss()
         if element_to_predict in ACCURACY_PREDICTIONS:
             # See https://pytorch.org/docs/stable/nn.html#crossentropyloss
             loss_func = torch.nn.NLLLoss()
@@ -567,14 +568,14 @@ class Game(nn.Module):
             )
         elif element_to_predict == "object_by_context":
             elements = self.target_function(contexts, func_selectors, "target_properties")
-            print("func selectors")
-            print(func_selectors)
-            print("contexts")
-            print(contexts.shape)
-            print(contexts[:10])
-            print("prediction")
-            print(elements.shape)
-            print(elements[:10])
+            # print("func selectors")
+            # print(func_selectors)
+            # print("contexts")
+            # print(contexts.shape)
+            # print(contexts[:10])
+            # print("prediction")
+            # print(elements.shape)
+            # print(elements[:10])
 
             # exit()
         elif element_to_predict == "object_by_decoder_context":
@@ -661,8 +662,8 @@ class Game(nn.Module):
             ) = self._generate_funcs_contexts_messages(self.num_exemplars)
 
             function_idxs = function_selectors.argmax(dim=1)
-            print("function_idexs: ", function_idxs)
-            print("size: ", len(function_idxs))
+            # print("function_idexs: ", function_idxs)
+            # print("size: ", len(function_idxs))
 
 
             # what are those masks for?   Hide information
@@ -672,16 +673,16 @@ class Game(nn.Module):
             #   [min max min max .... ]
             argmin_mask = function_idxs % 2 == 0  # 1 False 0 True      0 is the argmin and could cancel other values
             argmax_mask = function_idxs % 2 == 1
-            print("d1: ", d1) # 0
-            print("d2: ", d2) # 1
+            # print("d1: ", d1) # 0
+            # print("d2: ", d2) # 1
             d1_mask = function_idxs // 2 == d1  # 0, 1  first dim
             d2_mask = function_idxs // 2 == d2  # 2, 3  second dim
 
 
 
             # d1_mask = d2_mask
-            print("d1 mask: ", d1_mask)
-            print("d2 mask: ", d2_mask)
+            # print("d1 mask: ", d1_mask)
+            # print("d2 mask: ", d2_mask)
             d1_argmin_messages = messages[d1_mask * argmin_mask]
             d1_argmax_messages = messages[d1_mask * argmax_mask]
             d2_argmin_messages = messages[d2_mask * argmin_mask]
@@ -690,9 +691,9 @@ class Game(nn.Module):
             target_messages = messages[target_messages_mask]
             target_function_idxs = function_idxs[target_messages_mask]
 
-            print("d1_argmax_messages: ", d1_argmax_messages)
-            print("d1_argmin_messages: ", d1_argmin_messages)
-            print("d2_argmin_messages: ", d2_argmin_messages)
+            # print("d1_argmax_messages: ", d1_argmax_messages)
+            # print("d1_argmin_messages: ", d1_argmin_messages)
+            # print("d2_argmin_messages: ", d2_argmin_messages)
             # setting:
             # 100 contexts like below
             #                  obj1     obj2
@@ -914,7 +915,6 @@ class Game(nn.Module):
         ]
 
         model = torch.nn.Sequential(*layers)
-        # TODO
         loss_func = torch.nn.MSELoss()
 
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -993,10 +993,6 @@ class Game(nn.Module):
 
         loss_func = torch.nn.MSELoss()
 
-
-        # print("inferred messages: ", inferred_messages )
-        # print("target_messages: ", target_messages)
-        # exit()
         messages_loss = loss_func(inferred_messages, target_messages).item()
 
         predicted_clusters = self.clustering_model.predict(inferred_messages)
@@ -1119,9 +1115,7 @@ class Game(nn.Module):
         ]
 
         model = torch.nn.Sequential(*layers)
-        # TODO
         loss_func = torch.nn.MSELoss()
-        # loss_func = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
         for epoch in range(num_epochs):
@@ -1245,11 +1239,11 @@ class Game(nn.Module):
         decoder_context = self._get_decoder_context(batch_size, encoder_context)
 
         target_objects = self._target(decoder_context, function_selectors)
-        print("context: ", encoder_context)
-
-        print("target_objects:  ",  target_objects)
-        print("context shape: ", encoder_context.shape)
-        print("target_objects shape", target_objects.shape)
+        # print("context: ", encoder_context)
+        #
+        # print("target_objects:  ",  target_objects)
+        # print("context shape: ", encoder_context.shape)
+        # print("target_objects shape", target_objects.shape)
         # exit()
         predictions_by_average_msg = self._predict_by_message(
             average_messages, decoder_context
@@ -1338,3 +1332,4 @@ class Game(nn.Module):
         logging.info(f"Loss for unseen message/information: {object_prediction_loss}")
 
         return object_prediction_loss
+

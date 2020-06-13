@@ -92,14 +92,12 @@ def _extremity_game_target_function(
             t_id[o_id] = 1  # one-hot tensor
             targets.append(o_id)
             # print(" max_obj_per_param[batch][param_idxs[batch]]: ", max_obj_per_param[batch][param_idxs[batch]])
-    print("context: ", context)
-    print("targets: ", targets)
-    print("targets2: ", targets2)
-    print(" torch.stack(targets)", torch.stack(targets))
-    print("torch.stack(targets2) : ", torch.stack(targets2) )
+    # print("context: ", context)
+    # print("targets: ", targets)
+    # print("targets2: ", targets2)
+    # print(" torch.stack(targets)", torch.stack(targets))
+    # print("torch.stack(targets2) : ", torch.stack(targets2) )
 
-    # print("context[batch, max_obj_per_param[batch]: ", context[batch, max_obj_per_param[batch]])
-    # exit()
     if target_type == "target_properties":
         return torch.stack(targets2)   #
     elif target_type == "target_id":  # target_id
