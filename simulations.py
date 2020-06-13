@@ -78,7 +78,7 @@ def _save_games(simulation: Simulation, games: Dict[int, List[game.Game]]):
 
 
     # print("pretend it has saved the file in simulations.py")
-    print("bug name: ", simulation.folder_name)
+    print("bug name: ", simulation.experiment_name)
     print("bug type: ", type(simulation.experiment_name))
     pickle.dump(
         games, _get_simulation_path(simulation.experiment_name).joinpath("games.pickle").open("wb")
