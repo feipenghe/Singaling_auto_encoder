@@ -9,11 +9,11 @@ if __name__ == "__main__":
     # mini_batch_size_test = (2, )
     mini_batch_size_test = (128, )  # number of target to predict, number of mini-context in context
 
-    num_objects_test = (5, )
+    # num_objects_test = (5, )
     num_objects_test = (5, 10, 15)
     # num_processes_test = 12  # 12
 
-    num_processes_test = 24
+    num_processes_test = 4
 
     simulations.run_simulation_grid(
         "extremity_game_acl_4",
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         # num_trials= 1,
         num_trials=10,
         # object_size = (3, 4, 5, 10, 15)
-        object_size=(4, ),  # number of properties
+        object_size=(10, 15),  # number of properties
         strict_context=(True, False),
         shared_context=(True, False),
         # strict_context=(True,),
