@@ -1,0 +1,62 @@
+{
+  "experiment_grid_name": "extremity_game__object_size_5__context_size_10,5__message_sizes_2__strict_context_1__shared_context_1__num_objects_10__experiment_name_extremity_game_acl_4__object_size_5__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_cross_entropy__num_trials_1__num_batches_10__mini_batch_size_2__loss_type_cross_entropy",
+  "experiment_name": "extremity_game_acl_4__object_size_5__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_cross_entropy",
+  "context_size": [
+    10,
+    5
+  ],
+  "object_size": 5,
+  "num_functions": 10,
+  "message_sizes": [
+    2
+  ],
+  "target_function": null,
+  "context_generator": null,
+  "use_context": true,
+  "shared_context": true,
+  "nature_includes_function": true,
+  "shuffle_decoder_context": true,
+  "num_trials": 1,
+  "mini_batch_size": 2,
+  "num_batches": 10,
+  "loss_type": "cross_entropy",
+  "epoch_nums": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "evaluations": {
+    "2": [
+      {
+        "training_losses": [
+          2.3200626373291016,
+          2.180758476257324,
+          2.3219189643859863,
+          2.3892691135406494,
+          2.224064350128174,
+          2.14646053314209,
+          2.284679412841797,
+          2.114452362060547,
+          2.3405227661132812,
+          2.254791736602783
+        ],
+        "object_prediction_accuracy": 0.103,
+        "functions_from_messages": 0.2733333333333333,
+        "min_max_from_messages": 0.6266666666666667,
+        "dimension_from_messages": 0.35,
+        "sanity_from_messages": 0.48333333333333334,
+        "object_by_context_from_messages": 0.2733333333333333,
+        "object_by_decoder_context_from_messages": 0.0,
+        "context_from_messages": 0.05115513503551483,
+        "decoder_context_from_messages": 0.0
+      }
+    ]
+  }
+}

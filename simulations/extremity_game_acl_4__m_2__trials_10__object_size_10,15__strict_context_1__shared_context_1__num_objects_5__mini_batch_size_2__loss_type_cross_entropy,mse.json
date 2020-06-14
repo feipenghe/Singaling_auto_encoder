@@ -1,0 +1,102 @@
+[
+  {
+    "experiment_grid_name": "extremity_game__object_size_10__context_size_20,10__message_sizes_2__strict_context_1__shared_context_1__num_objects_20__experiment_name_extremity_game_acl_4__object_size_10__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_cross_entropy__num_trials_10__num_batches_10__mini_batch_size_2__loss_type_cross_entropy",
+    "experiment_name": "extremity_game_acl_4__object_size_10__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_cross_entropy",
+    "context_size": [
+      20,
+      10
+    ],
+    "object_size": 10,
+    "num_functions": 20,
+    "message_sizes": [
+      2
+    ],
+    "target_function": null,
+    "context_generator": null,
+    "use_context": true,
+    "shared_context": true,
+    "nature_includes_function": true,
+    "shuffle_decoder_context": true,
+    "num_trials": 10,
+    "mini_batch_size": 2,
+    "num_batches": 10,
+    "loss_type": "cross_entropy",
+    "epoch_nums": [],
+    "evaluations": {}
+  },
+  {
+    "experiment_grid_name": "extremity_game__object_size_10__context_size_20,10__message_sizes_2__strict_context_1__shared_context_1__num_objects_20__experiment_name_extremity_game_acl_4__object_size_10__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_mse__num_trials_10__num_batches_10__mini_batch_size_2__loss_type_mse",
+    "experiment_name": "extremity_game_acl_4__object_size_10__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_mse",
+    "context_size": [
+      20,
+      10
+    ],
+    "object_size": 10,
+    "num_functions": 20,
+    "message_sizes": [
+      2
+    ],
+    "target_function": null,
+    "context_generator": null,
+    "use_context": true,
+    "shared_context": true,
+    "nature_includes_function": true,
+    "shuffle_decoder_context": true,
+    "num_trials": 10,
+    "mini_batch_size": 2,
+    "num_batches": 10,
+    "loss_type": "mse",
+    "epoch_nums": [],
+    "evaluations": {}
+  },
+  {
+    "experiment_grid_name": "extremity_game__object_size_15__context_size_30,15__message_sizes_2__strict_context_1__shared_context_1__num_objects_30__experiment_name_extremity_game_acl_4__object_size_15__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_cross_entropy__num_trials_10__num_batches_10__mini_batch_size_2__loss_type_cross_entropy",
+    "experiment_name": "extremity_game_acl_4__object_size_15__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_cross_entropy",
+    "context_size": [
+      30,
+      15
+    ],
+    "object_size": 15,
+    "num_functions": 30,
+    "message_sizes": [
+      2
+    ],
+    "target_function": null,
+    "context_generator": null,
+    "use_context": true,
+    "shared_context": true,
+    "nature_includes_function": true,
+    "shuffle_decoder_context": true,
+    "num_trials": 10,
+    "mini_batch_size": 2,
+    "num_batches": 10,
+    "loss_type": "cross_entropy",
+    "epoch_nums": [],
+    "evaluations": {}
+  },
+  {
+    "experiment_grid_name": "extremity_game__object_size_15__context_size_30,15__message_sizes_2__strict_context_1__shared_context_1__num_objects_30__experiment_name_extremity_game_acl_4__object_size_15__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_mse__num_trials_10__num_batches_10__mini_batch_size_2__loss_type_mse",
+    "experiment_name": "extremity_game_acl_4__object_size_15__strict_context_1__shared_context_1__num_objects_5__mini_batch_size_2__loss_type_mse",
+    "context_size": [
+      30,
+      15
+    ],
+    "object_size": 15,
+    "num_functions": 30,
+    "message_sizes": [
+      2
+    ],
+    "target_function": null,
+    "context_generator": null,
+    "use_context": true,
+    "shared_context": true,
+    "nature_includes_function": true,
+    "shuffle_decoder_context": true,
+    "num_trials": 10,
+    "mini_batch_size": 2,
+    "num_batches": 10,
+    "loss_type": "mse",
+    "epoch_nums": [],
+    "evaluations": {}
+  }
+]
