@@ -172,7 +172,7 @@ def run_simulation_grid(
     simulations = []
     for grid_values in simulations_grid:
         simulation_kwargs = {k: v for k, v in zip(keys, grid_values)}
-        simulation_kwargs_for_saving = {k[0]: v for k, v in zip(keys, grid_values)}
+        simulation_kwargs_for_saving = {k: v for k, v in zip(keys, grid_values)}
         current_simulation_name = f"{simulation_name}__" + utils.kwargs_to_str(
             simulation_kwargs_for_saving
         )

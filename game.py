@@ -318,7 +318,7 @@ class Game(nn.Module):
             # # Unsupervised clustering
             "detected_num_clusters": self._detect_num_clusters,
             "object_prediction_by_cluster_loss": self._evaluate_object_prediction_by_cluster,
-            # "clusterization_f_score": self._evaluate_clusterization_f_score,
+             "clusterization_f_score": self._evaluate_clusterization_f_score,
             "average_cluster_message_perception": self._evaluate_average_cluster_message_perception,
             # Compositionality
             "addition_compositionality_loss": self._evaluate_addition_compositionality,
